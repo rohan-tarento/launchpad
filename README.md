@@ -9,6 +9,17 @@ MDC / rules repos stay **private** and are **pinned** per app repo via harness c
 
 ---
 
+## Quick mental model
+
+> **Launchpad = Terraform for engineering orgs + a playbook for how humans and agents deliver software together.**
+
+- **CLI** — provisions forge infrastructure from YAML (repos, gitflow, board, backlog)
+- **Playbook** — how PRDs become specs → board issues → merged PRs
+- **Tenant meta** — client-specific product truth (`prd/`, `work/`, factory config)
+- **Harness pins** — frozen agent constitution + skills in every app repo
+
+---
+
 ## What we're actually doing
 
 Most teams bolt AI on top of ad-hoc repos. Launchpad inverts that:
