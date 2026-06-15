@@ -1,0 +1,60 @@
+apiVersion: launchpad/v1
+kind: HarnessConfig
+
+org: kd_diet_coke
+
+default_workspace: ..
+
+profiles:
+  python-backend:
+    rules:
+      repo: your-org/diet_coke-rules
+      url: https://github.com/your-org/diet_coke-rules.git
+      ref: v1.0.0
+      path: .cursor/rules
+    agent_skills:
+      repo: drivestream-lab/prayog-skills
+      url: https://github.com/drivestream-lab/prayog-skills.git
+      ref: v0.2.0
+      skills:
+        - spec-feasibility-review
+        - spec-implementation-plan
+        - pre-implement
+        - verify
+      skill_paths:
+        spec-feasibility-review: skills/development/spec-feasibility-review/SKILL.md
+        spec-implementation-plan: skills/development/spec-implementation-plan/SKILL.md
+        pre-implement: skills/development/pre-implement/SKILL.md
+        verify: skills/development/verify/SKILL.md
+      install_path: .agents/skills
+      lock_file: skills-lock.json
+    agents_template: templates/AGENTS.python.md
+    pin_template: templates/harness-pin.yaml
+
+  frontend:
+    rules:
+      repo: your-org/diet_coke-rules
+      url: https://github.com/your-org/diet_coke-rules.git
+      ref: v1.0.0
+      path: .cursor/rules
+    agent_skills:
+      repo: drivestream-lab/prayog-skills
+      url: https://github.com/drivestream-lab/prayog-skills.git
+      ref: v0.2.0
+      skills:
+        - spec-feasibility-review
+        - spec-implementation-plan
+        - pre-implement
+        - verify
+      install_path: .agents/skills
+      lock_file: skills-lock.json
+    agents_template: templates/AGENTS.python.md
+    pin_template: templates/harness-pin.yaml
+
+repos:
+  diet_coke-api:
+    profile: python-backend
+  diet_coke-registry:
+    profile: python-backend
+  diet_coke-bff:
+    profile: frontend

@@ -104,7 +104,8 @@ export LAUNCHPAD_TENANT_ROOT=~/Workspace/handson/launchpad/examples/tenant-meta
 ./bin/launchpad doctor
 ```
 
-See [docs/local-dev.md](docs/local-dev.md) for testing against your own `<client>-meta`.
+See [docs/local-dev.md](docs/local-dev.md) for testing against your own `<client>-meta`.  
+**New client setup:** [docs/setup-guide.md](docs/setup-guide.md) · [docs/new-client.md](docs/new-client.md)
 
 ---
 
@@ -121,7 +122,8 @@ Each private tenant repo holds **real product content** (not shipped in launchpa
 | `wiki/` | Client wiki |
 | `scripts/config/` | Org factory YAML (gitflow policy is **authoritative** here) |
 
-Empty skeleton: [`examples/tenant-meta/`](examples/tenant-meta/).
+Empty skeleton: [`examples/tenant-meta/`](examples/tenant-meta/).  
+Worked example: [`examples/diet_coke-meta/`](examples/diet_coke-meta/) (org `kd_diet_coke`, repos `diet_coke-api`, `diet_coke-bff`, `diet_coke-registry`).
 
 ---
 
@@ -159,6 +161,8 @@ Full command reference: [playbook/python-automation.md](playbook/python-automati
 
 | Document | Purpose |
 |----------|---------|
+| [docs/setup-guide.md](docs/setup-guide.md) | **End-to-end setup** — hypothetical diet_coke project (`kd_diet_coke`) |
+| [docs/new-client.md](docs/new-client.md) | Onboarding checklist |
 | [playbook/sdd-workflow.md](playbook/sdd-workflow.md) | SDD truth hierarchy and PR discipline |
 | [playbook/spec-layout.md](playbook/spec-layout.md) | Mandatory `docs/specification/` layout |
 | [playbook/harness-pins.md](playbook/harness-pins.md) | Harness pin format and sync workflow |

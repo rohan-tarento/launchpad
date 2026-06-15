@@ -1,61 +1,46 @@
 # New client onboarding
 
-Workspace root: `/Users/kumar.deepak1/Workspace/handson/`
+Short checklist. Full walkthrough: **[setup-guide.md](setup-guide.md)** (hypothetical **diet_coke** project, org `kd_diet_coke`).
 
-## 1. Create tenant meta repo
+## Checklist
 
-```bash
-cp -r ~/Workspace/handson/launchpad/examples/tenant-meta \
-      ~/Workspace/handson/<client>/<client>-meta
-cd ~/Workspace/handson/<client>/<client>-meta
-git init && git remote add origin <forge>/<client>-meta.git
+1. **Install Launchpad** (once) — clone or `pipx install`; see [local-dev.md](local-dev.md)
+2. **Create `<client>-meta`** — copy [`examples/diet_coke-meta/`](../examples/diet_coke-meta/) or [`examples/tenant-meta/`](../examples/tenant-meta/)
+3. **Push meta** to your forge (meta is **not** created by `bootstrap-org`)
+4. **Edit `scripts/config/*-<org>.yaml`** — org, repos, gitflow, harness, project
+5. **`.env`** — fine-grained `GITHUB_TOKEN` (never commit)
+6. **`launchpad doctor`**
+7. **`launchpad setup-platform --config scripts/config/platform-<org>.yaml --apply`**
+8. **`launchpad verify-platform`**
+9. Clone app repos as siblings → **`launchpad sync-harness --repo <app> --apply`**
+10. First INIT: PRD → `work/INIT-*.yaml` → **`launchpad seed-work --apply`**
+
+## Workspace layout
+
+```text
+~/Workspace/handson/
+├── launchpad/              # kit (separate repo — do not copy into meta)
+└── diet_coke/              # example client folder
+    ├── diet_coke-meta/     # tenant
+    └── diet_coke-api/      # app repos (siblings)
 ```
 
-## 2. Configure forge
-
-Edit `scripts/config/*.yaml`:
-
-- Replace `example-org` with your GitHub org or GitLab group
-- Set repo list in `org-example.yaml` → rename to `org-<org>.yaml`
-- Align `platform-`, `project-`, `gitflow-`, `verify-platform-`, `harness-` filenames with your org slug
-
-## 3. Harness pins
-
-In `harness-<org>.yaml`:
-
-- `rules.repo` → **your private** `*-rules` repository
-- `agent_skills.repo` → `drivestream-lab/prayog-skills` @ pinned tag
-
-## 4. Secrets (per laptop)
+## Per-laptop env (optional)
 
 ```bash
 mkdir -p ~/.config/launchpad/env.d
-cat > ~/.config/launchpad/env.d/<client>.env <<'EOF'
+cat > ~/.config/launchpad/env.d/diet_coke.env <<'EOF'
 export GITHUB_TOKEN=github_pat_...
-export LAUNCHPAD_TENANT_ROOT=$HOME/Workspace/handson/<client>/<client>-meta
+export LAUNCHPAD_TENANT_ROOT=$HOME/Workspace/handson/diet_coke/diet_coke-meta
 EOF
-source ~/.config/launchpad/env.d/<client>.env
+source ~/.config/launchpad/env.d/diet_coke.env
 ```
 
-## 5. Bootstrap
+## Docs
 
-```bash
-launchpad doctor
-launchpad setup --dry-run
-launchpad setup --apply
-```
-
-## 6. First INIT
-
-1. Draft PRD in `prd/INIT-….md` (prayog-skills in meta workspace)
-2. Generate `work/INIT-….yaml`
-3. `launchpad seed-work --config work/INIT-….yaml --apply`
-4. Publish wiki: fill `wiki/` then push to forge wiki
-
-## 7. App repos
-
-```bash
-launchpad sync-harness --repo <app> --apply
-```
-
-Clone app repos as siblings under `~/Workspace/handson/<client>/`.
+| Guide | Content |
+|-------|---------|
+| [setup-guide.md](setup-guide.md) | End-to-end diet_coke example |
+| [local-dev.md](local-dev.md) | Source / smoke testing |
+| [multi-laptop.md](multi-laptop.md) | Multiple machines |
+| [playbook/bootstrap-prerequisites.md](../playbook/bootstrap-prerequisites.md) | PAT scopes |

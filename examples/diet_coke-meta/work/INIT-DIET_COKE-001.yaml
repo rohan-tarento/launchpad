@@ -1,0 +1,61 @@
+# INIT-DIET_COKE-001 — example work manifest (hypothetical)
+#   launchpad seed-work --config work/INIT-DIET_COKE-001.yaml --dry-run
+
+apiVersion: launchpad/v1
+kind: WorkManifest
+
+initiative: INIT-DIET_COKE-001
+
+metadata:
+  title: INIT-DIET_COKE-001 — diet_coke platform bootstrap
+  summary: |
+    Example INIT for setup-guide documentation. Replace with a real PRD-backed manifest.
+  playbook:
+    - prd/INIT-DIET_COKE-001.md
+    - playbook/pm-dev-handoff.md
+
+target:
+  org: kd_diet_coke
+  project: Diet Coke Engineering
+
+defaults:
+  initiative: INIT-DIET_COKE-001
+  parent: EPIC
+  cr: N/A
+  as_built: "no"
+  qa_manifest: N/A
+  status: Backlog
+  labels:
+    - initiative
+
+epic:
+  id: EPIC
+  repo: diet_coke-meta
+  title: "[feature] INIT-DIET_COKE-001 — diet_coke platform slice"
+  codebase: diet_coke-meta
+  spec_path: prd/INIT-DIET_COKE-001.md
+  verify_command: N/A
+  labels:
+    - initiative
+  body: |
+    ## Objective
+
+    Bootstrap diet_coke engineering board — API, BFF, registry.
+
+work:
+  - id: W0
+    kind: issue
+    repo: diet_coke-api
+    title: "[W0] API repo structure + CI skeleton"
+    depends_on: []
+    codebase: diet_coke-api
+    spec_path: docs/specification/product/INIT-DIET_COKE-001.md
+    verify_command: make check && make test
+  - id: W1
+    kind: issue
+    repo: diet_coke-bff
+    title: "[W1] BFF scaffold + auth proxy"
+    depends_on: [W0]
+    codebase: diet_coke-bff
+    spec_path: docs/specification/product/INIT-DIET_COKE-001.md
+    verify_command: make check && make test
