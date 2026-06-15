@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 from typing import Any
 
+from launchpad.gitflow_policy import normalize_gitflow_policy
+
 import yaml
 
 
@@ -188,13 +190,17 @@ def load_gitflow_config(path: Path | str) -> dict[str, Any]:
                 }
             )
     options = dict(cfg.get("options") or {})
+    policy = normalize_gitflow_policy(cfg)
     return {
         "org": cfg.get("org", "") or (org_cfg or {}).get("org", ""),
         "teams": teams,
         "profiles": profiles,
         "repos": repos,
         "repo_names": [r["name"] for r in repos],
-        "options": options,
+        "options": policy["options"],
+        "branch_naming": policy["branch_naming"],
+        "protection": policy["protection"],
+        "merge_policy": policy["merge_policy"],
         "org_config": org_cfg,
         "path": str(path),
     }

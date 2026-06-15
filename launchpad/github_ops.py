@@ -89,7 +89,7 @@ def team_exists(client: GitHubClient, org: str, slug: str) -> bool:
 
 def init_empty_repo_main(client: GitHubClient, org: str, repo: str) -> None:
     content = (
-        f"# {repo}\n\nInitialized by tenant meta `./scripts/meta setup-gitflow --init-empty`.\n"
+        f"# {repo}\n\nInitialized by tenant meta `launchpad setup-gitflow` (options.init_empty in gitflow YAML).\n"
     )
     b64 = base64.b64encode(content.encode()).decode()
     if client.dry_run:
@@ -162,7 +162,9 @@ def apply_branch_protection(
     team_slug: str,
     *,
     require_ci: bool,
+    protection: dict[str, Any] | None = None,
 ) -> None:
+    prot = protection or {}
     checks: dict[str, Any] | None = None
     if require_ci:
         if branch == "main":
@@ -178,16 +180,18 @@ def apply_branch_protection(
 
     payload: dict[str, Any] = {
         "required_status_checks": checks,
-        "enforce_admins": True,
+        "enforce_admins": bool(prot.get("enforce_admins", True)),
         "required_pull_request_reviews": {
-            "dismiss_stale_reviews": True,
-            "require_code_owner_reviews": False,
-            "required_approving_review_count": 1,
+            "dismiss_stale_reviews": bool(prot.get("dismiss_stale_reviews", True)),
+            "require_code_owner_reviews": bool(prot.get("require_code_owner_reviews", False)),
+            "required_approving_review_count": int(
+                prot.get("required_approving_review_count", 1)
+            ),
         },
         "restrictions": {"users": [], "teams": [team_slug], "apps": []},
         "required_linear_history": False,
-        "allow_force_pushes": False,
-        "allow_deletions": False,
+        "allow_force_pushes": bool(prot.get("allow_force_pushes", False)),
+        "allow_deletions": bool(prot.get("allow_deletions", False)),
         "block_creations": False,
     }
 
@@ -206,7 +210,13 @@ def apply_branch_protection(
     )
 
 
-def apply_branch_naming_ruleset(client: GitHubClient, org: str, repo: str) -> None:
+def apply_branch_naming_ruleset(
+    client: GitHubClient,
+    org: str,
+    repo: str,
+    *,
+    ref_excludes: list[str] | None = None,
+) -> None:
     ruleset_name = "branch-naming-standard"
     existing_id: int | None = None
     try:
@@ -219,6 +229,7 @@ def apply_branch_naming_ruleset(client: GitHubClient, org: str, repo: str) -> No
     except Exception:
         pass
 
+    excludes = ref_excludes if ref_excludes is not None else BRANCH_NAME_REF_EXCLUDES
     payload = {
         "name": ruleset_name,
         "target": "branch",
@@ -226,7 +237,7 @@ def apply_branch_naming_ruleset(client: GitHubClient, org: str, repo: str) -> No
         "conditions": {
             "ref_name": {
                 "include": ["~ALL"],
-                "exclude": BRANCH_NAME_REF_EXCLUDES,
+                "exclude": excludes,
             }
         },
         "rules": [

@@ -29,7 +29,6 @@ def _run_step(client: GitHubClient, step: dict[str, Any], *, org: str, platform_
     command = step.get("command", "")
     step_id = step.get("id", command)
     cfg = _resolve_step_config(step, platform_path) if step.get("config") else None
-    options = dict(step.get("options") or {})
 
     print(f"=== platform step: {step_id} ({command}) ===")
     if cfg:
@@ -45,12 +44,7 @@ def _run_step(client: GitHubClient, step: dict[str, Any], *, org: str, platform_
             client,
             org=org,
             config_path=cfg,
-            require_ci=options.get("require_ci"),
-            branch_naming=options.get("branch_naming"),
-            with_templates=options.get("with_templates"),
-            init_empty=options.get("init_empty"),
-            workspace=options.get("workspace"),
-            filter_repo=options.get("repo", ""),
+            filter_repo=str(step.get("repo") or ""),
         )
     elif command == "bootstrap-project":
         project.run(client, org=org, config_path=cfg)

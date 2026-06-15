@@ -68,11 +68,6 @@ def cmd_setup_gitflow(args: argparse.Namespace) -> int:
             org=args.org or "",
             config_path=config,
             filter_repo=args.repo or "",
-            workspace=args.workspace,
-            with_templates=args.with_templates if args.with_templates else None,
-            init_empty=args.init_empty if args.init_empty else None,
-            require_ci=args.require_ci if args.require_ci else None,
-            branch_naming=args.branch_naming if args.branch_naming else None,
         )
     return 0
 
@@ -198,15 +193,10 @@ def build_parser() -> argparse.ArgumentParser:
     _add_apply_flags(p)
     p.set_defaults(func=cmd_bootstrap_teams)
 
-    p = sub.add_parser("setup-gitflow", help="develop branch + protection + optional rulesets")
+    p = sub.add_parser("setup-gitflow", help="develop branch + protection (policy from gitflow YAML)")
     p.add_argument("--org", default="")
     p.add_argument("--config", default="")
-    p.add_argument("--repo", default="")
-    p.add_argument("--workspace", type=Path, default=None)
-    p.add_argument("--with-templates", action="store_true")
-    p.add_argument("--init-empty", action="store_true")
-    p.add_argument("--require-ci", action="store_true")
-    p.add_argument("--branch-naming", action="store_true")
+    p.add_argument("--repo", default="", help="limit to one repo (debug re-run only)")
     _add_apply_flags(p)
     p.set_defaults(func=cmd_setup_gitflow)
 

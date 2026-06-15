@@ -1,5 +1,5 @@
-# Enforce: pull requests to main must come from develop (or release/hotfix branches).
-# Required check name: policy-merge-source (enable via ./scripts/meta setup-gitflow --require-ci)
+# Reference template — launchpad setup-gitflow generates repo workflows from gitflow YAML.
+# Required check name: policy-merge-source (enable via options.require_ci in gitflow YAML)
 
 name: policy-merge-source
 

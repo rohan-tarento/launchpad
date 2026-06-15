@@ -1,5 +1,5 @@
 # Placeholder CI — replace with repo-specific lint/test (Python, Next.js, etc.).
-# Job name must stay "ci" for ./scripts/meta setup-gitflow --require-ci.
+# Job name must stay "ci" for options.require_ci in gitflow YAML.
 
 name: ci
 

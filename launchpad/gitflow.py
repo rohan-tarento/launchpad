@@ -4,8 +4,14 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
+from typing import Any
 
 from launchpad.config import load_gitflow_config, tenant_root
+from launchpad.gitflow_policy import (
+    branch_naming_ref_excludes,
+    render_policy_branch_name_workflow,
+    render_policy_merge_source_workflow,
+)
 from launchpad.github_client import GitHubClient
 from launchpad.github_ops import (
     apply_branch_naming_ruleset,
@@ -28,7 +34,10 @@ def _ensure_main(client: GitHubClient, org: str, repo: str, *, init_empty: bool)
     if init_empty:
         init_empty_repo_main(client, org, repo)
         return True
-    print(f"[skip] {org}/{repo} has no commits on main — push content or use --init-empty")
+    print(
+        f"[skip] {org}/{repo} has no commits on main — push content or set options.init_empty: true "
+        "in gitflow YAML"
+    )
     return False
 
 
@@ -51,23 +60,30 @@ def _ensure_develop(client: GitHubClient, org: str, repo: str) -> None:
     )
 
 
+def _resolve_workspace(options: dict[str, Any]) -> Path:
+    raw = str(options.get("workspace") or "").strip()
+    if raw:
+        return Path(raw).expanduser().resolve()
+    return tenant_root().parent
+
+
 def _install_templates_local(
     org: str,
     repo: str,
     profile: str,
     *,
     with_templates: bool,
-    workspace: Path | None,
+    workspace: Path,
+    branch_naming: dict[str, Any],
+    merge_policy: dict[str, Any],
     dry_run: bool,
 ) -> None:
     if not with_templates:
         return
 
-    root = tenant_root()
-    ws = workspace or (root.parent)
-    dest = ws / repo
+    dest = workspace / repo
     if not (dest / ".git").is_dir():
-        print(f"[skip] templates: no local clone at {dest} (use --workspace)")
+        print(f"[skip] templates: no local clone at {dest} (set options.workspace in gitflow YAML)")
         return
 
     print(f"[templates] {dest} (profile={profile})")
@@ -75,17 +91,18 @@ def _install_templates_local(
         print(f"[dry-run] copy workflows + CODEOWNERS → {dest}")
         return
 
+    root = tenant_root()
     workflows = dest / ".github" / "workflows"
     workflows.mkdir(parents=True, exist_ok=True)
 
     shutil.copy(root / "templates/github/workflows/ci.yml", workflows / "ci.yml")
-    shutil.copy(
-        root / "templates/github/workflows/policy-merge-source.yml",
-        workflows / "policy-merge-source.yml",
+    (workflows / "policy-merge-source.yml").write_text(
+        render_policy_merge_source_workflow(merge_policy),
+        encoding="utf-8",
     )
-    shutil.copy(
-        root / "templates/github/workflows/policy-branch-name.yml",
-        workflows / "policy-branch-name.yml",
+    (workflows / "policy-branch-name.yml").write_text(
+        render_policy_branch_name_workflow(branch_naming),
+        encoding="utf-8",
     )
 
     codeowners_map = {
@@ -118,11 +135,6 @@ def run(
     org: str = "",
     config_path: Path | str | None = None,
     filter_repo: str = "",
-    workspace: Path | str | None = None,
-    with_templates: bool | None = None,
-    init_empty: bool | None = None,
-    require_ci: bool | None = None,
-    branch_naming: bool | None = None,
 ) -> None:
     from launchpad.config import resolve_config_path
 
@@ -135,28 +147,34 @@ def run(
     org = org or cfg["org"]
     teams: dict[str, str] = cfg["teams"]
     team_release = teams.get("release_managers", "release-managers")
-    opts = cfg.get("options") or {}
-    require_ci = bool(opts.get("require_ci", False)) if require_ci is None else require_ci
-    branch_naming = bool(opts.get("branch_naming", False)) if branch_naming is None else branch_naming
-    with_templates = bool(opts.get("with_templates", False)) if with_templates is None else with_templates
-    init_empty = bool(opts.get("init_empty", False)) if init_empty is None else init_empty
+    options = cfg["options"]
+    branch_naming = cfg["branch_naming"]
+    protection = cfg["protection"]
+    merge_policy = cfg["merge_policy"]
+
+    require_ci = bool(options.get("require_ci", False))
+    apply_naming_ruleset = bool(options.get("branch_naming", False))
+    with_templates = bool(options.get("with_templates", False))
+    init_empty = bool(options.get("init_empty", False))
+    workspace = _resolve_workspace(options)
 
     print("=== setup-gitflow ===")
     print(f"Org: {org}")
     print(f"Config: {cfg_path}")
     print(f"Authenticated as: {client.whoami()}")
-    print(f"require-ci: {require_ci}")
-    print(f"with-templates: {with_templates}")
-    print(f"init-empty: {init_empty}")
-    print(f"branch-naming: {branch_naming}")
+    print(f"options.require_ci: {require_ci}")
+    print(f"options.with_templates: {with_templates}")
+    print(f"options.init_empty: {init_empty}")
+    print(f"options.branch_naming: {apply_naming_ruleset}")
+    print(f"branch_naming.mode: {branch_naming.get('mode')}")
+    print(f"options.workspace: {workspace}")
     print("")
 
     if not client.org_ok(org):
         raise RuntimeError(f"cannot access org {org}")
 
-    ws_path = Path(workspace) if workspace else None
-
     team_pm = teams.get("pm", "pm-team")
+    ref_excludes = branch_naming_ref_excludes(branch_naming)
 
     for repo_entry in cfg["repos"]:
         repo = repo_entry["name"]
@@ -181,31 +199,43 @@ def run(
 
         _ensure_develop(client, org, repo)
 
-        # Push: PM on all repos; profile dev team on app repos; meta = PM only (+ release)
         push_teams: list[str] = [team_pm, team_release]
         if develop_key != "pm":
             push_teams.insert(0, profile_team)
         for team_slug in dict.fromkeys(push_teams):
             grant_team_repo_push(client, org, repo, team_slug)
 
-        # Read on meta for dev teams (PRD access without write)
         for read_key in repo_entry.get("grant_read") or []:
             grant_team_repo_read(client, org, repo, team_slug_from_key(teams, read_key))
 
         apply_branch_protection(
-            client, org, repo, "develop", develop_team, require_ci=require_ci
+            client,
+            org,
+            repo,
+            "develop",
+            develop_team,
+            require_ci=require_ci,
+            protection=protection.get("develop"),
         )
         apply_branch_protection(
-            client, org, repo, "main", team_release, require_ci=require_ci
+            client,
+            org,
+            repo,
+            "main",
+            team_release,
+            require_ci=require_ci,
+            protection=protection.get("main"),
         )
-        if branch_naming:
-            apply_branch_naming_ruleset(client, org, repo)
+        if apply_naming_ruleset:
+            apply_branch_naming_ruleset(client, org, repo, ref_excludes=ref_excludes)
         _install_templates_local(
             org,
             repo,
             profile,
             with_templates=with_templates,
-            workspace=ws_path,
+            workspace=workspace,
+            branch_naming=branch_naming,
+            merge_policy=merge_policy,
             dry_run=client.dry_run,
         )
         print("")
@@ -214,6 +244,12 @@ def run(
     if client.dry_run:
         print("Re-run with --apply to execute.")
     if not require_ci:
-        print("Tip: after merging workflow PRs, re-run with --require-ci")
+        print(
+            "Tip: after merging workflow PRs, set options.require_ci: true in gitflow YAML "
+            "and re-run setup-gitflow --apply"
+        )
     if not with_templates:
-        print("Tip: use --with-templates --workspace <parent-of-clones> to install workflows locally")
+        print(
+            "Tip: set options.with_templates: true and options.workspace in gitflow YAML "
+            "to install workflows into local clones"
+        )

@@ -2,16 +2,18 @@
 
 Policy docs describe intent. **These mechanisms enforce it.**
 
+**Single source of truth:** `scripts/config/gitflow-<org>.yaml` (`kind: GitflowConfig`). Branch naming, merge policy, PR rules, CI gates, and automation switches live there — **not** on the CLI.
+
 ## Layers
 
 | Layer | Enforces |
 |-------|----------|
 | **Teams** | Who may push to `develop` vs `main`; PM handoff — [pm-dev-handoff.md](pm-dev-handoff.md) |
-| **Branch protection** | PR required, reviews, optional CI checks |
-| **Ruleset** `branch-naming-standard` | Only allowed branch name patterns (blocks push) |
-| **`policy-branch-name` workflow** | PRs to `develop` must use allowed prefixes + slug |
-| **`policy-merge-source` workflow** | `main` accepts only `develop` (or `release/*`, `hotfix/*`) |
-| **`ci` workflow** | Lint/test; required when `--require-ci` used |
+| **Branch protection** | PR required, reviews (`protection` in gitflow YAML) |
+| **Ruleset** `branch-naming-standard` | Only allowed branch name patterns (when `options.branch_naming: true`) |
+| **`policy-branch-name` workflow** | PRs to `develop` — generated from `branch_naming` + `merge_policy.develop` |
+| **`policy-merge-source` workflow** | `main` accepts only allowed sources — generated from `merge_policy.main` |
+| **`ci` workflow** | Lint/test; required when `options.require_ci: true` |
 | **CODEOWNERS** | Review routing per profile |
 | **QA manifest** | Deploy mix (not git) — see [qa-mixed-deploy.md](qa-mixed-deploy.md) |
 
@@ -23,49 +25,57 @@ All bootstrap uses **`launchpad`** + `GITHUB_TOKEN`. See [python-automation.md](
 |---------|---------|
 | `bootstrap-org` | Ensure repos + labels exist |
 | `bootstrap-teams` | Create org teams |
-| `setup-gitflow` | `develop` branch + branch protection + optional templates |
+| `setup-gitflow` | Reconcile GitHub to `gitflow-*.yaml` |
 | `bootstrap-project` | Project board + fields |
 
-All support `--dry-run` (default) and `--apply`.
+```bash
+launchpad setup-gitflow --config scripts/config/gitflow-<org>.yaml --apply
+```
+
+Only `--config`, `--apply` / `--dry-run`, `--org`, and `--repo` (debug filter) are valid. Policy is never passed on the command line.
+
+## Gitflow YAML sections
+
+| Section | Controls |
+|---------|----------|
+| `teams` / `repos` | Who merges `develop` per repo; `main` → `release-managers` |
+| `options.require_ci` | Require `ci`, `policy-branch-name` (develop), `policy-merge-source` (main) |
+| `options.branch_naming` | Create `branch-naming-standard` ruleset |
+| `options.with_templates` | Copy workflows + CODEOWNERS into local clones under `options.workspace` |
+| `options.init_empty` | Initial commit on `main` for empty repos |
+| `branch_naming` | Prefixes, `mode` (standard/strict), exceptions |
+| `protection` | Review count, stale dismiss, enforce admins per branch |
+| `merge_policy` | Allowed PR sources to `develop` / `main` (workflow content) |
 
 ## Branch protection (via API)
 
 `setup-gitflow` uses GitHub **branch protection** API on existing repos:
 
-- **`main`**: PR required, 1 approval, enforce admins, **push restricted to `release-managers`**
-- **`develop` (app repos)**: PR required, 1 approval, enforce admins, **push restricted to profile dev team** (`backend-devs`, etc.); **`pm-team` has repo Write for handoff branches but is not in merge restrictions**
-- **`develop` (<client>-meta)**: PR required, 1 approval, enforce admins, **push restricted to `pm-team`**; dev teams get **read (pull)** on meta for playbook access
+- **`main`**: PR required, reviews from `protection.main`, **push restricted to `release-managers`**
+- **`develop` (app repos)**: PR required, **push restricted to profile dev team**; **`pm-team` has Write for handoff branches but is not in merge restrictions**
+- **`develop` (<client>-meta)**: **push restricted to `pm-team`**; dev teams get **read (pull)** on meta
 
-Status checks are **off by default** until workflows exist. Re-run:
-
-```bash
-launchpad setup-gitflow --config scripts/config/gitflow-example-org.yaml --apply --require-ci
-```
-
-With `--require-ci`:
+When `options.require_ci: true` (after workflow PRs are merged):
 
 - **`develop`**: `ci`, `policy-branch-name`
 - **`main`**: `ci`, `policy-merge-source`
 
+Typical rollout in gitflow YAML:
+
+1. Bootstrap with `require_ci: false`, `with_templates: true` — merge workflow PRs
+2. Set `require_ci: true` — re-run `setup-gitflow --apply`
+
 ### Branch naming ruleset
 
-```bash
-launchpad setup-gitflow --config scripts/config/gitflow-example-org.yaml --apply --branch-naming
-```
+Set `options.branch_naming: true` in gitflow YAML. Creates repo ruleset `branch-naming-standard` using `branch_naming.allowed_prefixes` and `exceptions`. Idempotent — safe to re-run.
 
-Creates repo ruleset `branch-naming-standard` (`creation` + `update` rules; allowed prefixes excluded). Idempotent — safe to re-run.
+## Workflow templates
 
-`branch_name_pattern` alone does **not** block pushes; the ruleset must restrict creation/update on refs outside the allow list.
-
-## Workflow: block wrong merges to main
-
-[`templates/github/workflows/policy-merge-source.yml`](../templates/github/workflows/policy-merge-source.yml)
-
-Required on `main` when using `--require-ci`.
+When `options.with_templates: true`, Launchpad generates `policy-branch-name.yml` and `policy-merge-source.yml` from gitflow YAML (not hand-edited). Base reference: [`templates/github/workflows/`](../templates/github/workflows/).
 
 ## After setup
 
 1. Add people to teams in GitHub → Organization → Teams  
 2. Run `ci` on a test PR to `develop`  
-3. Re-run `launchpad setup-gitflow --require-ci`  
+3. Set `options.require_ci: true` in gitflow YAML and re-run `setup-gitflow --apply`  
 4. Open test PR `develop` → `main`; confirm only **release-managers** can merge  

@@ -1,5 +1,5 @@
-# Enforce branch naming on PRs to develop.
-# Required check name: policy-branch-name (enable via ./scripts/meta setup-gitflow --require-ci)
+# Reference template — launchpad setup-gitflow generates repo workflows from gitflow YAML.
+# Required check name: policy-branch-name (enable via options.require_ci in gitflow YAML)
 #
 # Complements GitHub ruleset branch_name_pattern (blocks push of bad names).
 # See playbook/branching-policy.md

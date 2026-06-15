@@ -58,7 +58,7 @@ Choose **All repositories** in `example-org`, or select at least **<client>-meta
 | Permission | Access | Why |
 |------------|--------|-----|
 | **Administration** | Read and write | Branch protection, rulesets |
-| **Contents** | Read and write | `--init-empty` initial commit on `main` |
+| **Contents** | Read and write | `options.init_empty: true` in gitflow YAML |
 | **Metadata** | Read | Required by GitHub API |
 | **Issues** | Read and write | Create labels |
 
@@ -154,7 +154,7 @@ launchpad seed-work --config work/INIT-<id>.yaml --apply
 # Individual steps (debug / partial re-run)
 launchpad bootstrap-org --config scripts/config/org-example-org.yaml --apply
 launchpad bootstrap-teams --config scripts/config/org-example-org.yaml --apply
-launchpad setup-gitflow --config scripts/config/gitflow-example-org.yaml --apply
+launchpad setup-gitflow --config scripts/config/gitflow-example.yaml --apply
 launchpad bootstrap-project --config scripts/config/project-example-org.yaml --apply
 ```
 
@@ -163,7 +163,7 @@ launchpad bootstrap-project --config scripts/config/project-example-org.yaml --a
 | File | `kind` | Used by |
 |------|--------|---------|
 | `org-{org}.yaml` | `OrgConfig` | `bootstrap-org`, `bootstrap-teams` |
-| `gitflow-{org}.yaml` | `GitflowConfig` | `setup-gitflow` |
+| `gitflow-{org}.yaml` | `GitflowConfig` | `setup-gitflow` — **authoritative** for branch naming, merge policy, PR rules, CI gates |
 | `project-{org}.yaml` | `ProjectConfig` | `bootstrap-project`, `seed-work` (fields) |
 | `platform-{org}.yaml` | `PlatformManifest` | `setup-platform` |
 | `verify-platform-{org}.yaml` | `VerifyManifest` | `verify-platform` |
@@ -185,7 +185,7 @@ See [harness-pins.md](harness-pins.md).
 
 Help: `launchpad --help` or `launchpad setup-platform --help`.
 
-Do **not** pass `--init-empty` on repos that already have history.
+Do **not** set `options.init_empty: true` on repos that already have history.
 
 ---
 
@@ -193,8 +193,8 @@ Do **not** pass `--init-empty` on repos that already have history.
 
 - Add people to teams (GitHub UI)
 - Push **<client>-meta** to `main`
-- Open / merge workflow PRs (`--with-templates` only copies files to local clones)
-- Re-run `--require-ci` after workflows exist on `develop` / `main`
+- Open / merge workflow PRs (`options.with_templates: true` copies files to local clones)
+- Set `options.require_ci: true` in gitflow YAML after workflows exist, then re-run `setup-gitflow --apply`
 
 ---
 

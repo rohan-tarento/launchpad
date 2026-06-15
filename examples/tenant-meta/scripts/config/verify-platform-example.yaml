@@ -5,7 +5,7 @@ org: example-org
 
 includes:
   org: scripts/config/org-example-org.yaml
-  gitflow: scripts/config/gitflow-example-org.yaml
+  gitflow: scripts/config/gitflow-example.yaml
   project: scripts/config/project-example-org.yaml
 
 checks:

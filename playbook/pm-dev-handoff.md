@@ -187,7 +187,7 @@ launchpad setup-gitflow --org example-org --apply
 
 Add people to **`pm-team`** and dev teams in GitHub → Organization → Teams.
 
-Config: [`scripts/config/gitflow-example-org.yaml`](../scripts/config/gitflow-example-org.yaml)
+Config: [`examples/tenant-meta/scripts/config/gitflow-example.yaml`](../examples/tenant-meta/scripts/config/gitflow-example.yaml)
 
 ---
 

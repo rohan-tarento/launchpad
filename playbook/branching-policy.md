@@ -60,8 +60,8 @@ Random branch names (`my-test`, `john-fix`, `tmp`) are **not** allowed.
 
 | Layer | Blocks | Script |
 |-------|--------|--------|
-| **Ruleset** `branch-naming-standard` | Push/create of badly named branches (`creation` + `update`) | `launchpad setup-gitflow --branch-naming` |
-| **Workflow** `policy-branch-name` | PR to `develop` with bad head ref | template + `--require-ci` |
+| **Ruleset** `branch-naming-standard` | Push/create of badly named branches (`creation` + `update`) | `options.branch_naming: true` in gitflow YAML |
+| **Workflow** `policy-branch-name` | PR to `develop` with bad head ref | `options.with_templates` + `options.require_ci` in gitflow YAML |
 | **Workflow** `policy-merge-source` | PR to `main` not from `develop` / `release/*` / `hotfix/*` | already deployed |
 
 Docs alone are not enough — use ruleset + workflows together.

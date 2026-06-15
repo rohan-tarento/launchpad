@@ -15,7 +15,7 @@ setup:
 
   - id: gitflow
     command: setup-gitflow
-    config: scripts/config/gitflow-example-org.yaml
+    config: scripts/config/gitflow-example.yaml
 
   - id: board
     command: bootstrap-project
