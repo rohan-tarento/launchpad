@@ -1,0 +1,40 @@
+# Example config for production Example (example-org).
+# Copy to gitflow-example-org.yaml and adjust before:
+#   ./scripts/meta setup-gitflow --org example-org --config scripts/config/gitflow-example-org.yaml --apply
+
+org: example-org
+
+teams:
+  release_managers: release-managers
+  backend: backend-devs
+  frontend: frontend-devs
+  platform: platform-devs
+  data_platform: data-platform-devs
+
+profiles:
+  backend: backend
+  frontend: frontend
+  platform: platform
+  data_platform: data_platform
+
+repos:
+  example-api:
+    profile: backend
+  example-registry:
+    profile: backend
+  setu:
+    profile: backend
+  kavach:
+    profile: backend
+  pravah:
+    profile: backend
+  airforge:
+    profile: backend
+  example-bff:
+    profile: frontend
+  example-platform:
+    profile: data_platform
+  pramana:
+    profile: data_platform
+  # iac:
+  #   profile: platform

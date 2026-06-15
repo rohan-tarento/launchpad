@@ -1,0 +1,41 @@
+apiVersion: launchpad/v1
+kind: VerifyManifest
+
+org: example-org
+
+includes:
+  org: scripts/config/org-example-org.yaml
+  gitflow: scripts/config/gitflow-example-org.yaml
+  project: scripts/config/project-example-org.yaml
+
+checks:
+  - id: org.access
+    phase: scopes
+    required: true
+  - id: projects.api
+    phase: scopes
+    required: true
+  - id: issue_types.api
+    phase: scopes
+    required: true
+    when: project.issue_types_required
+  - id: repos.present
+    phase: applied
+    required: true
+    repos_from: org.repos
+  - id: teams.present
+    phase: applied
+    required: true
+    teams_from: org.teams
+  - id: gitflow.develop
+    phase: applied
+    required: true
+    repos_from: gitflow.repos
+  - id: project.present
+    phase: applied
+    required: true
+    title_from: project.project_title
+  - id: issue_types.present
+    phase: applied
+    required: true
+    names_from: project.issue_types_ensure

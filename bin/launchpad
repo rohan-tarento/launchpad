@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Run launchpad from source (no pip install).
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export PYTHONPATH="${ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
+VENV="${ROOT}/.venv"
+if [[ -x "${VENV}/bin/python" ]]; then
+  exec "${VENV}/bin/python" -m launchpad "$@"
+fi
+exec python3 -m launchpad "$@"

@@ -1,0 +1,27 @@
+# Copy to org-<org>.yaml and edit for your forge
+
+apiVersion: launchpad/v1
+kind: OrgConfig
+
+org: example-org
+
+forge:
+  type: github
+
+repos:
+  - name: example-api
+    private: true
+    description: "example-api"
+  - name: example-registry
+    private: true
+    description: "example-registry"
+
+labels:
+  - name: initiative
+    color: "1E3A8A"
+    description: "Platform epic / INIT work"
+
+teams:
+  - slug: release-managers
+    description: "Release managers — only merge to main"
+    privacy: closed

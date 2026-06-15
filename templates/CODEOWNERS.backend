@@ -1,0 +1,6 @@
+# Backend profile — copy to app repo root as CODEOWNERS
+
+/docs/specification/ @example-org/backend-devs
+/src/ @example-org/backend-devs
+/tests/ @example-org/backend-devs
+* @example-org/backend-devs

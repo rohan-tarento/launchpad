@@ -1,0 +1,24 @@
+name: ci
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e .
+      - name: CLI smoke
+        run: |
+          launchpad --help
+          launchpad doctor || true
+      - name: Import package
+        run: python -c "from launchpad import __version__; print(__version__)"

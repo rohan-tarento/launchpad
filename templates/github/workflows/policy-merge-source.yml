@@ -1,0 +1,26 @@
+# Enforce: pull requests to main must come from develop (or release/hotfix branches).
+# Required check name: policy-merge-source (enable via ./scripts/meta setup-gitflow --require-ci)
+
+name: policy-merge-source
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  policy-merge-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: main only from develop, release/*, or hotfix/*
+        env:
+          HEAD: ${{ github.head_ref }}
+        run: |
+          case "$HEAD" in
+            develop) echo "OK: develop → main"; exit 0 ;;
+            release/*) echo "OK: release → main"; exit 0 ;;
+            hotfix/*) echo "OK: hotfix → main"; exit 0 ;;
+            *)
+              echo "PR to main must be from develop, release/*, or hotfix/* — not: $HEAD"
+              exit 1
+              ;;
+          esac

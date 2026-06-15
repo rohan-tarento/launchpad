@@ -1,0 +1,6 @@
+# Frontend / BFF profile — copy to app repo root as CODEOWNERS
+
+/app/ @example-org/frontend-devs
+/lib/ @example-org/frontend-devs
+/docs/specification/ @example-org/frontend-devs
+* @example-org/frontend-devs

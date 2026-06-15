@@ -1,0 +1,56 @@
+# Enforce branch naming on PRs to develop.
+# Required check name: policy-branch-name (enable via ./scripts/meta setup-gitflow --require-ci)
+#
+# Complements GitHub ruleset branch_name_pattern (blocks push of bad names).
+# See playbook/branching-policy.md
+
+name: policy-branch-name
+
+on:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  policy-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: validate head branch name
+        env:
+          HEAD: ${{ github.head_ref }}
+          NAMING_MODE: standard
+        run: |
+          set -euo pipefail
+
+          # Long-lived branches must not be used as PR sources
+          case "$HEAD" in
+            main|develop)
+              echo "Cannot open PR to develop from $HEAD"
+              exit 1
+              ;;
+          esac
+
+          # Allowed prefixes; slug may include initiative id (BOOTSTRAP-001-...)
+          ALLOWED_REGEX='^(feature|fix|hotfix|release|chore)/[a-zA-Z0-9][a-zA-Z0-9._-]+$'
+          if [[ ! "$HEAD" =~ $ALLOWED_REGEX ]]; then
+            echo "Branch name must match: <prefix>/<slug>"
+            echo "  Allowed prefixes: feature, fix, hotfix, release, chore"
+            echo "  Slug: letters, digits, . _ - (e.g. BOOTSTRAP-001-jwt-login)"
+            echo "  Got: $HEAD"
+            exit 1
+          fi
+
+          # Strict mode (set NAMING_MODE=strict in repo/org variable later for prod)
+          if [[ "$NAMING_MODE" == "strict" ]]; then
+            case "$HEAD" in
+              feature/*)
+                if [[ ! "$HEAD" =~ ^feature/INIT-[A-Z]+-[A-Z0-9]+-[0-9]{3}-[a-z0-9][a-z0-9._-]+$ ]]; then
+                  echo "Strict mode: feature branches must be feature/INIT-<AREA>-<NNN>-<slug>"
+                  echo "  Example: feature/BOOTSTRAP-001-example-api-jwt"
+                  echo "  Got: $HEAD"
+                  exit 1
+                fi
+                ;;
+            esac
+          fi
+
+          echo "OK: $HEAD"

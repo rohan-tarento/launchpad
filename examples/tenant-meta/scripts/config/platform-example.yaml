@@ -1,0 +1,25 @@
+apiVersion: launchpad/v1
+kind: PlatformManifest
+
+org: example-org
+name: platform baseline
+
+setup:
+  - id: repos
+    command: bootstrap-org
+    config: scripts/config/org-example-org.yaml
+
+  - id: teams
+    command: bootstrap-teams
+    config: scripts/config/org-example-org.yaml
+
+  - id: gitflow
+    command: setup-gitflow
+    config: scripts/config/gitflow-example-org.yaml
+
+  - id: board
+    command: bootstrap-project
+    config: scripts/config/project-example-org.yaml
+
+verify:
+  config: scripts/config/verify-platform-example-org.yaml
