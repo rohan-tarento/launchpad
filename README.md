@@ -122,8 +122,7 @@ Each private tenant repo holds **real product content** (not shipped in launchpa
 | `wiki/` | Client wiki |
 | `scripts/config/` | Org factory YAML (gitflow policy is **authoritative** here) |
 
-Empty skeleton: [`examples/tenant-meta/`](examples/tenant-meta/).  
-Worked example: [`examples/diet_coke-meta/`](examples/diet_coke-meta/) (org `kd_diet_coke`, repos `diet_coke-api`, `diet_coke-bff`, `diet_coke-registry`).
+Tenant skeleton: [`examples/tenant-meta/`](examples/tenant-meta/) — copy per client; rename `example-org` / `example-api` in YAML to your forge.
 
 ---
 
@@ -161,7 +160,7 @@ Full command reference: [playbook/python-automation.md](playbook/python-automati
 
 | Document | Purpose |
 |----------|---------|
-| [docs/setup-guide.md](docs/setup-guide.md) | **End-to-end setup** — hypothetical diet_coke project (`kd_diet_coke`) |
+| [docs/setup-guide.md](docs/setup-guide.md) | **End-to-end setup** — copy `tenant-meta`, customize for your org |
 | [docs/new-client.md](docs/new-client.md) | Onboarding checklist |
 | [playbook/sdd-workflow.md](playbook/sdd-workflow.md) | SDD truth hierarchy and PR discipline |
 | [playbook/spec-layout.md](playbook/spec-layout.md) | Mandatory `docs/specification/` layout |
@@ -175,7 +174,7 @@ Full command reference: [playbook/python-automation.md](playbook/python-automati
 
 ## Schema
 
-Config and manifests use `apiVersion: launchpad/v1`. Legacy `meta.meta/v1` manifests are accepted during migration.
+All config and manifests use **`apiVersion: launchpad/v1`**. See [docs/SCHEMA.md](docs/SCHEMA.md) for `kind` types.
 
 ---
 

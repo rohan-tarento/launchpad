@@ -27,22 +27,10 @@ repos:
     profile: backend
   example-registry:
     profile: backend
-  setu:
-    profile: backend
-  kavach:
-    profile: backend
-  pravah:
-    profile: backend
-  airforge:
-    profile: backend
-  example-bff:
-    profile: frontend
-  example-platform:
-    profile: data_platform
-  pramana:
-    profile: data_platform
-  # iac:
-  #   profile: platform
+  # example-bff:
+  #   profile: frontend
+  # example-platform:
+  #   profile: data_platform
 
 # Automation switches (all policy — edit here, not on the CLI)
 options:

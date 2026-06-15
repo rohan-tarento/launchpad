@@ -46,13 +46,13 @@ Base URL: `tenant <client>-meta/blob/develop/`
 
 ---
 
-## Page 3 — Python dev (Parichay)
+## Page 3 — Python dev (example-api)
 
-**Wiki title:** Example — Python dev (Parichay)
+**Wiki title:** Example — Python dev
 
 | Link | Path |
 |------|------|
-| Parichay agent guide | `example-org/example-api` → `AGENTS.md` |
+| Agent guide | `example-org/example-api` → `AGENTS.md` |
 | Integration tests | `example-org/example-api` → `tests/README.md` |
 | SDD workflow | `playbook/sdd-workflow.md` |
 | Skills matrix | `playbook/skills-matrix.md` |

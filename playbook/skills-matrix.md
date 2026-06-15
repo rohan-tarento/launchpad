@@ -91,7 +91,7 @@ board issue → /pre-implement → implement → /verify → PR → develop
 
 Harness: `launchpad sync-harness --repo <name> --apply` — see [harness-pins.md](harness-pins.md).
 
-Retro closure epics (e.g. **INIT-PARICHAY-001**): optional `seed-work` from `work/INIT-*.yaml` → dev skills only.
+Retro closure epics (e.g. **INIT-EXAMPLE-001**): optional `seed-work` from `work/INIT-*.yaml` → dev skills only.
 
 ---
 

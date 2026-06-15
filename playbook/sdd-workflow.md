@@ -41,7 +41,7 @@ Every PR uses the template block:
 - Spec paths touched
 - Verify command run
 
-## Parichay reading order (pilot)
+## Example reading order (backend app)
 
 | Step | Path |
 |------|------|

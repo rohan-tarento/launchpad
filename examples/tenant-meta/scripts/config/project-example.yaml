@@ -26,7 +26,7 @@ fields:
       - example-bff
       - iac-local
       - iac
-      # add example-platform, setu, etc. as repos join the model
+      # add example-platform, example-bff, etc. as repos join the model
   - name: Spec path
     type: TEXT
   - name: Verify command

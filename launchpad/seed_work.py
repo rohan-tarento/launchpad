@@ -582,7 +582,7 @@ def run(
         except VerifyError as exc:
             raise RuntimeError(
                 f"platform not ready for backlog: {exc}. "
-                f"Run: ./scripts/meta setup-platform --apply"
+                f"Run: launchpad setup-platform --apply"
             ) from exc
         print("")
 

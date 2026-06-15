@@ -30,8 +30,8 @@ Copy-paste starters for Cursor Agent. **Use the section for your role** — work
 **Branch:** `chore/INIT-<id>-prd` from `develop`
 
 ```text
-Initiative: INIT-DS-002 (proposed)
-Branch: chore/INIT-DS-002-prd from develop
+Initiative: INIT-EXAMPLE-002 (proposed)
+Branch: chore/INIT-EXAMPLE-002-prd from develop
 
 /prd
 
@@ -44,7 +44,7 @@ Outline:
 - Repos affected: example-api, example-registry, …
 - Constraints: (timeline, out of scope)
 
-Output: prd/INIT-DS-002.md only. No application code.
+Output: prd/INIT-EXAMPLE-002.md only. No application code.
 ```
 
 ---
@@ -57,13 +57,13 @@ Output: prd/INIT-DS-002.md only. No application code.
 ```text
 /validate-requirements
 
-Initiative: INIT-DS-002
-Primary doc: prd/INIT-DS-002-outline.md
+Initiative: INIT-EXAMPLE-002
+Primary doc: prd/INIT-EXAMPLE-002-outline.md
 Also read:
 - example-api docs/specification/product/04-cross-service-contracts.md
 - (other affected repo product specs)
 
-Report: prd/reports/Validation-Report-INIT-DS-002.md
+Report: prd/reports/Validation-Report-INIT-EXAMPLE-002.md
 Read-only unless I ask to apply fixes.
 ```
 
@@ -76,10 +76,10 @@ Read-only unless I ask to apply fixes.
 ```text
 /review-findings
 
-Report: prd/reports/Validation-Report-INIT-DS-002.md
-Primary doc: prd/INIT-DS-002.md
+Report: prd/reports/Validation-Report-INIT-EXAMPLE-002.md
+Primary doc: prd/INIT-EXAMPLE-002.md
 
-Output: prd/reports/Resolution-INIT-DS-002.md with decisions per finding.
+Output: prd/reports/Resolution-INIT-EXAMPLE-002.md with decisions per finding.
 Do not edit PRD until I confirm resolution.
 ```
 
@@ -92,8 +92,8 @@ Do not edit PRD until I confirm resolution.
 ```text
 /update-documents
 
-Resolution: prd/reports/Resolution-INIT-DS-002.md
-Update: prd/INIT-DS-002.md
+Resolution: prd/reports/Resolution-INIT-EXAMPLE-002.md
+Update: prd/INIT-EXAMPLE-002.md
 Also align: (list spec paths on open PR branches if any)
 ```
 
@@ -105,20 +105,20 @@ Also align: (list spec paths on open PR branches if any)
 **Branch:** `chore/INIT-<id>-spec-handoff-<repo>` from app `develop`
 
 ```text
-Initiative: INIT-DS-002
+Initiative: INIT-EXAMPLE-002
 Repo: example-api
-Branch: chore/INIT-DS-002-spec-handoff-example-api from develop
+Branch: chore/INIT-EXAMPLE-002-spec-handoff-example-api from develop
 
 Start from <client>-meta/templates/INIT-spec-handoff.md (wave IDs must match PRD §4.0).
 Gate: playbook/spec-layout.md § INIT spec handoff.
 
 Update docs/specification/product/ only:
-- product/INIT-DS-002.md (slice for this repo)
+- product/INIT-EXAMPLE-002.md (slice for this repo)
 - 02-api-contract.md deltas if routes change
 - 04-cross-service-contracts.md if integrations change
 
 No src/. No tests/.
-Link meta PRD: prd/INIT-DS-002.md (meta PR branch or develop after Phase 2 merge).
+Link meta PRD: prd/INIT-EXAMPLE-002.md (meta PR branch or develop after Phase 2 merge).
 
 Then run /validate-requirements on this branch against that PRD.
 ```
@@ -132,9 +132,9 @@ Then run /validate-requirements on this branch against that PRD.
 ```text
 /validate-requirements
 
-Initiative: INIT-DS-002
-Primary doc: prd/INIT-DS-002.md on <client>-meta develop
-Spec draft: product/INIT-DS-002.md on handoff branch (or pasted path)
+Initiative: INIT-EXAMPLE-002
+Primary doc: prd/INIT-EXAMPLE-002.md on <client>-meta develop
+Spec draft: product/INIT-EXAMPLE-002.md on handoff branch (or pasted path)
 Check: repo spec slice matches PRD.
 Report only — list gaps; do not merge spec PR until clean.
 ```
@@ -151,51 +151,51 @@ Report only — list gaps; do not merge spec PR until clean.
 ```text
 /generate-work-manifest
 
-PRD: prd/INIT-DS-002.md on <client>-meta develop
+PRD: prd/INIT-EXAMPLE-002.md on <client>-meta develop
 Read delivery_model from PRD §4.0 (playbook/delivery-model.md).
 If delivery_model: waves — one manifest task per wave ID (W0, W1, …, PRE* from merged spec).
 If delivery_model: repo-slice — one task per repo (v1).
 
 Merged spec paths:
-- example-registry docs/specification/product/INIT-DS-002.md
+- example-registry docs/specification/product/INIT-EXAMPLE-002.md
 - (other repos)
 
-Output: work/INIT-DS-002.yaml
-apiVersion: meta.meta/v1 for example-org (see work/INIT-PARICHAY-001.yaml).
+Output: work/INIT-EXAMPLE-002.yaml
+apiVersion: launchpad/v1 (see work/INIT-EXAMPLE-001.yaml).
 Include dry-run seed command; do not run seed-work unless I ask.
 ```
 
 **Terminal (PM):** after manifest PR merges:
 
 ```bash
-launchpad seed-work --config work/INIT-DS-002.yaml --dry-run
-launchpad seed-work --config work/INIT-DS-002.yaml --apply
+launchpad seed-work --config work/INIT-EXAMPLE-002.yaml --dry-run
+launchpad seed-work --config work/INIT-EXAMPLE-002.yaml --apply
 ```
 
 ---
 
 ## 8 — INIT retro — spec handoff (chore closure)
 
-**When:** PRD signed off; retro closure like **INIT-PARICHAY-001** (implementation already on `develop`).  
+**When:** PRD signed off; retro closure like **INIT-EXAMPLE-001** (implementation already on `develop`).  
 **One PR** per repo — dev merges; **no `src/`**.
 
 ```text
-Initiative: INIT-PARICHAY-001
+Initiative: INIT-EXAMPLE-001
 Repo: example-api
-Branch: chore/INIT-PARICHAY-001-spec-handoff-example-api from develop
+Branch: chore/INIT-EXAMPLE-001-spec-handoff-example-api from develop
 
-Add docs/specification/product/INIT-PARICHAY-001.md:
-- Status Closed / retro; link to <client>-meta prd/INIT-PARICHAY-001.md
+Add docs/specification/product/INIT-EXAMPLE-001.md:
+- Status Closed / retro; link to <client>-meta prd/INIT-EXAMPLE-001.md
 - As-delivered wave table (#27–#32) + dev read order
 - Delete superseded product quality spec; update README + tests/README header
 
 No src/. No tests/.
 
-PR title: [spec] handoff — INIT-PARICHAY-001 — example-api
+PR title: [spec] handoff — INIT-EXAMPLE-001 — example-api
 Label: spec
 ```
 
-**PRD:** [prd/INIT-PARICHAY-001.md](../prd/INIT-PARICHAY-001.md)
+**PRD:** [prd/INIT-EXAMPLE-001.md](../prd/INIT-EXAMPLE-001.md)
 
 ---
 
@@ -215,7 +215,7 @@ Label: spec
 **One issue = one PR.**
 
 ```text
-Initiative: INIT-DS-002
+Initiative: INIT-EXAMPLE-002
 Issue: #42 — [feature] Short title from GitHub
 Repo: example-api (this workspace)
 
@@ -223,7 +223,7 @@ Repo: example-api (this workspace)
 
 Read:
 - AGENTS.md
-- docs/specification/product/INIT-DS-002.md
+- docs/specification/product/INIT-EXAMPLE-002.md
 - docs/specification/product/02-api-contract.md (if routes)
 - docs/specification/as-built/implementation-status.md
 
@@ -233,7 +233,7 @@ Execute one slice:
 3. Update as-built/implementation-status.md in same PR
 4. Run board Verify command
 
-Branch: feature/INIT-DS-002-<slug>
+Branch: feature/INIT-EXAMPLE-002-<slug>
 Verify: (paste from board — e.g. make check && poetry run python -m tests.verify.verify_all)
 
 Do not edit .cursor/rules/ submodule.
@@ -241,27 +241,27 @@ Do not edit .cursor/rules/ submodule.
 
 ---
 
-## D2 — Test maintenance chore (post–INIT-PARICHAY-001)
+## D2 — Test maintenance chore (post–INIT-EXAMPLE-001)
 
-**When:** Future test work on example-api after **INIT-PARICHAY-001** retro closure. Waves W1–W5 are **done** — do not re-run.  
-**Handoff SSOT:** `docs/specification/product/INIT-PARICHAY-001.md`
+**When:** Future test work on example-api after **INIT-EXAMPLE-001** retro closure. Waves W1–W5 are **done** — do not re-run.  
+**Handoff SSOT:** `docs/specification/product/INIT-EXAMPLE-001.md`
 
 ```text
-Initiative: INIT-PARICHAY-001
+Initiative: INIT-EXAMPLE-001
 Issue: #<n> — [chore] <test area>
 Repo: example-api (this workspace)
 
 /pre-implement
 
 Read:
-- docs/specification/product/INIT-PARICHAY-001.md (dev read order)
+- docs/specification/product/INIT-EXAMPLE-001.md (dev read order)
 - docs/specification/product/<relevant capability>.md
 - docs/specification/as-built/implementation-status.md (## Testing harness)
 - tests/README.md
 
 Deliver per overlap rules: unit and/or verify trim; update feature map + as-built.
 
-Branch: chore/INIT-PARICHAY-001-<slug>
+Branch: chore/INIT-EXAMPLE-001-<slug>
 Verify: make test (or board Verify command)
 
 Do not edit .cursor/rules/ submodule. No new product features unless scoped.
@@ -289,12 +289,12 @@ Do not edit .cursor/rules/ submodule. No new product features unless scoped.
 ```text
 /spec-feasibility-review
 
-Initiative: INIT-ABHILEKH-001
-Spec PR branch: chore/INIT-ABHILEKH-001-spec-handoff-example-registry
-Spec: docs/specification/product/INIT-ABHILEKH-001.md
-PRD (optional): <client>-meta prd/INIT-ABHILEKH-001.md
+Initiative: INIT-EXAMPLE-003
+Spec PR branch: chore/INIT-EXAMPLE-003-spec-handoff-example-registry
+Spec: docs/specification/product/INIT-EXAMPLE-003.md
+PRD (optional): <client>-meta prd/INIT-EXAMPLE-003.md
 
-Output: docs/specification/reports/Feasibility-Report-INIT-ABHILEKH-001.md
+Output: docs/specification/reports/Feasibility-Report-INIT-EXAMPLE-003.md
 End with PM questions (blocking vs defer). No src/ in spec PR.
 ```
 
@@ -307,19 +307,19 @@ Confirm spec header links **Meta PRD** + **Validation report** (`prd/reports/Val
 ```text
 /spec-implementation-plan
 
-Initiative: INIT-ABHILEKH-001
-Feasibility: docs/specification/reports/Feasibility-Report-INIT-ABHILEKH-001.md
-Spec: docs/specification/product/INIT-ABHILEKH-001.md
+Initiative: INIT-EXAMPLE-003
+Feasibility: docs/specification/reports/Feasibility-Report-INIT-EXAMPLE-003.md
+Spec: docs/specification/product/INIT-EXAMPLE-003.md
 
-Output: docs/specification/reports/Implementation-Plan-INIT-ABHILEKH-001.md
+Output: docs/specification/reports/Implementation-Plan-INIT-EXAMPLE-003.md
 ```
 
 For INIT retro handoff:
 
 ```text
-Review spec PR chore/INIT-PARICHAY-001-spec-handoff-example-api:
+Review spec PR chore/INIT-EXAMPLE-001-spec-handoff-example-api:
 
-Read docs/specification/product/INIT-PARICHAY-001.md
+Read docs/specification/product/INIT-EXAMPLE-001.md
 Check: retro narrative, as-delivered waves, QUALITY doc removed,
        dev read order clear, no src/ changes.
 Approve if ready to merge to develop.
@@ -334,7 +334,7 @@ Approve if ready to merge to develop.
 ```text
 /verify
 
-Initiative: INIT-PARICHAY-001
+Initiative: INIT-EXAMPLE-001
 Issue: #<n>
 Verify command: make test
 
@@ -346,7 +346,7 @@ Live stack example:
 ```text
 /verify
 
-Initiative: INIT-DS-002
+Initiative: INIT-EXAMPLE-002
 Issue: #42
 Verify command: make check && poetry run python -m tests.verify.verify_all
 
@@ -360,7 +360,7 @@ conda activate example-api required for verify_all.
 **When:** Issue touches HTTP routes, JWT claims, or peer integrations.
 
 ```text
-Initiative: INIT-DS-002
+Initiative: INIT-EXAMPLE-002
 Issue: #42
 Repo: example-api (this workspace)
 
@@ -375,10 +375,10 @@ Confirm example-api changes do not break EMQX auth, device validation, or Kafka 
 
 ## D6 — Harness / platform chore (bootstrap — reference)
 
-**When:** BOOTSTRAP-DS-001-style harness work in app repo (historical).
+**When:** BOOTSTRAP-001-style harness work in app repo (historical).
 
 ```text
-Initiative: BOOTSTRAP-DS-001
+Initiative: BOOTSTRAP-001
 Repo: example-api
 Task: Harness only — no product features.
 
@@ -396,9 +396,9 @@ Every PR description should match board fields:
 
 | Field | Example |
 |-------|---------|
-| Initiative | `INIT-PARICHAY-001` or `INIT-DS-002` |
+| Initiative | `INIT-EXAMPLE-001` or `INIT-EXAMPLE-002` |
 | Issue | `#<n>` |
-| Spec path | `docs/specification/product/INIT-PARICHAY-001.md` |
+| Spec path | `docs/specification/product/INIT-EXAMPLE-001.md` |
 | Verify command | `make test` |
 
 Template: app repo `.github/pull_request_template.md`

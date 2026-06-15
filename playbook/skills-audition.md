@@ -69,8 +69,8 @@ launchpad seed-work --config work/INIT-<id>.yaml --dry-run
 ```text
 /spec-feasibility-review
 
-Initiative: INIT-ABHILEKH-001
-Spec: docs/specification/product/INIT-ABHILEKH-001.md
+Initiative: INIT-EXAMPLE-003
+Spec: docs/specification/product/INIT-EXAMPLE-003.md
 ```
 
 **Pass if:** report saved; F-checks evidenced; PM questions numbered; no `src/` edits.
@@ -82,8 +82,8 @@ Spec: docs/specification/product/INIT-ABHILEKH-001.md
 ```text
 /spec-implementation-plan
 
-Initiative: INIT-ABHILEKH-001
-Feasibility report path: docs/specification/reports/Feasibility-Report-INIT-ABHILEKH-001.md
+Initiative: INIT-EXAMPLE-003
+Feasibility report path: docs/specification/reports/Feasibility-Report-INIT-EXAMPLE-003.md
 ```
 
 **Pass if:** W0–Wn phases with REQ/TASK/FILE; done-when per task; P-checks in report.

@@ -27,7 +27,7 @@ Random branch names (`my-test`, `john-fix`, `tmp`) are **not** allowed.
 | `fix/` | `develop` (or `main` for prod fix flow) | `fix/registry-404-mapping` |
 | `hotfix/` | `main` (then backport to `develop`) | `hotfix/compose-image-pin` |
 | `release/` | `main` (optional) | `release/2026.06.0` |
-| `chore/` | `develop` | `chore/bootstrap-ds-001-example-api-harness` |
+| `chore/` | `develop` | `chore/setup-gitflow-enforcement` |
 
 **Protected long-lived:** `main`, `develop` — never used as feature branch names.
 

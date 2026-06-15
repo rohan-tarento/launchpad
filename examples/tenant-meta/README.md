@@ -1,16 +1,19 @@
 # Example tenant meta
 
-Copy this tree to start a new client workspace under your handson root:
+**Single tenant skeleton** for Launchpad — copy once per client, then rename org/repos in `scripts/config/`.
 
 ```bash
 cp -r examples/tenant-meta ~/Workspace/handson/<client>/<client>-meta
 cd ~/Workspace/handson/<client>/<client>-meta
 ```
 
-1. Rename `example-org` → your forge org/group in `scripts/config/*.yaml`
-2. Set harness pins to **your private** `*-rules` repos + [prayog-skills](https://github.com/drivestream-lab/prayog-skills)
-3. `cp .env.example .env` and set `GITHUB_TOKEN` or `GITLAB_TOKEN`
-4. `launchpad doctor`
-5. `launchpad setup --apply` (after dry-run)
+1. Replace `example-org` with your forge org in all `scripts/config/*.yaml`
+2. Rename config files to match your org slug (e.g. `org-kd_diet_coke.yaml`, `platform-kd_diet_coke.yaml`)
+3. Set harness pins to **your private** `*-rules` repo + [prayog-skills](https://github.com/drivestream-lab/prayog-skills)
+4. `cp .env.example .env` and set `GITHUB_TOKEN`
+5. `launchpad doctor`
+6. `launchpad setup-platform --config scripts/config/platform-<org>.yaml --dry-run` then `--apply`
 
-See [docs/new-client.md](../../docs/new-client.md).
+**Local smoke** (no PAT): from launchpad repo root, `./scripts/smoke-local.sh` uses this tree via `LAUNCHPAD_TENANT_ROOT`.
+
+Full walkthrough: [docs/setup-guide.md](../../docs/setup-guide.md) · checklist: [docs/new-client.md](../../docs/new-client.md).

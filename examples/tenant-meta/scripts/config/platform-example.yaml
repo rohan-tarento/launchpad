@@ -7,11 +7,11 @@ name: platform baseline
 setup:
   - id: repos
     command: bootstrap-org
-    config: scripts/config/org-example-org.yaml
+    config: scripts/config/org-example.yaml
 
   - id: teams
     command: bootstrap-teams
-    config: scripts/config/org-example-org.yaml
+    config: scripts/config/org-example.yaml
 
   - id: gitflow
     command: setup-gitflow
@@ -19,7 +19,7 @@ setup:
 
   - id: board
     command: bootstrap-project
-    config: scripts/config/project-example-org.yaml
+    config: scripts/config/project-example.yaml
 
 verify:
-  config: scripts/config/verify-platform-example-org.yaml
+  config: scripts/config/verify-platform-example.yaml

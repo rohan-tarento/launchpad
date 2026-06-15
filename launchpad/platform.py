@@ -98,4 +98,4 @@ def run(
     print("")
     print("=== Platform ready for backlog ===")
     print("Create or choose a WorkManifest, then:")
-    print("  ./scripts/meta seed-work --config <work-manifest.yaml> --apply")
+    print("  launchpad seed-work --config <work-manifest.yaml> --apply")

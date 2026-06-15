@@ -35,7 +35,7 @@ This clones `<client>-meta.wiki.git`, copies `wiki/*.md`, commits, and pushes.
 |-----------|-------------|
 | Home | `wiki/Home.md` |
 | Example-How-we-ship | `wiki/Example-How-we-ship.md` |
-| Example-Python-dev-Parichay | `wiki/Example-Python-dev-Parichay.md` |
+| Example-Python-dev | `wiki/Example-Python-dev.md` |
 | Example-Platform-operator | `wiki/Example-Platform-operator.md` |
 | Example-Skills-and-agents | `wiki/Example-Skills-and-agents.md` |
 

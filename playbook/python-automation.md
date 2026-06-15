@@ -201,8 +201,7 @@ Do **not** set `options.init_empty: true` on repos that already have history.
 ## Package layout
 
 ```
-scripts/meta                ← only entry point you need
-scripts/py/meta_scripts/    ← Python implementation
-scripts/py/requirements.txt
-scripts/config/*.yaml
+launchpad/                  ← CLI package (pip install -e . or bin/launchpad)
+examples/tenant-meta/       ← tenant skeleton to copy per client
+playbook/                   ← process SSOT
 ```

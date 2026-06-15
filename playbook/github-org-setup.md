@@ -49,7 +49,7 @@ https://github.com/orgs/example-org/teams
 | Team | Role |
 |------|------|
 | `pm-team` | Meta `develop` merges; spec handoff branches on app repos |
-| `backend-devs` | Parichay `develop` merges |
+| `backend-devs` | `example-api` `develop` merges |
 | `release-managers` | `main` only |
 | `platform-devs` | Factory / meta automation |
 | `frontend-devs` | BFF repos (when added) |

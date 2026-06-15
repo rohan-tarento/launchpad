@@ -92,4 +92,4 @@ def run(
     print("=== Done ===")
     if client.dry_run:
         print("Re-run with --apply to execute.")
-    print(f"Next: ./scripts/meta bootstrap-teams --config {cfg_path} --apply")
+    print(f"Next: launchpad bootstrap-teams --config {cfg_path} --apply")

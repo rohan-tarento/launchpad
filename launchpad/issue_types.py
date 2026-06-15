@@ -53,7 +53,7 @@ def verify_issue_types_present(
     if missing:
         raise RuntimeError(
             f"required issue types missing in {org}: {missing}. "
-            "Run: ./scripts/meta bootstrap-project --apply"
+            "Run: launchpad bootstrap-project --apply"
         )
 
 

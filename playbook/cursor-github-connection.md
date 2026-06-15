@@ -47,9 +47,9 @@ Factory automation uses **`GITHUB_TOKEN` in <client>-meta/.env`** — separate f
 ## 4. Multi-repo layout (recommended)
 
 ```text
-~/Workspace/handson/drivestream/
-  <client>-meta/    # playbook + launchpad
-  example-api/            # Python pilot
+~/Workspace/handson/<client>/
+  <client>-meta/    # tenant — PRDs, factory YAML, playbook
+  example-api/      # pilot app repo (sibling clone)
 ```
 
 Open **parent folder** or individual repos in Cursor as needed.

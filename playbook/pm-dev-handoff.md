@@ -114,14 +114,13 @@ Merge order for INIT features: **example-api → example-registry → ops** (com
 
 ---
 
-## Closed initiatives (retro — do not re-open)
+## Closed initiatives (example — do not re-open)
 
 | Initiative | Status | SSOT |
 |------------|--------|------|
-| **BOOTSTRAP-001** | Done | [retro/bootstrap-ds-001.md](retro/bootstrap-ds-001.md) — meta factory + example-api harness bootstrap |
-| **INIT-EXAMPLE-001** | Done (example-api) / PRD merge pending (meta) | [prd/INIT-EXAMPLE-001.md](../prd/INIT-EXAMPLE-001.md) — harness pins + test-quality retro closure |
+| **INIT-EXAMPLE-001** | Documentation / smoke only | [work/INIT-EXAMPLE-001.yaml](../examples/tenant-meta/work/INIT-EXAMPLE-001.yaml) |
 
-Do not seed `BOOTSTRAP-001` or `QUALITY-*` manifests. New work uses **`INIT-<scope>-<nnn>`** only ([pm-workflow.md](pm-workflow.md)).
+New work uses **`INIT-<scope>-<nnn>`** only ([pm-workflow.md](pm-workflow.md)).
 
 ---
 

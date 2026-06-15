@@ -1,11 +1,10 @@
-# Parichay test quality program
+# Test quality program (backend apps)
 
-**Initiative:** `INIT-PARICHAY-001` (retro closure)  
-**PRD:** [`prd/INIT-PARICHAY-001.md`](../prd/INIT-PARICHAY-001.md)
+Guidance for **unit vs verify** discipline in Python (or similar) app repos after harness sync.
 
-**Status:** Implementation **complete** on example-api `develop` (harness + waves W1–W5). This doc is operational reference only — not a new delivery epic.
+**Example initiative:** `INIT-EXAMPLE-001` — see [work/INIT-EXAMPLE-001.yaml](../examples/tenant-meta/work/INIT-EXAMPLE-001.yaml).
 
-**Prerequisite:** Harness pins @ v0.5.5 / v0.1.0; `launchpad verify-harness --repo example-api` passes.
+**Prerequisite:** `launchpad verify-harness --repo <app>` passes.
 
 ---
 
@@ -13,50 +12,39 @@
 
 | Goal | Outcome |
 |------|---------|
-| **Structure** | `tests/unit/` + `testpaths = ["tests/unit"]` |
+| **Structure** | `tests/unit/` + test runner config pointing at unit tree |
 | **Unit coverage** | Business logic, branches, edges in `tests/unit/` |
-| **Verify alignment** | Keep every `verify_<feature>.py`; trim to one live happy path per feature |
+| **Verify alignment** | `tests/verify/` — one live happy path per product feature |
 | **No overlap** | Same behavior not fully asserted in unit and verify |
-| **Traceability** | `tests/README.md` feature map + as-built columns |
+| **Traceability** | `tests/README.md` feature map + `as-built/implementation-status.md` |
 
 ---
 
-## Phase 4a — structure (done)
+## Wave delivery (when PRD uses `delivery_model: waves`)
 
-- `tests/unit/` created; `test_health.py` moved
-- `pyproject.toml`, `Makefile`, `tests/README.md` updated
-- Issue #27 / PR #35 merged
+| Wave | Typical focus |
+|------|----------------|
+| **W0** | Repo structure, CI skeleton, harness |
+| **W1+** | Domain slices — one board issue = one feature PR |
 
----
-
-## Phase 4b — waves (done)
-
-| Wave | Verify scripts | Unit focus | Issue |
-|------|----------------|------------|-------|
-| **W1** | `verify_oem_*_authentication` | Auth services, validation, error mapping | #28 |
-| **W2** | `verify_oem_onboarding`, list users/creds | Onboarding service (mocked repos) | #29 |
-| **W3** | `verify_device_token`, `verify_device_owner_authentication` | JWT/JTI/OTP (mock Redis) | #30 |
-| **W4** | `verify_bridge_*`, `verify_mqtt_*`, `verify_device_traffic_catalog` | Catalog/ACL synthesis | #31 |
-| **W5** | `verify_telemetry`, `verify_health` | Thin unit; stack proof in verify | #32 / PR #41 |
-
-### Per-wave PR checklist (future test work)
+### Per-wave PR checklist
 
 - [ ] Spec / capability row touched (if behavior changes)
-- [ ] `tests/unit/test_<area>.py` added or extended
-- [ ] Matching verify script — representative happy path only
-- [ ] `tests/README.md` feature map row updated
-- [ ] As-built: `implementation-status.md` verification rows; `## Testing harness` if layout changes (Option B — no separate `testing-and-verification.md`)
+- [ ] `tests/unit/` added or extended for logic edges
+- [ ] Matching `tests/verify/` script — representative happy path only
+- [ ] `tests/README.md` feature map updated
+- [ ] `as-built/implementation-status.md` verification rows updated
 
 ---
 
 ## Board usage
 
-**Example Engineering** board. Set **Initiative** = `INIT-PARICHAY-001`, **Codebase** = `example-api`. Move to **Verify** with live verify command in PR description.
+Set **Initiative** and **Codebase** project fields on each issue. Move to **Verify** when PR includes the live verify command in the description.
 
 ---
 
 ## Related
 
-- [INIT-PARICHAY-001 PRD](../prd/INIT-PARICHAY-001.md)
+- [sdd-workflow.md](sdd-workflow.md)
 - [harness-pins.md](harness-pins.md)
 - [pm-dev-handoff.md](pm-dev-handoff.md)

@@ -4,9 +4,9 @@ kind: VerifyManifest
 org: example-org
 
 includes:
-  org: scripts/config/org-example-org.yaml
+  org: scripts/config/org-example.yaml
   gitflow: scripts/config/gitflow-example.yaml
-  project: scripts/config/project-example-org.yaml
+  project: scripts/config/project-example.yaml
 
 checks:
   - id: org.access

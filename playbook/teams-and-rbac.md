@@ -13,7 +13,7 @@ Config: [`gitflow-example.yaml`](../examples/tenant-meta/scripts/config/gitflow-
 | `backend-devs` | Python microservices — merge to **`develop`** on backend repos |
 | `frontend-devs` | Ops portal / BFF — merge to **`develop`** on frontend repos |
 | `platform-devs` | Compose, shared workflows — merge to **`develop`** on platform app repos (not meta) |
-| `data-platform-devs` | Manthan / data pipeline (add when those repos join the model) |
+| `data-platform-devs` | Data platform / analytics repos |
 
 Optional: nest all dev teams under parent team `engineers` for @mentions (not used for `main`).
 
@@ -31,10 +31,10 @@ PM pushes spec handoff branches on app repos; **dev merges** after review. PM me
 
 | Profile | v0 repos (example-org) | Future repos |
 |---------|----------------------|--------------|
-| `backend` | **example-api** | example-registry, setu, kavach, pravah, airforge |
-| `frontend` | — | example-bff |
-| `platform` | **<client>-meta** | iac, iac-local |
-| `data_platform` | — | example-platform, pramana |
+| `backend` | **example-api** | example-registry, … |
+| `frontend` | **example-bff** (when added) | — |
+| `platform` | **`<client>-meta`** | iac, iac-local |
+| `data_platform` | **example-platform** (when added) | — |
 
 Config file: [`examples/tenant-meta/scripts/config/gitflow-example.yaml`](../examples/tenant-meta/scripts/config/gitflow-example.yaml)
 
@@ -55,7 +55,7 @@ Requires `GITHUB_TOKEN` — [python-automation.md](python-automation.md).
 ```bash
 # cp .env.example .env — paste PAT (see python-automation.md)
 
-launchpad setup-platform --config scripts/config/platform-example-org.yaml --apply
+launchpad setup-platform --config scripts/config/platform-example.yaml --apply
 # or individual steps:
 launchpad bootstrap-teams --config scripts/config/org-example-org.yaml --apply
 launchpad setup-gitflow --config scripts/config/gitflow-example.yaml --apply
