@@ -7,6 +7,7 @@ import os
 import sys
 from pathlib import Path
 
+from launchpad import __version__
 from launchpad import bootstrap_org, bootstrap_teams, gitflow, harness, platform, project, seed_work, wiki
 from launchpad.clients import ClientRegistryError, apply_client_context, format_clients_table
 from launchpad.config import discover_tenant_config, load_org_config, load_project_config
@@ -197,6 +198,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=os.environ.get("LAUNCHPAD_CLIENT", ""),
         metavar="ID",
         help="client id from ~/.config/launchpad/clients.yaml (or LAUNCHPAD_CLIENT env)",
+    )
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+        help="print launchpad version and exit",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
