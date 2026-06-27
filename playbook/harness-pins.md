@@ -72,6 +72,8 @@ launchpad verify-harness
 
 Config: `config/harness-<org>.yaml`
 
+Template paths (`agents_template`, `pin_template`) resolve **tenant override first**, then **launchpad kit** `templates/` (pipx install). Store only autrio10x-specific overrides under `<client>-meta/templates/`.
+
 **Onboard a new app repo:**
 
 1. Add entry under `repos:` in harness config.

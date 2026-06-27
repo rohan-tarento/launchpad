@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from launchpad.config import load_harness_config, tenant_root
+from launchpad.paths import resolve_template
 
 
 class HarnessError(RuntimeError):
@@ -388,12 +389,11 @@ def sync_harness(
 
     pin_tpl_name = str(profile.get("pin_template", "templates/harness-pin.yaml"))
     agents_tpl_name = str(profile.get("agents_template", "templates/AGENTS.python.md"))
-    pin_tpl = root / pin_tpl_name
-    agents_tpl = root / agents_tpl_name
-    if not pin_tpl.is_file():
-        raise HarnessError(f"pin template not found: {pin_tpl}")
-    if not skip_agents and not agents_tpl.is_file():
-        raise HarnessError(f"agents template not found: {agents_tpl}")
+    try:
+        pin_tpl = resolve_template(pin_tpl_name)
+        agents_tpl = resolve_template(agents_tpl_name)
+    except FileNotFoundError as exc:
+        raise HarnessError(str(exc)) from exc
 
     skill_names = [str(s) for s in (agent_skills.get("skills") or [])]
     values = {

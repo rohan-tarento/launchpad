@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from launchpad.config import load_gitflow_config, tenant_root
+from launchpad.paths import resolve_template
 from launchpad.gitflow_policy import (
     branch_naming_ref_excludes,
     render_policy_branch_name_workflow,
@@ -91,11 +92,24 @@ def _install_templates_local(
         print(f"[dry-run] copy workflows + CODEOWNERS → {dest}")
         return
 
-    root = tenant_root()
+    codeowners_map = {
+        "backend": "CODEOWNERS.backend",
+        "frontend": "CODEOWNERS.frontend",
+        "platform": "CODEOWNERS.platform",
+        "data_platform": "CODEOWNERS.data-platform",
+    }
     workflows = dest / ".github" / "workflows"
     workflows.mkdir(parents=True, exist_ok=True)
 
-    shutil.copy(root / "templates/github/workflows/ci.yml", workflows / "ci.yml")
+    try:
+        ci_src = resolve_template("templates/github/workflows/ci.yml")
+        co_src = resolve_template(f"templates/{codeowners_map.get(profile, 'CODEOWNERS.platform')}")
+        pr_tpl = resolve_template("templates/pull_request_template.md")
+    except FileNotFoundError as exc:
+        print(f"[skip] templates: {exc}")
+        return
+
+    shutil.copy(ci_src, workflows / "ci.yml")
     (workflows / "policy-merge-source.yml").write_text(
         render_policy_merge_source_workflow(merge_policy),
         encoding="utf-8",
@@ -105,21 +119,13 @@ def _install_templates_local(
         encoding="utf-8",
     )
 
-    codeowners_map = {
-        "backend": "CODEOWNERS.backend",
-        "frontend": "CODEOWNERS.frontend",
-        "platform": "CODEOWNERS.platform",
-        "data_platform": "CODEOWNERS.data-platform",
-    }
-    co_src = root / "templates" / codeowners_map.get(profile, "CODEOWNERS.platform")
     co_dest = dest / ".github" / "CODEOWNERS"
     co_dest.parent.mkdir(parents=True, exist_ok=True)
     content = co_src.read_text(encoding="utf-8").replace("@ORG_PLACEHOLDER", f"@{org}")
     co_dest.write_text(content, encoding="utf-8")
 
-    pr_tpl = root / "templates/pull_request_template.md"
     pr_dest = dest / ".github/pull_request_template.md"
-    if pr_tpl.is_file() and not pr_dest.is_file():
+    if not pr_dest.is_file():
         shutil.copy(pr_tpl, pr_dest)
 
     print("  → committed locally; open PR: chore/setup-gitflow-enforcement")

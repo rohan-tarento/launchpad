@@ -9,6 +9,7 @@ from pathlib import Path
 from launchpad import __version__
 from launchpad.clients import ENV_D_DIR
 from launchpad.config import discover_tenant_config, load_yaml, tenant_root
+from launchpad.paths import kit_root
 from launchpad.forge import forge_from_mapping, gitlab_host_from_mapping
 from launchpad.adapters.gitlab.client import GitLabClient, GitLabError
 from launchpad.github_client import GitHubClient, GitHubError
@@ -95,6 +96,23 @@ def run(*, verbose: bool = False) -> int:
                     print(f"config {kind}: skip ({exc})")
                 elif kind == "platform":
                     warnings.append(f"platform config: {exc}")
+
+        tenant_playbook = root / "playbook"
+        try:
+            kit_playbook = kit_root() / "playbook"
+            if tenant_playbook.is_dir() and kit_playbook.is_dir():
+                dupes = sorted(
+                    p.name
+                    for p in tenant_playbook.glob("*.md")
+                    if p.name != "README.md" and (kit_playbook / p.name).is_file()
+                )
+                if dupes:
+                    warnings.append(
+                        "tenant playbook duplicates kit (link to launchpad instead): "
+                        + ", ".join(dupes)
+                    )
+        except FileNotFoundError:
+            pass
 
     print("")
     for w in warnings:

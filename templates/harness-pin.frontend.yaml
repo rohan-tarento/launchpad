@@ -1,0 +1,9 @@
+profile: frontend
+
+rules:
+  repo: your-org/frontend-rules
+  ref: "{{RULES_REF}}"
+
+agent_skills:
+  repo: drivestream-lab/prayog-skills
+  ref: "{{AGENT_SKILLS_REF}}"
