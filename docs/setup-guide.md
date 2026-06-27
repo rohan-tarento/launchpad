@@ -47,18 +47,22 @@ The skeleton ships with neutral **`example-org`** / **`example-api`** so smoke t
 3. **Private rules repo** with `.mdc` constitution (harness submodule).
 4. **Fine-grained PAT** — [playbook/bootstrap-prerequisites.md](../playbook/bootstrap-prerequisites.md).
 
-`gh auth login` is for day-to-day PRs. Factory uses **`GITHUB_TOKEN`** in meta `.env`.
+`gh auth login` is for day-to-day PRs. Factory uses **`GITHUB_TOKEN`** in `~/.config/launchpad/env.d/<client-id>.env`.
 
 ---
 
 ## Phase 1 — Install Launchpad (once per machine)
 
+**Operators (recommended):**
+
 ```bash
 git clone https://github.com/drivestream-lab/launchpad.git ~/Workspace/handson/launchpad
 cd ~/Workspace/handson/launchpad
-python3 -m venv .venv && .venv/bin/pip install -e .
-./scripts/smoke-local.sh
+pipx install -e .
+launchpad --help
 ```
+
+**Kit contributors** (optional): [local-dev.md](local-dev.md) — venv + `./bin/launchpad`.
 
 ---
 
@@ -86,13 +90,22 @@ Or keep `example-org` names for a sandbox org while learning.
 
 ---
 
-## Phase 3 — Secrets and doctor
+## Phase 3 — Client registry and doctor
+
+One-time per machine — [multi-laptop.md](multi-laptop.md):
 
 ```bash
-cp .env.example .env
-export LAUNCHPAD_TENANT_ROOT="$(pwd)"
-launchpad doctor
+mkdir -p ~/.config/launchpad/env.d
+cp ~/Workspace/handson/launchpad/examples/clients.yaml.example ~/.config/launchpad/clients.yaml
+cp ~/Workspace/handson/launchpad/examples/env.d/client.env.example \
+   ~/.config/launchpad/env.d/diet_coke.env
+# Edit clients.yaml (path to diet_coke-meta) and diet_coke.env (GITHUB_TOKEN)
+chmod 600 ~/.config/launchpad/env.d/diet_coke.env
+
+launchpad --client diet_coke doctor
 ```
+
+Or set `default: diet_coke` in `clients.yaml` and run `launchpad doctor`.
 
 ---
 
@@ -151,5 +164,6 @@ In **`<client>-meta`** (PM lane):
 ## Docs
 
 - [new-client.md](new-client.md) — checklist  
-- [local-dev.md](local-dev.md) — source testing  
+- [multi-laptop.md](multi-laptop.md) — install + client registry  
+- [local-dev.md](local-dev.md) — kit contributors / source testing  
 - [SCHEMA.md](SCHEMA.md) — `launchpad/v1` YAML kinds  

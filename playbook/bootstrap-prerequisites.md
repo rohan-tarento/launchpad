@@ -35,7 +35,7 @@ If you pick "Only select repositories", you **must** include at least **<client>
 | Issues | Read and write |
 | Metadata | Read |
 
-Store in `<client>-meta/.env` as `GITHUB_TOKEN=...` (never commit).
+Store in **`~/.config/launchpad/env.d/<client-id>.env`** as `GITHUB_TOKEN=...` (chmod 600; never commit). See [multi-laptop.md](../docs/multi-laptop.md).
 
 `gh auth token` is **not sufficient** for issue types API — board bootstrap will fail without Issue types on a fine-grained PAT.
 
@@ -63,11 +63,12 @@ Partial gitflow still applies: `develop` branch, team push grants.
 
 ---
 
-## 3. Operator sequence (after PAT in `.env`)
+## 3. Operator sequence (after PAT in env.d)
+
+Configure client registry once — [multi-laptop.md](../docs/multi-laptop.md). Then:
 
 ```bash
-cd <client>-meta
-cp .env.example .env   # paste factory PAT
+launchpad doctor
 launchpad whoami
 launchpad setup-platform --dry-run
 launchpad setup-platform --apply

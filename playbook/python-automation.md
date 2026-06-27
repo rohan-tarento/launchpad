@@ -79,27 +79,30 @@ Choose **All repositories** in `example-org`, or select at least **<client>-meta
 2. Open `<client>-meta-factory` (or your token name)
 3. Scroll to **Organization permissions** → **example-org**
 4. Set **Issue types** → **Read and write**
-5. **Update token** → copy new value into `<client>-meta/.env` → `launchpad verify-factory`
+5. **Update token** → copy new value into `~/.config/launchpad/env.d/<client-id>.env` → `launchpad verify-platform`
 
-### 7. Generate and store in `.env`
+### 7. Generate and store secrets
 
 1. Click **Generate token**.
 2. Copy the token **once** (starts with `github_pat_…`).
-3. Save it in the project env file (gitignored):
+3. Save in your machine client registry (never commit):
 
 ```bash
-cd <client>-meta
-cp .env.example .env
-# Open .env and replace github_pat_REPLACE_ME with your real token
+mkdir -p ~/.config/launchpad/env.d
+cp examples/env.d/client.env.example ~/.config/launchpad/env.d/<client-id>.env
+# Edit <client-id>.env — paste GITHUB_TOKEN=github_pat_…
+chmod 600 ~/.config/launchpad/env.d/<client-id>.env
 launchpad whoami
 ```
 
+Also add the tenant path in `~/.config/launchpad/clients.yaml` — see [multi-laptop.md](../docs/multi-laptop.md).
+
 | File | Committed? | Purpose |
 |------|------------|---------|
-| `.env.example` | Yes | Template — no secrets |
-| `.env` | **No** (in `.gitignore`) | Your real `GITHUB_TOKEN` |
+| `examples/env.d/client.env.example` | Yes (in launchpad repo) | Template — copy to `~/.config/launchpad/env.d/` |
+| `env.d/<client-id>.env` | **No** (on your machine only) | Your real `GITHUB_TOKEN` |
 
-Keep a backup in your password manager. Do not commit `.env` or paste the token in chat/PRs.
+Do **not** store factory tokens in `<client>-meta/.env`. Keep a backup in your password manager.
 
 ### Classic PAT (fallback)
 
@@ -132,9 +135,11 @@ All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub.
 | `seed-issues` | Alias for `seed-work` |
 | `sync-harness` | Pin rules submodule, seed prayog-skills dev bundle, `.harness-pin.yaml`, `AGENTS.md` |
 | `verify-harness` | Check harness pins and submodules in app repos |
+| `publish-wiki` | Publish `wiki/*.md` to GitHub Wiki (`WikiConfig` YAML) |
+| `clients` | List configured clients from `~/.config/launchpad/clients.yaml` |
 
 ```bash
-# After cp .env.example .env and pasting your PAT:
+# After env.d/<client-id>.env is configured (see multi-laptop.md):
 
 # Platform (repos + teams + gitflow + board + verify)
 launchpad setup-platform \

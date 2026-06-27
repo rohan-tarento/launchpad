@@ -49,8 +49,8 @@ class GitHubClient:
                 self.token = "dry-run"
             else:
                 raise GitHubError(
-                    "GITHUB_TOKEN not set. Copy .env.example to .env, paste your PAT, "
-                    "or export GITHUB_TOKEN. See playbook/python-automation.md."
+                    "GITHUB_TOKEN not set. Add it to ~/.config/launchpad/env.d/<client-id>.env "
+                    "or export GITHUB_TOKEN. See docs/multi-laptop.md."
                 )
         self.dry_run = dry_run
         self._rest = httpx.Client(

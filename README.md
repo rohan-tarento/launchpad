@@ -104,7 +104,26 @@ agent_skills:
 
 ---
 
-## Quick start (local, no pip)
+## Install (operators)
+
+Once per machine — run factory commands from anywhere:
+
+```bash
+git clone https://github.com/drivestream-lab/launchpad.git ~/Workspace/handson/launchpad
+cd ~/Workspace/handson/launchpad
+pipx install -e .
+
+# One-time client registry — see docs/multi-laptop.md
+launchpad clients
+launchpad doctor
+launchpad setup-platform --config scripts/config/platform-<org>.yaml --apply
+```
+
+Full walkthrough: [docs/setup-guide.md](docs/setup-guide.md) · [docs/multi-laptop.md](docs/multi-laptop.md)
+
+---
+
+## Hack on launchpad (contributors)
 
 ```bash
 cd ~/Workspace/handson/launchpad
@@ -115,8 +134,7 @@ export LAUNCHPAD_TENANT_ROOT=~/Workspace/handson/launchpad/examples/tenant-meta
 ./bin/launchpad doctor
 ```
 
-See [docs/local-dev.md](docs/local-dev.md) for testing against your own `<client>-meta`.  
-**New client setup:** [docs/setup-guide.md](docs/setup-guide.md) · [docs/new-client.md](docs/new-client.md)
+See [docs/local-dev.md](docs/local-dev.md) for source testing against your own `<client>-meta`.
 
 ---
 
@@ -183,8 +201,8 @@ Full command reference: [playbook/python-automation.md](playbook/python-automati
 | [playbook/harness-pins.md](playbook/harness-pins.md) | Harness pin format and sync workflow |
 | [playbook/pm-dev-handoff.md](playbook/pm-dev-handoff.md) | PM ↔ dev lanes and merge rules |
 | [playbook/README.md](playbook/README.md) | Full playbook index |
-| [docs/multi-laptop.md](docs/multi-laptop.md) | **Client registry** — `clients.yaml` + `env.d` secrets |
-| [docs/SCHEMA.md](docs/SCHEMA.md) | `launchpad/v1` YAML kinds |
+| [docs/multi-laptop.md](docs/multi-laptop.md) | **Client registry** — install + `clients.yaml` + `env.d` |
+| [docs/local-dev.md](docs/local-dev.md) | Kit contributors — venv / source testing |
 
 ---
 

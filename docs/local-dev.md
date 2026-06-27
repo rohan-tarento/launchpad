@@ -1,4 +1,10 @@
-# Local development (source, no pip)
+# Local development (launchpad kit contributors)
+
+For **operators** running factory commands against a tenant, use [multi-laptop.md](multi-laptop.md) (`pipx install -e .` + client registry).
+
+This guide is for **contributors** hacking on the launchpad repo itself.
+
+---
 
 ## One-time venv
 
@@ -8,24 +14,43 @@ python3 -m venv .venv
 .venv/bin/pip install -e .
 ```
 
-## Run from source (any directory)
+Or use `./bin/launchpad` without activating the venv (uses `.venv` if present).
+
+---
+
+## Run from source
 
 ```bash
 export LAUNCHPAD_TENANT_ROOT=~/Workspace/handson/launchpad/examples/tenant-meta
-~/Workspace/handson/launchpad/launchpad doctor
-~/Workspace/handson/launchpad/launchpad seed-work \
-  --config work/INIT-EXAMPLE-001.yaml --dry-run
+./bin/launchpad doctor
+./bin/launchpad seed-work --config work/INIT-EXAMPLE-001.yaml --dry-run
 ```
 
-The `./launchpad` script sets `PYTHONPATH` to the repo root — no `pip install` required if deps are in `.venv`.
+The `./bin/launchpad` script sets `PYTHONPATH` to the repo root.
+
+---
 
 ## Test tenant in another project
 
 ```bash
 cp -r ~/Workspace/handson/launchpad/examples/tenant-meta ~/Workspace/handson/acme/acme-meta
-export LAUNCHPAD_TENANT_ROOT=~/Workspace/handson/acme/acme-meta
-~/Workspace/handson/launchpad/launchpad doctor
 ```
+
+Add to `~/.config/launchpad/clients.yaml`:
+
+```yaml
+clients:
+  - id: acme
+    path: ~/Workspace/handson/acme/acme-meta
+```
+
+Create `~/.config/launchpad/env.d/acme.env` with `GITHUB_TOKEN=...`, then:
+
+```bash
+launchpad --client acme doctor
+```
+
+---
 
 ## GitHub vs GitLab
 
@@ -46,8 +71,12 @@ forge:
 
 See `examples/tenant-meta/scripts/config/org-gitlab-example.yaml`.
 
+---
+
 ## Smoke script
 
 ```bash
 ./scripts/smoke-local.sh
 ```
+
+Uses `examples/tenant-meta` via `LAUNCHPAD_TENANT_ROOT` — no PAT required for dry-run.

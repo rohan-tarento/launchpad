@@ -50,11 +50,9 @@ See [github-enforcement.md](github-enforcement.md) and [branching-policy.md](bra
 
 ## Automation
 
-Requires `GITHUB_TOKEN` — [python-automation.md](python-automation.md).
+Requires `GITHUB_TOKEN` in `~/.config/launchpad/env.d/<client-id>.env` — [python-automation.md](python-automation.md).
 
 ```bash
-# cp .env.example .env — paste PAT (see python-automation.md)
-
 launchpad setup-platform --config scripts/config/platform-example.yaml --apply
 # or individual steps:
 launchpad bootstrap-teams --config scripts/config/org-example-org.yaml --apply

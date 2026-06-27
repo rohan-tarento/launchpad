@@ -4,11 +4,11 @@ Checklist. Full walkthrough: **[setup-guide.md](setup-guide.md)**.
 
 ## Checklist
 
-1. **Install Launchpad** (once) — [local-dev.md](local-dev.md)
-2. **Copy tenant skeleton** — `cp -r examples/tenant-meta ~/Workspace/handson/<client>/<client>-meta`
-3. **Push meta** to your forge (meta is **not** created by `bootstrap-org`)
-4. **Edit `scripts/config/*.yaml`** — org, repos, gitflow, harness; rename files to `*-<org>.yaml`
-5. **`.env`** — `GITHUB_TOKEN` (never commit)
+1. **Install Launchpad** (once per machine) — [multi-laptop.md](multi-laptop.md) (`pipx install -e .`)
+2. **Client registry** — `~/.config/launchpad/clients.yaml` + `env.d/<id>.env` for secrets
+3. **Copy tenant skeleton** — `cp -r examples/tenant-meta ~/Workspace/handson/<client>/<client>-meta`
+4. **Push meta** to your forge (meta is **not** created by `bootstrap-org`)
+5. **Edit `scripts/config/*.yaml`** — org, repos, gitflow, harness; rename files to `*-<org>.yaml`
 6. **`launchpad doctor`**
 7. **`launchpad setup-platform --config scripts/config/platform-<org>.yaml --apply`**
 8. **`launchpad verify-platform`**
@@ -25,26 +25,36 @@ Checklist. Full walkthrough: **[setup-guide.md](setup-guide.md)**.
     └── <app-repos>/     # siblings
 ```
 
-## Per-laptop client registry (recommended)
+## Per-machine config
 
-One-time: [multi-laptop.md](multi-laptop.md) — `~/.config/launchpad/clients.yaml` + `env.d/<id>.env` for secrets.
+One-time: [multi-laptop.md](multi-laptop.md)
+
+```text
+~/.config/launchpad/
+├── clients.yaml
+└── env.d/
+    <client-id>.env      # GITHUB_TOKEN — chmod 600
+```
 
 ```bash
-launchpad --client drivestream doctor
+launchpad --client <client-id> doctor
 launchpad setup-platform --apply
 ```
 
-## Legacy: manual env (single client)
+## Legacy: manual env (CI only)
 
 ```bash
 export LAUNCHPAD_TENANT_ROOT=$HOME/Workspace/handson/<client>/<client>-meta
 export GITHUB_TOKEN=github_pat_...
 ```
 
+Prefer the client registry for day-to-day use.
+
 ## Docs
 
 | Guide | Content |
 |-------|---------|
 | [setup-guide.md](setup-guide.md) | End-to-end setup |
-| [local-dev.md](local-dev.md) | Smoke / source testing |
+| [multi-laptop.md](multi-laptop.md) | Install + client registry |
+| [local-dev.md](local-dev.md) | Kit contributors — venv / source |
 | [playbook/bootstrap-prerequisites.md](../playbook/bootstrap-prerequisites.md) | PAT scopes |

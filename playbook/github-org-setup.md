@@ -29,8 +29,7 @@ One-time and ongoing configuration for the **example-org** organization.
 Repos in factory config: **<client>-meta**, **example-api**.
 
 ```bash
-cd <client>-meta
-cp .env.example .env
+launchpad doctor
 launchpad setup-platform --apply
 launchpad verify-platform
 launchpad seed-work --config work/INIT-<id>.yaml --apply

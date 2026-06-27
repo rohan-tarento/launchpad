@@ -73,9 +73,6 @@ Factory PAT needs org **Issue types: Read and write**. Preflight: `launchpad ver
 ## Automation
 
 ```bash
-cd <client>-meta
-cp .env.example .env   # paste PAT — see python-automation.md
-
 launchpad bootstrap-project --config scripts/config/project-example-org.yaml --dry-run
 launchpad bootstrap-project --config scripts/config/project-example-org.yaml --apply
 ```

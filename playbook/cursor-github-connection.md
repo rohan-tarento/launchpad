@@ -40,7 +40,7 @@ gh repo view example-org/example-api
 2. Cursor Settings → **Git** — ensure repo is detected.
 3. Optional: Cursor Dashboard → Integrations → GitHub — grant **example-org** repos you use daily.
 
-Factory automation uses **`GITHUB_TOKEN` in <client>-meta/.env`** — separate from `gh auth` unless you export the same token.
+Factory automation uses **`GITHUB_TOKEN` in `~/.config/launchpad/env.d/<client-id>.env`** — separate from `gh auth` unless you use the same token value. See [multi-laptop.md](../docs/multi-laptop.md).
 
 ---
 
