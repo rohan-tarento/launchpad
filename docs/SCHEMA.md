@@ -16,6 +16,7 @@ kind: <KindName>
 | `VerifyManifest` | Post-bootstrap checks |
 | `ProjectConfig` | GitHub Project board + fields |
 | `WorkManifest` | `seed-work` — epic + wave issues |
+| `WikiConfig` | `publish-wiki` — wiki source dir, org, repo |
 
 Gitflow and project configs include `apiVersion` and `kind` — see [`examples/tenant-meta/scripts/config/`](../examples/tenant-meta/scripts/config/).
 

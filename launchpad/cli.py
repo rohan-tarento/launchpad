@@ -6,12 +6,13 @@ import argparse
 import sys
 from pathlib import Path
 
-from launchpad import bootstrap_org, bootstrap_teams, gitflow, harness, platform, project, seed_work
+from launchpad import bootstrap_org, bootstrap_teams, gitflow, harness, platform, project, seed_work, wiki
 from launchpad.config import discover_tenant_config, load_org_config, load_project_config
 from launchpad.doctor import run as run_doctor
 from launchpad.adapters.gitlab.client import GitLabError
 from launchpad.github_client import GitHubClient, GitHubError
 from launchpad.verify.runner import VerifyError, run as run_verify
+from launchpad.wiki import WikiError
 
 load_env = __import__("launchpad.config", fromlist=["load_env"]).load_env
 load_env()
@@ -165,6 +166,16 @@ def cmd_verify_harness(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_publish_wiki(args: argparse.Namespace) -> int:
+    config = _config_path(args, "wiki")
+    wiki.run(
+        config_path=config,
+        org=args.org or "",
+        dry_run=_dry_run_from_args(args),
+    )
+    return 0
+
+
 def cmd_doctor(args: argparse.Namespace) -> int:
     return run_doctor(verbose=args.verbose)
 
@@ -276,6 +287,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--workspace", type=Path, default=None)
     p.set_defaults(func=cmd_verify_harness)
 
+    p = sub.add_parser(
+        "publish-wiki",
+        help="Publish wiki/*.md to GitHub Wiki (WikiConfig YAML)",
+    )
+    p.add_argument("--org", default="")
+    p.add_argument("--config", default="")
+    _add_apply_flags(p)
+    p.set_defaults(func=cmd_publish_wiki)
+
     return parser
 
 
@@ -290,7 +310,7 @@ def main(argv: list[str] | None = None) -> int:
         if body:
             print(body, file=sys.stderr)
         return 1
-    except (RuntimeError, ValueError, FileNotFoundError, VerifyError, harness.HarnessError) as exc:
+    except (RuntimeError, ValueError, FileNotFoundError, VerifyError, harness.HarnessError, WikiError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 

@@ -1,0 +1,10 @@
+apiVersion: launchpad/v1
+kind: WikiConfig
+
+org: example-org
+repo: example-meta
+
+# wiki_dir: wiki           # default — relative to tenant root
+# commit_author_name: launchpad
+# commit_author_email: launchpad@localhost
+# commit_message: "chore: publish wiki from example-meta/wiki/"

@@ -386,3 +386,24 @@ def load_harness_config(path: Path | str) -> dict[str, Any]:
 
 def default_harness_config_path(org: str) -> Path:
     return tenant_root() / "scripts" / "config" / f"harness-{org}.yaml"
+
+
+def load_wiki_config(path: Path | str) -> dict[str, Any]:
+    """Load WikiConfig (publish-wiki settings)."""
+    cfg = load_yaml(path)
+    kind = cfg.get("kind", "")
+    if kind != "WikiConfig":
+        raise ValueError(f"expected kind: WikiConfig in {path}, got {kind!r}")
+    return {
+        "org": cfg.get("org", ""),
+        "repo": cfg.get("repo", ""),
+        "wiki_dir": cfg.get("wiki_dir", "wiki"),
+        "commit_author_name": cfg.get("commit_author_name", "launchpad"),
+        "commit_author_email": cfg.get("commit_author_email", "launchpad@localhost"),
+        "commit_message": cfg.get("commit_message", ""),
+        "path": str(path),
+    }
+
+
+def default_wiki_config_path(org: str) -> Path:
+    return tenant_root() / "scripts" / "config" / f"wiki-{org}.yaml"
