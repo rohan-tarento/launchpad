@@ -67,7 +67,9 @@ def run(
 
     author_name = cfg.get("commit_author_name", "launchpad")
     author_email = cfg.get("commit_author_email", "launchpad@localhost")
-    commit_msg = cfg.get("commit_message", f"chore: publish wiki from {repo}/wiki/")
+    commit_msg = (cfg.get("commit_message") or "").strip()
+    if not commit_msg:
+        commit_msg = f"chore: publish wiki from {repo}/wiki/"
     github_host = os.environ.get("GITHUB_HOST", "github.com")
     wiki_url = f"https://{github_host}/{org}/{repo}/wiki"
 
