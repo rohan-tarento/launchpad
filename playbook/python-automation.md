@@ -6,18 +6,18 @@ Developers still use **`gh`** for day-to-day git and PRs — that is separate fr
 
 ## Quick start
 
+**Per machine (recommended):** configure once in `~/.config/launchpad/` — see [multi-laptop.md](../docs/multi-laptop.md).
+
 ```bash
-cd <client>-meta
-cp .env.example .env
-# Edit .env — paste your PAT (file is gitignored; never commit)
-launchpad whoami
+launchpad clients
+launchpad doctor
 launchpad verify-platform
 launchpad setup-platform --dry-run
 ```
 
-`launchpad` loads **`<client>-meta/.env`** automatically and creates `scripts/py/.venv` on first run.
+Secrets live in **`~/.config/launchpad/env.d/<client-id>.env`** (not in `<client>-meta/.env`).
 
-You can still `export GITHUB_TOKEN=...` in the shell; that overrides `.env` if both are set.
+**Legacy / CI:** `export GITHUB_TOKEN=...` or `LAUNCHPAD_TENANT_ROOT=...` in the shell.
 
 ---
 

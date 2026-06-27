@@ -3,20 +3,18 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 from launchpad import bootstrap_org, bootstrap_teams, gitflow, harness, platform, project, seed_work, wiki
+from launchpad.clients import ClientRegistryError, apply_client_context, format_clients_table
 from launchpad.config import discover_tenant_config, load_org_config, load_project_config
 from launchpad.doctor import run as run_doctor
 from launchpad.adapters.gitlab.client import GitLabError
 from launchpad.github_client import GitHubClient, GitHubError
 from launchpad.verify.runner import VerifyError, run as run_verify
 from launchpad.wiki import WikiError
-
-load_env = __import__("launchpad.config", fromlist=["load_env"]).load_env
-load_env()
-
 
 def _config_path(args: argparse.Namespace, kind: str) -> str:
     if args.config:
@@ -180,13 +178,28 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     return run_doctor(verbose=args.verbose)
 
 
+def cmd_clients(args: argparse.Namespace) -> int:
+    print(format_clients_table())
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="launchpad",
         description="Launchpad forge factory automation (GitHub v1; GitLab roadmap). "
-        "Run from a tenant <client>-meta workspace. Developers still use `gh` for day-to-day PRs.",
+        "Run from a tenant <client>-meta workspace, or use --client from "
+        "~/.config/launchpad/clients.yaml. Developers still use `gh` for day-to-day PRs.",
+    )
+    parser.add_argument(
+        "--client",
+        default=os.environ.get("LAUNCHPAD_CLIENT", ""),
+        metavar="ID",
+        help="client id from ~/.config/launchpad/clients.yaml (or LAUNCHPAD_CLIENT env)",
     )
     sub = parser.add_subparsers(dest="command", required=True)
+
+    p = sub.add_parser("clients", help="List configured clients (clients.yaml + env.d)")
+    p.set_defaults(func=cmd_clients)
 
     p = sub.add_parser("doctor", help="Preflight: tenant root, token, config discovery")
     p.add_argument("--verbose", action="store_true")
@@ -303,6 +316,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
+        apply_client_context(getattr(args, "client", "") or "")
+    except ClientRegistryError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    try:
         return args.func(args)
     except (GitHubError, GitLabError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
@@ -310,7 +328,15 @@ def main(argv: list[str] | None = None) -> int:
         if body:
             print(body, file=sys.stderr)
         return 1
-    except (RuntimeError, ValueError, FileNotFoundError, VerifyError, harness.HarnessError, WikiError) as exc:
+    except (
+        RuntimeError,
+        ValueError,
+        FileNotFoundError,
+        VerifyError,
+        harness.HarnessError,
+        WikiError,
+        ClientRegistryError,
+    ) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 

@@ -25,7 +25,16 @@ Checklist. Full walkthrough: **[setup-guide.md](setup-guide.md)**.
     └── <app-repos>/     # siblings
 ```
 
-## Per-laptop env (optional)
+## Per-laptop client registry (recommended)
+
+One-time: [multi-laptop.md](multi-laptop.md) — `~/.config/launchpad/clients.yaml` + `env.d/<id>.env` for secrets.
+
+```bash
+launchpad --client drivestream doctor
+launchpad setup-platform --apply
+```
+
+## Legacy: manual env (single client)
 
 ```bash
 export LAUNCHPAD_TENANT_ROOT=$HOME/Workspace/handson/<client>/<client>-meta

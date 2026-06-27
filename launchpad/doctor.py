@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from launchpad import __version__
+from launchpad.clients import ENV_D_DIR
 from launchpad.config import discover_tenant_config, load_yaml, tenant_root
 from launchpad.forge import forge_from_mapping, gitlab_host_from_mapping
 from launchpad.adapters.gitlab.client import GitLabClient, GitLabError
@@ -20,12 +21,24 @@ def run(*, verbose: bool = False) -> int:
     print(f"launchpad {__version__}")
     print("")
 
+    client_id = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
+    if client_id:
+        env_file = ENV_D_DIR / f"{client_id}.env"
+        print(f"client: {client_id}")
+        if env_file.is_file():
+            print(f"secrets: {env_file}")
+        else:
+            warnings.append(f"no secrets file: {env_file}")
+        print("")
+
     try:
         root = tenant_root()
         print(f"tenant root: {root}")
     except FileNotFoundError as exc:
         print(f"tenant root: NOT FOUND ({exc})")
-        errors.append("set LAUNCHPAD_TENANT_ROOT or cd into <client>-meta")
+        errors.append(
+            "set LAUNCHPAD_TENANT_ROOT, use launchpad --client <id>, or cd into <client>-meta"
+        )
         root = None
 
     pin = (root / ".launchpad-version").read_text().strip() if root and (root / ".launchpad-version").is_file() else ""

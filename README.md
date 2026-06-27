@@ -139,9 +139,13 @@ Tenant skeleton: [`examples/tenant-meta/`](examples/tenant-meta/) — copy per c
 
 ## CLI (factory + harness)
 
-Run from `<client>-meta` (or set `LAUNCHPAD_TENANT_ROOT`):
+Run from `<client>-meta`, or configure clients once in `~/.config/launchpad/` (see [docs/multi-laptop.md](docs/multi-laptop.md)):
 
 ```bash
+launchpad clients                   # list configured clients
+launchpad doctor                    # uses default client
+launchpad --client drivestream doctor
+
 # Harness (no GitHub API — works offline for sync/verify)
 launchpad sync-harness --repo example-api --apply
 launchpad verify-harness --repo example-api
@@ -179,7 +183,7 @@ Full command reference: [playbook/python-automation.md](playbook/python-automati
 | [playbook/harness-pins.md](playbook/harness-pins.md) | Harness pin format and sync workflow |
 | [playbook/pm-dev-handoff.md](playbook/pm-dev-handoff.md) | PM ↔ dev lanes and merge rules |
 | [playbook/README.md](playbook/README.md) | Full playbook index |
-| [docs/local-dev.md](docs/local-dev.md) | Source / `bin/launchpad` local testing |
+| [docs/multi-laptop.md](docs/multi-laptop.md) | **Client registry** — `clients.yaml` + `env.d` secrets |
 | [docs/SCHEMA.md](docs/SCHEMA.md) | `launchpad/v1` YAML kinds |
 
 ---

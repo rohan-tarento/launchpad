@@ -33,8 +33,10 @@ def tenant_root() -> Path:
             return candidate
 
     raise FileNotFoundError(
-        "Tenant root not found. cd into <client>-meta, set LAUNCHPAD_TENANT_ROOT, "
-        "or add .launchpad-version at the tenant root."
+        "Tenant root not found. Use one of:\n"
+        "  launchpad --client <id>     (from ~/.config/launchpad/clients.yaml)\n"
+        "  export LAUNCHPAD_TENANT_ROOT=/path/to/<client>-meta\n"
+        "  cd into <client>-meta"
     )
 
 
@@ -61,19 +63,6 @@ def discover_tenant_config(kind: str, *, org: str = "") -> Path:
         )
     names = ", ".join(p.name for p in matches)
     raise ValueError(f"multiple {kind} configs ({names}) — pass --config or --org")
-
-
-def load_env() -> None:
-    """Load tenant .env if present (gitignored; see .env.example)."""
-    env_file = tenant_root() / ".env"
-    if not env_file.is_file():
-        return
-    try:
-        from dotenv import load_dotenv
-
-        load_dotenv(env_file, override=False)
-    except ImportError:
-        pass
 
 
 def load_yaml(path: Path | str) -> dict[str, Any]:

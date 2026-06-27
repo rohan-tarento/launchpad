@@ -1,0 +1,13 @@
+# Copy to ~/.config/launchpad/clients.yaml
+# One registry for all clients on this machine.
+
+default: drivestream
+
+clients:
+  - id: drivestream
+    path: ~/Workspace/handson/drivestream/drivestream-meta
+    forge: github
+
+  # - id: acme
+  #   path: ~/Workspace/handson/acme/acme-meta
+  #   forge: github
