@@ -8,7 +8,9 @@ from pathlib import Path
 
 import yaml
 
+from launchpad.onboarding.apply import run_apply
 from launchpad.onboarding.errors import OnboardingError
+from launchpad.onboarding.interview import run_interview
 from launchpad.onboarding.plan import build_plan, format_plan
 from launchpad.onboarding.spec import load_onboarding_spec
 
@@ -37,22 +39,24 @@ def cmd_onboard_show(args: argparse.Namespace) -> int:
 
 
 def cmd_onboard_apply(args: argparse.Namespace) -> int:
-    print(
-        "onboard apply is not implemented yet (PR3).\n"
-        "Use: launchpad onboard plan --spec <path> to preview.",
-        file=sys.stderr,
+    spec_path = _spec_path(args)
+    spec = load_onboarding_spec(spec_path)
+    run_apply(
+        spec,
+        spec_path=spec_path,
+        skip_registry=args.skip_registry,
+        skip_doctor=args.skip_doctor,
+        run_platform=args.with_platform,
     )
-    return 1
+    return 0
 
 
 def cmd_onboard_interview(args: argparse.Namespace) -> int:
-    print(
-        "Interactive onboard interview is not implemented yet (PR2).\n"
-        "Copy examples/onboarding-kola.yaml and edit, or:\n"
-        "  launchpad onboard show --spec examples/onboarding-kola.yaml",
-        file=sys.stderr,
-    )
-    return 1
+    output = Path(args.output).expanduser().resolve() if args.output else None
+    path = run_interview(output=output)
+    print(f"Wrote onboarding spec → {path}")
+    print(f"Next: launchpad onboard plan --spec {path}")
+    return 0
 
 
 def add_onboard_parser(sub: argparse._SubParsersAction) -> None:
@@ -64,7 +68,7 @@ def add_onboard_parser(sub: argparse._SubParsersAction) -> None:
 
     p_interview = onboard_sub.add_parser(
         "interview",
-        help="Interactive Q&A → write onboarding.yaml (PR2)",
+        help="Interactive Q&A → write onboarding.yaml",
     )
     p_interview.add_argument(
         "--output",
@@ -73,15 +77,29 @@ def add_onboard_parser(sub: argparse._SubParsersAction) -> None:
     )
     p_interview.set_defaults(func=cmd_onboard_interview)
 
-    for name, help_text, handler in (
-        ("plan", "Dry-run preview from onboarding.yaml", cmd_onboard_plan),
-        ("show", "Print normalized onboarding.yaml", cmd_onboard_show),
-        ("apply", "Scaffold tenant from onboarding.yaml (PR3)", cmd_onboard_apply),
-    ):
-        sub_p = onboard_sub.add_parser(name, help=help_text)
-        sub_p.add_argument(
-            "--spec",
-            required=True,
-            help="Path to onboarding.yaml (e.g. ~/Workspace/handson/kola/onboarding.yaml)",
-        )
-        sub_p.set_defaults(func=handler)
+    p_plan = onboard_sub.add_parser("plan", help="Dry-run preview from onboarding.yaml")
+    p_plan.add_argument("--spec", required=True, help="Path to onboarding.yaml")
+    p_plan.set_defaults(func=cmd_onboard_plan)
+
+    p_show = onboard_sub.add_parser("show", help="Print normalized onboarding.yaml")
+    p_show.add_argument("--spec", required=True, help="Path to onboarding.yaml")
+    p_show.set_defaults(func=cmd_onboard_show)
+
+    p_apply = onboard_sub.add_parser("apply", help="Scaffold tenant from onboarding.yaml")
+    p_apply.add_argument("--spec", required=True, help="Path to onboarding.yaml")
+    p_apply.add_argument(
+        "--skip-registry",
+        action="store_true",
+        help="Do not patch ~/.config/launchpad/clients.yaml or env.d",
+    )
+    p_apply.add_argument(
+        "--skip-doctor",
+        action="store_true",
+        help="Skip launchpad doctor after scaffold",
+    )
+    p_apply.add_argument(
+        "--with-platform",
+        action="store_true",
+        help="Run setup-platform --apply after scaffold (GitHub + PAT required)",
+    )
+    p_apply.set_defaults(func=cmd_onboard_apply)

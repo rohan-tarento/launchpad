@@ -2,34 +2,52 @@
 
 Q&A → **`onboarding.yaml`** → **`onboard plan`** (dry-run) → **`onboard apply`** (scaffold).
 
-## Status
+## Commands
 
-| Command | Status |
-|---------|--------|
-| `onboard plan --spec …` | **Implemented** — preview files and next steps |
-| `onboard show --spec …` | **Implemented** — print normalized spec |
-| `onboard interview` | PR2 — interactive Q&A |
-| `onboard apply --spec …` | PR3 — scaffold meta + registry |
+| Command | Description |
+|---------|-------------|
+| `launchpad onboard interview` | Interactive Q&A → writes `onboarding.yaml` |
+| `launchpad onboard plan --spec …` | Preview files and next steps (no writes) |
+| `launchpad onboard show --spec …` | Print normalized spec |
+| `launchpad onboard apply --spec …` | Scaffold meta, configs, templates, registry |
+
+### Apply flags
+
+| Flag | Purpose |
+|------|---------|
+| `--skip-registry` | Do not patch `clients.yaml` / `env.d` |
+| `--skip-doctor` | Skip post-apply `launchpad doctor` |
+| `--with-platform` | Run `setup-platform --apply` (GitHub + PAT) |
 
 ## Quick start (KOLA)
 
 ```bash
+# Option A — interview
+launchpad onboard interview
+# writes ~/Workspace/handson/kola/onboarding.yaml (default paths from answers)
+
+# Option B — copy example
 cp examples/onboarding-kola.yaml ~/Workspace/handson/kola/onboarding.yaml
-# edit org, repos, rules refs
 
 launchpad onboard plan --spec ~/Workspace/handson/kola/onboarding.yaml
-launchpad onboard show --spec ~/Workspace/handson/kola/onboarding.yaml
+launchpad onboard apply --spec ~/Workspace/handson/kola/onboarding.yaml
 ```
+
+After apply:
+
+1. Paste token in `~/.config/launchpad/env.d/kola.env`
+2. Create GitHub remote and push `kola-meta`
+3. `launchpad --client kola setup-platform --config config/platform-kola-lab.yaml --apply`
 
 ## GitLab
 
-Set `forge.type: gitlab` in the spec (see `examples/onboarding-kola-gitlab.yaml`). Plan accepts the spec and prints a warning; full GitLab scaffold/platform apply remains incremental — see [multi-forge.md](multi-forge.md).
+Set `forge.type: gitlab` in the spec (`examples/onboarding-kola-gitlab.yaml`). Apply generates GitLab-aware org config; automated `setup-platform` remains GitHub-first — see [multi-forge.md](multi-forge.md).
 
 ## Schema
 
-[SCHEMA.md](SCHEMA.md#onboardingspec) · examples: [`onboarding-kola.yaml`](../examples/onboarding-kola.yaml)
+[SCHEMA.md](SCHEMA.md#onboardingspec)
 
 ## Related
 
-- [new-client.md](new-client.md) — manual checklist (pre-wizard)
-- [setup-guide.md](setup-guide.md) — post-scaffold factory bootstrap
+- [new-client.md](new-client.md)
+- [setup-guide.md](setup-guide.md)
