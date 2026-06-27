@@ -196,6 +196,7 @@ Full command reference: [playbook/python-automation.md](playbook/python-automati
 |----------|---------|
 | [docs/setup-guide.md](docs/setup-guide.md) | **End-to-end setup** — copy `tenant-meta`, customize for your org |
 | [docs/new-client.md](docs/new-client.md) | Onboarding checklist |
+| [docs/onboarding-wizard.md](docs/onboarding-wizard.md) | `onboard plan` / `onboard apply` from `onboarding.yaml` |
 | [playbook/sdd-workflow.md](playbook/sdd-workflow.md) | SDD truth hierarchy and PR discipline |
 | [playbook/spec-layout.md](playbook/spec-layout.md) | Mandatory `docs/specification/` layout |
 | [playbook/harness-pins.md](playbook/harness-pins.md) | Harness pin format and sync workflow |

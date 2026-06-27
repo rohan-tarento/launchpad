@@ -15,6 +15,8 @@ from launchpad.adapters.gitlab.client import GitLabError
 from launchpad.github_client import GitHubClient, GitHubError
 from launchpad.verify.runner import VerifyError, run as run_verify
 from launchpad.wiki import WikiError
+from launchpad.onboarding.cli import add_onboard_parser
+from launchpad.onboarding.errors import OnboardingError
 
 def _config_path(args: argparse.Namespace, kind: str) -> str:
     if args.config:
@@ -309,6 +311,8 @@ def build_parser() -> argparse.ArgumentParser:
     _add_apply_flags(p)
     p.set_defaults(func=cmd_publish_wiki)
 
+    add_onboard_parser(sub)
+
     return parser
 
 
@@ -336,6 +340,7 @@ def main(argv: list[str] | None = None) -> int:
         harness.HarnessError,
         WikiError,
         ClientRegistryError,
+        OnboardingError,
     ) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
