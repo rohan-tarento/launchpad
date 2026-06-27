@@ -18,7 +18,7 @@ kind: <KindName>
 | `WorkManifest` | `seed-work` — epic + wave issues |
 | `WikiConfig` | `publish-wiki` — wiki source dir, org, repo |
 
-Gitflow and project configs include `apiVersion` and `kind` — see [`examples/tenant-meta/scripts/config/`](../examples/tenant-meta/scripts/config/).
+Gitflow and project configs include `apiVersion` and `kind` — see [`examples/tenant-meta/config/`](../examples/tenant-meta/config/).
 
 ## Work manifest 1:1 rule (waves)
 

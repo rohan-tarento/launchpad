@@ -1,13 +1,13 @@
 # Example tenant meta
 
-**Single tenant skeleton** for Launchpad — copy once per client, then rename org/repos in `scripts/config/`.
+**Single tenant skeleton** for Launchpad — copy once per client, then rename org/repos in `config/`.
 
 ```bash
 cp -r examples/tenant-meta ~/Workspace/handson/<client>/<client>-meta
 cd ~/Workspace/handson/<client>/<client>-meta
 ```
 
-1. Replace `example-org` with your forge org in all `scripts/config/*.yaml`
+1. Replace `example-org` with your forge org in all `config/*.yaml`
 2. Rename config files to match your org slug (e.g. `org-kd_diet_coke.yaml`, `platform-kd_diet_coke.yaml`)
 3. Set harness pins to **your private** `*-rules` repo + [prayog-skills](https://github.com/drivestream-lab/prayog-skills)
 4. Register the tenant on your machine — [multi-laptop.md](../../docs/multi-laptop.md):
@@ -18,7 +18,7 @@ cd ~/Workspace/handson/<client>/<client>-meta
 launchpad doctor
 ```
 
-5. `launchpad setup-platform --config scripts/config/platform-<org>.yaml --dry-run` then `--apply`
+5. `launchpad setup-platform --config config/platform-<org>.yaml --dry-run` then `--apply`
 
 **Local smoke** (no PAT): from launchpad repo root, `./scripts/smoke-local.sh` uses this tree via `LAUNCHPAD_TENANT_ROOT`.
 

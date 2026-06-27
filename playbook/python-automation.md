@@ -143,27 +143,27 @@ All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub.
 
 # Platform (repos + teams + gitflow + board + verify)
 launchpad setup-platform \
-  --config scripts/config/platform-example-org.yaml \
+  --config config/platform-example-org.yaml \
   --dry-run
 launchpad setup-platform \
-  --config scripts/config/platform-example-org.yaml \
+  --config config/platform-example-org.yaml \
   --apply
 
 launchpad verify-platform \
-  --config scripts/config/verify-platform-example-org.yaml
+  --config config/verify-platform-example-org.yaml
 
 # Backlog (WorkManifest per initiative — generate via /generate-work-manifest)
 launchpad seed-work --config work/INIT-<id>.yaml --dry-run
 launchpad seed-work --config work/INIT-<id>.yaml --apply
 
 # Individual steps (debug / partial re-run)
-launchpad bootstrap-org --config scripts/config/org-example-org.yaml --apply
-launchpad bootstrap-teams --config scripts/config/org-example-org.yaml --apply
-launchpad setup-gitflow --config scripts/config/gitflow-example.yaml --apply
-launchpad bootstrap-project --config scripts/config/project-example-org.yaml --apply
+launchpad bootstrap-org --config config/org-example-org.yaml --apply
+launchpad bootstrap-teams --config config/org-example-org.yaml --apply
+launchpad setup-gitflow --config config/gitflow-example.yaml --apply
+launchpad bootstrap-project --config config/project-example-org.yaml --apply
 ```
 
-### YAML kinds (`scripts/config/`)
+### YAML kinds (`config/`)
 
 | File | `kind` | Used by |
 |------|--------|---------|

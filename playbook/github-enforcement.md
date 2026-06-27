@@ -2,7 +2,7 @@
 
 Policy docs describe intent. **These mechanisms enforce it.**
 
-**Single source of truth:** `scripts/config/gitflow-<org>.yaml` (`kind: GitflowConfig`). Branch naming, merge policy, PR rules, CI gates, and automation switches live there — **not** on the CLI.
+**Single source of truth:** `config/gitflow-<org>.yaml` (`kind: GitflowConfig`). Branch naming, merge policy, PR rules, CI gates, and automation switches live there — **not** on the CLI.
 
 ## Layers
 
@@ -29,7 +29,7 @@ All bootstrap uses **`launchpad`** + `GITHUB_TOKEN`. See [python-automation.md](
 | `bootstrap-project` | Project board + fields |
 
 ```bash
-launchpad setup-gitflow --config scripts/config/gitflow-<org>.yaml --apply
+launchpad setup-gitflow --config config/gitflow-<org>.yaml --apply
 ```
 
 Only `--config`, `--apply` / `--dry-run`, `--org`, and `--repo` (debug filter) are valid. Policy is never passed on the command line.

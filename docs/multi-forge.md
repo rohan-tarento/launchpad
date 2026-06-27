@@ -13,9 +13,9 @@ See [playbook/github-project.md](../playbook/github-project.md).
 ## GitLab (v1 — seed-work + labels)
 
 - Group = `org` field in org config
-- `forge.type: gitlab` in `scripts/config/org-<org>.yaml`
+- `forge.type: gitlab` in `config/org-<org>.yaml`
 - Issues + scoped labels (`status::`, `codebase::`, `initiative::`)
-- Example: `examples/tenant-meta/scripts/config/org-gitlab.example.yaml`
+- Example: `examples/tenant-meta/config/org-gitlab.example.yaml`
 
 Full factory bootstrap on GitLab is incremental; `seed-work` is supported today.
 

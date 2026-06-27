@@ -1,5 +1,5 @@
 # Copy to gitflow-<org>.yaml and edit before:
-#   launchpad setup-gitflow --config scripts/config/gitflow-<org>.yaml --apply
+#   launchpad setup-gitflow --config config/gitflow-<org>.yaml --apply
 #
 # Policy is authoritative in this file only — no CLI flags for naming, merge, PR, or CI.
 

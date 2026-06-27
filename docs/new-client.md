@@ -8,9 +8,9 @@ Checklist. Full walkthrough: **[setup-guide.md](setup-guide.md)**.
 2. **Client registry** — `~/.config/launchpad/clients.yaml` + `env.d/<id>.env` for secrets
 3. **Copy tenant skeleton** — `cp -r examples/tenant-meta ~/Workspace/handson/<client>/<client>-meta`
 4. **Push meta** to your forge (meta is **not** created by `bootstrap-org`)
-5. **Edit `scripts/config/*.yaml`** — org, repos, gitflow, harness; rename files to `*-<org>.yaml`
+5. **Edit `config/*.yaml`** — org, repos, gitflow, harness; rename files to `*-<org>.yaml`
 6. **`launchpad doctor`**
-7. **`launchpad setup-platform --config scripts/config/platform-<org>.yaml --apply`**
+7. **`launchpad setup-platform --config config/platform-<org>.yaml --apply`**
 8. **`launchpad verify-platform`**
 9. Clone app repos as siblings → **`launchpad sync-harness --repo <app> --apply`**
 10. PRD → `work/INIT-*.yaml` → **`launchpad seed-work --apply`**

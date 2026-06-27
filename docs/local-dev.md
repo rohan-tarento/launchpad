@@ -54,7 +54,7 @@ launchpad --client acme doctor
 
 ## GitHub vs GitLab
 
-Set `forge.type` in `scripts/config/org-<org>.yaml`:
+Set `forge.type` in `config/org-<org>.yaml`:
 
 ```yaml
 forge:
@@ -69,7 +69,7 @@ forge:
 
 `seed-work` dispatches automatically. GitLab uses scoped labels (`status::backlog`, `codebase::example-api`).
 
-See `examples/tenant-meta/scripts/config/org-gitlab-example.yaml`.
+See `examples/tenant-meta/config/org-gitlab-example.yaml`.
 
 ---
 

@@ -57,7 +57,7 @@ Set **As-built** before **In review**.
 
 ## Issue types (org — color on board)
 
-Defined in `scripts/config/project-example-org.yaml` under `issue_types`.
+Defined in `config/project-example-org.yaml` under `issue_types`.
 
 | Role | GitHub Type | When |
 |------|-------------|------|
@@ -73,8 +73,8 @@ Factory PAT needs org **Issue types: Read and write**. Preflight: `launchpad ver
 ## Automation
 
 ```bash
-launchpad bootstrap-project --config scripts/config/project-example-org.yaml --dry-run
-launchpad bootstrap-project --config scripts/config/project-example-org.yaml --apply
+launchpad bootstrap-project --config config/project-example-org.yaml --dry-run
+launchpad bootstrap-project --config config/project-example-org.yaml --apply
 ```
 
 Or as part of platform setup:
@@ -83,7 +83,7 @@ Or as part of platform setup:
 launchpad setup-platform --apply
 ```
 
-Config: `scripts/config/project-example-org.yaml` — columns, fields, repos.
+Config: `config/project-example-org.yaml` — columns, fields, repos.
 
 Idempotent: safe to re-run; updates Status + single-select field options and creates missing fields.
 
@@ -100,7 +100,7 @@ Idempotent: safe to re-run; updates Status + single-select field options and cre
 Extend `project-example-org.yaml` when more repos join the program board, then run:
 
 ```bash
-launchpad bootstrap-project --config scripts/config/project-example-org.yaml --apply
+launchpad bootstrap-project --config config/project-example-org.yaml --apply
 ```
 
 `bootstrap-project` syncs **Status** columns and **single-select** field options (e.g. Codebase, As-built) from config.

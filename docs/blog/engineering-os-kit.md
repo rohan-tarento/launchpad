@@ -62,7 +62,7 @@ PM lane (<client>-meta)              Dev lane (app repos)
 prd/          INIT PRDs              docs/specification/product/
 work/         seed manifests         docs/specification/as-built/
 planning/     pre-build archive      docs/specification/adr/
-scripts/config/  factory YAML          code + tests/verify/
+config/  factory YAML          code + tests/verify/
 ```
 
 **Meta** holds narrative and factory config. **App repos** hold implementation truth. Long-form pre-build planning stays in meta — not as aspirational docs scattered across microservices.
@@ -211,7 +211,7 @@ If this post is useful, here's the compressed runbook:
 
 1. **Clone Launchpad** — `pip install -e .` or `bin/launchpad` from source
 2. **Copy `examples/tenant-meta`** → `~/Workspace/handson/<client>/<client>-meta`
-3. **Edit `scripts/config/*.yaml`** — org, repos, gitflow, harness, project
+3. **Edit `config/*.yaml`** — org, repos, gitflow, harness, project
 4. **Push meta** — factory doesn't create your meta repo
 5. **`launchpad setup-platform --apply`** — repos, teams, gitflow, board
 6. **Clone app repos as siblings** → **`launchpad sync-harness --repo <app> --apply`**

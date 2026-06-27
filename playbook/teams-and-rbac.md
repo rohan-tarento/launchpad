@@ -1,6 +1,6 @@
 # Teams and RBAC (example-org)
 
-Config: [`gitflow-example.yaml`](../examples/tenant-meta/scripts/config/gitflow-example.yaml)
+Config: [`gitflow-example.yaml`](../examples/tenant-meta/config/gitflow-example.yaml)
 
 **PM ↔ dev handoff:** [pm-dev-handoff.md](pm-dev-handoff.md)
 
@@ -36,7 +36,7 @@ PM pushes spec handoff branches on app repos; **dev merges** after review. PM me
 | `platform` | **`<client>-meta`** | iac, iac-local |
 | `data_platform` | **example-platform** (when added) | — |
 
-Config file: [`examples/tenant-meta/scripts/config/gitflow-example.yaml`](../examples/tenant-meta/scripts/config/gitflow-example.yaml)
+Config file: [`examples/tenant-meta/config/gitflow-example.yaml`](../examples/tenant-meta/config/gitflow-example.yaml)
 
 ## Branch rules (summary)
 
@@ -53,10 +53,10 @@ See [github-enforcement.md](github-enforcement.md) and [branching-policy.md](bra
 Requires `GITHUB_TOKEN` in `~/.config/launchpad/env.d/<client-id>.env` — [python-automation.md](python-automation.md).
 
 ```bash
-launchpad setup-platform --config scripts/config/platform-example.yaml --apply
+launchpad setup-platform --config config/platform-example.yaml --apply
 # or individual steps:
-launchpad bootstrap-teams --config scripts/config/org-example-org.yaml --apply
-launchpad setup-gitflow --config scripts/config/gitflow-example.yaml --apply
+launchpad bootstrap-teams --config config/org-example-org.yaml --apply
+launchpad setup-gitflow --config config/gitflow-example.yaml --apply
 ```
 
 Add members to **`pm-team`** and dev teams in GitHub UI after team creation.

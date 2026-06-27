@@ -40,7 +40,7 @@ Bump via harness PR after platform publishes a new approved rules + skills pair.
 
 ## Approved pairs (examples)
 
-Document your org's approved `rules` + `agent_skills` ref pairs in tenant `scripts/config/harness-<org>.yaml`.
+Document your org's approved `rules` + `agent_skills` ref pairs in tenant `config/harness-<org>.yaml`.
 
 | rules | agent_skills | Notes |
 |-------|--------------|-------|
@@ -70,7 +70,7 @@ launchpad sync-harness --repo example-api --apply
 launchpad verify-harness
 ```
 
-Config: `scripts/config/harness-<org>.yaml`
+Config: `config/harness-<org>.yaml`
 
 **Onboard a new app repo:**
 

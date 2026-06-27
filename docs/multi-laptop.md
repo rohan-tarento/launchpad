@@ -72,7 +72,7 @@ Launchpad picks the tenant in this order:
 2. `--client` / `LAUNCHPAD_CLIENT` → lookup in `clients.yaml`
 3. `default:` in `clients.yaml`
 4. Sole client in `clients.yaml` (when only one entry)
-5. Auto-discovery from cwd (`.launchpad-version`, `scripts/config/`, `prd/` + `work/`)
+5. Auto-discovery from cwd (`.launchpad-version`, `config/`, `prd/` + `work/`)
 
 Secrets load from `env.d/<client-id>.env` when a client is active.
 

@@ -1,5 +1,5 @@
 # Harness pins — rules submodule + prayog-skills dev bundle
-# Copy to scripts/config/harness-<org>.yaml in your tenant meta repo.
+# Copy to config/harness-<org>.yaml in your tenant meta repo.
 # SSOT: playbook/harness-pins.md
 
 apiVersion: launchpad/v1

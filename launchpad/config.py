@@ -24,7 +24,7 @@ def tenant_root() -> Path:
     for candidate in [cwd, *cwd.parents]:
         if (candidate / ".launchpad-version").is_file():
             return candidate
-        config_dir = candidate / "scripts" / "config"
+        config_dir = candidate / "config"
         if config_dir.is_dir() and any(
             p.suffix == ".yaml" and ".example" not in p.name for p in config_dir.iterdir()
         ):
@@ -40,9 +40,17 @@ def tenant_root() -> Path:
     )
 
 
+def tenant_config_dir() -> Path:
+    """Tenant factory YAML directory: {tenant_root}/config/."""
+    config_dir = tenant_root() / "config"
+    if not config_dir.is_dir():
+        raise FileNotFoundError(f"tenant config directory missing: {config_dir}")
+    return config_dir
+
+
 def discover_tenant_config(kind: str, *, org: str = "") -> Path:
-    """Find scripts/config/{kind}-<org>.yaml or the sole non-example file for kind."""
-    config_dir = tenant_root() / "scripts" / "config"
+    """Find config/{kind}-<org>.yaml or the sole non-example file for kind."""
+    config_dir = tenant_config_dir()
     if not config_dir.is_dir():
         raise FileNotFoundError(f"tenant config directory missing: {config_dir}")
 
@@ -83,7 +91,7 @@ def resolve_config_path(
     explicit: str | Path | None = None,
     base: Path | str | None = None,
 ) -> Path:
-    """Convention: scripts/config/{kind}-{org}.yaml"""
+    """Convention: config/{kind}-{org}.yaml"""
     if explicit:
         p = Path(explicit)
         if not p.is_absolute() and base is not None:
@@ -93,7 +101,7 @@ def resolve_config_path(
         return p.resolve() if p.is_file() else p
     if not org:
         raise ValueError(f"--config or --org required for {kind}")
-    return (tenant_root() / "scripts" / "config" / f"{kind}-{org}.yaml").resolve()
+    return (tenant_config_dir() / f"{kind}-{org}.yaml").resolve()
 
 
 def _resolve_include_path(include_path: str | Path, parent_config: Path | str) -> Path:
@@ -214,8 +222,8 @@ def load_work_manifest(path: Path | str) -> dict[str, Any]:
 
 
 def default_project_config_path(org: str) -> Path:
-    """Convention: scripts/config/project-{org}.yaml"""
-    return tenant_root() / "scripts" / "config" / f"project-{org}.yaml"
+    """Convention: config/project-{org}.yaml"""
+    return tenant_config_dir() / f"project-{org}.yaml"
 
 
 def coerce_yaml_select_option(value: Any) -> str:
@@ -338,11 +346,11 @@ def load_verify_manifest(path: Path | str) -> dict[str, Any]:
 
 
 def default_verify_config_path(org: str) -> Path:
-    return tenant_root() / "scripts" / "config" / f"verify-platform-{org}.yaml"
+    return tenant_config_dir() / f"verify-platform-{org}.yaml"
 
 
 def default_platform_config_path(org: str) -> Path:
-    return tenant_root() / "scripts" / "config" / f"platform-{org}.yaml"
+    return tenant_config_dir() / f"platform-{org}.yaml"
 
 
 def load_harness_config(path: Path | str) -> dict[str, Any]:
@@ -374,7 +382,7 @@ def load_harness_config(path: Path | str) -> dict[str, Any]:
 
 
 def default_harness_config_path(org: str) -> Path:
-    return tenant_root() / "scripts" / "config" / f"harness-{org}.yaml"
+    return tenant_config_dir() / f"harness-{org}.yaml"
 
 
 def load_wiki_config(path: Path | str) -> dict[str, Any]:
@@ -395,4 +403,4 @@ def load_wiki_config(path: Path | str) -> dict[str, Any]:
 
 
 def default_wiki_config_path(org: str) -> Path:
-    return tenant_root() / "scripts" / "config" / f"wiki-{org}.yaml"
+    return tenant_config_dir() / f"wiki-{org}.yaml"

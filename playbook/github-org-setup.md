@@ -35,7 +35,7 @@ launchpad verify-platform
 launchpad seed-work --config work/INIT-<id>.yaml --apply
 ```
 
-Config SSOT: `scripts/config/*-example-org.yaml`
+Config SSOT: `config/*-example-org.yaml`
 
 ---
 

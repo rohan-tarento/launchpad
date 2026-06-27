@@ -28,7 +28,7 @@ Most teams bolt AI on top of ad-hoc repos. Launchpad inverts that:
 |--------|---------------|----------------|
 | **SDD** | **What** to build (`product/`), **what is live** (`as-built/`), **why** (`adr/`) — read before code changes | App repos + `<client>-meta` PRDs |
 | **Harness engineering** | Frozen agent surface: rules submodule, `AGENTS.md`, prayog-skills bundle, verify discipline | `.harness-pin.yaml` + `sync-harness` |
-| **Factory** | GitHub/GitLab bootstrap, gitflow policy, project board, work manifests → issues | `launchpad` CLI + tenant `scripts/config/*.yaml` |
+| **Factory** | GitHub/GitLab bootstrap, gitflow policy, project board, work manifests → issues | `launchpad` CLI + tenant `config/*.yaml` |
 
 ```text
 PM lane (<client>-meta)          Dev lane (app repos)
@@ -116,7 +116,7 @@ pipx install -e .
 # One-time client registry — see docs/multi-laptop.md
 launchpad clients
 launchpad doctor
-launchpad setup-platform --config scripts/config/platform-<org>.yaml --apply
+launchpad setup-platform --config config/platform-<org>.yaml --apply
 ```
 
 Full walkthrough: [docs/setup-guide.md](docs/setup-guide.md) · [docs/multi-laptop.md](docs/multi-laptop.md)
@@ -149,7 +149,7 @@ Each private tenant repo holds **real product content** (not shipped in launchpa
 | `programs/` | Programme overviews |
 | `work/` | WorkManifest YAML → `launchpad seed-work` |
 | `wiki/` | Client wiki |
-| `scripts/config/` | Org factory YAML (gitflow policy is **authoritative** here) |
+| `config/` | Org factory YAML (gitflow policy is **authoritative** here) |
 
 Tenant skeleton: [`examples/tenant-meta/`](examples/tenant-meta/) — copy per client; rename `example-org` / `example-api` in YAML to your forge.
 
@@ -170,8 +170,8 @@ launchpad verify-harness --repo example-api
 launchpad publish-wiki --apply
 
 # Factory (GitHub v1 — needs GITHUB_TOKEN)
-launchpad setup-platform --config scripts/config/platform-<org>.yaml --apply
-launchpad setup-gitflow --config scripts/config/gitflow-<org>.yaml --apply
+launchpad setup-platform --config config/platform-<org>.yaml --apply
+launchpad setup-gitflow --config config/gitflow-<org>.yaml --apply
 launchpad seed-work --config work/INIT-*.yaml --apply
 ```
 

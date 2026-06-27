@@ -79,7 +79,7 @@ git remote add origin git@github.com:kd_diet_coke/diet_coke-meta.git
 
 Create **`diet_coke-meta`** on GitHub first, then push. Meta is **not** created by `bootstrap-org`.
 
-**Customize configs** — edit `scripts/config/*.yaml`:
+**Customize configs** — edit `config/*.yaml`:
 
 - Replace `example-org` → `kd_diet_coke`
 - Replace `example-api` → `diet_coke-api` (and other repos)
@@ -112,9 +112,9 @@ Or set `default: diet_coke` in `clients.yaml` and run `launchpad doctor`.
 ## Phase 4 — Factory bootstrap (PAT required)
 
 ```bash
-launchpad setup-platform --config scripts/config/platform-<org>.yaml --dry-run
-launchpad setup-platform --config scripts/config/platform-<org>.yaml --apply
-launchpad verify-platform --config scripts/config/verify-platform-<org>.yaml
+launchpad setup-platform --config config/platform-<org>.yaml --dry-run
+launchpad setup-platform --config config/platform-<org>.yaml --apply
+launchpad verify-platform --config config/verify-platform-<org>.yaml
 ```
 
 Runs: `bootstrap-org` → `bootstrap-teams` → `setup-gitflow` → `bootstrap-project`.

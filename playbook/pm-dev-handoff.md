@@ -180,13 +180,13 @@ New work uses **`INIT-<scope>-<nnn>`** only ([pm-workflow.md](pm-workflow.md)).
 ## GitHub setup
 
 ```bash
-launchpad bootstrap-teams --config scripts/config/org-example-org.yaml --apply
+launchpad bootstrap-teams --config config/org-example-org.yaml --apply
 launchpad setup-gitflow --org example-org --apply
 ```
 
 Add people to **`pm-team`** and dev teams in GitHub → Organization → Teams.
 
-Config: [`examples/tenant-meta/scripts/config/gitflow-example.yaml`](../examples/tenant-meta/scripts/config/gitflow-example.yaml)
+Config: [`examples/tenant-meta/config/gitflow-example.yaml`](../examples/tenant-meta/config/gitflow-example.yaml)
 
 ---
 
