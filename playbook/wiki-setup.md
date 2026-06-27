@@ -22,10 +22,10 @@ GitHub creates the `.wiki.git` repository only after the **first wiki page** exi
 
 ```bash
 cd <client>-meta
-./scripts/publish-wiki
+launchpad publish-wiki --apply
 ```
 
-This clones `<client>-meta.wiki.git`, copies `wiki/*.md`, commits, and pushes.
+Uses `config/wiki-<org>.yaml` (`WikiConfig`) when present. Clones `<client>-meta.wiki.git`, copies `wiki/*.md`, commits, and pushes.
 
 ---
 
@@ -57,11 +57,11 @@ Wiki pages link into **playbook/** on `develop`. When playbook text changes:
 
 ```bash
 git pull origin develop
-./scripts/publish-wiki    # syncs wiki/*.md only — playbook links update on GitHub automatically
+launchpad publish-wiki --apply    # syncs wiki/*.md only — playbook links update on GitHub automatically
 ```
 
 ## Exit criteria (M4 Done)
 
 - [ ] tenant <client>-meta/wiki shows Home + 4 child pages  
-- [ ] `./scripts/publish-wiki` succeeds  
+- [ ] `launchpad publish-wiki --apply` succeeds  
 - [ ] Board task **M4** → Done

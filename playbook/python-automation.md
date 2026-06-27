@@ -67,11 +67,11 @@ Choose **All repositories** in `example-org`, or select at least **<client>-meta
 | Permission | Access | Why |
 |------------|--------|-----|
 | **Administration** | Read and write | Create repos and teams |
-| **Issue types** | **Read and write** | **Required** — `verify-factory`, create **Epic** type, `seed-work` |
+| **Issue types** | **Read and write** | **Required** — `verify-platform`, create **Epic** type, `seed-work` |
 | **Members** | Read and write | Team ↔ repo access grants |
 | **Projects** | Read and write | Project board bootstrap |
 
-> **Common mistake:** `verify-factory` fails on Issue types API if **Issue types** is missing or set to “No access”. That is separate from **Administration**.
+> **Common mistake:** `verify-platform` fails on Issue types API if **Issue types** is missing or set to “No access”. That is separate from **Administration**.
 
 #### Edit an existing factory token
 
@@ -143,24 +143,24 @@ All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub.
 
 # Platform (repos + teams + gitflow + board + verify)
 launchpad setup-platform \
-  --config config/platform-example-org.yaml \
+  --config config/platform-example.yaml \
   --dry-run
 launchpad setup-platform \
-  --config config/platform-example-org.yaml \
+  --config config/platform-example.yaml \
   --apply
 
 launchpad verify-platform \
-  --config config/verify-platform-example-org.yaml
+  --config config/verify-platform-example.yaml
 
 # Backlog (WorkManifest per initiative — generate via /generate-work-manifest)
 launchpad seed-work --config work/INIT-<id>.yaml --dry-run
 launchpad seed-work --config work/INIT-<id>.yaml --apply
 
 # Individual steps (debug / partial re-run)
-launchpad bootstrap-org --config config/org-example-org.yaml --apply
-launchpad bootstrap-teams --config config/org-example-org.yaml --apply
+launchpad bootstrap-org --config config/org-example.yaml --apply
+launchpad bootstrap-teams --config config/org-example.yaml --apply
 launchpad setup-gitflow --config config/gitflow-example.yaml --apply
-launchpad bootstrap-project --config config/project-example-org.yaml --apply
+launchpad bootstrap-project --config config/project-example.yaml --apply
 ```
 
 ### YAML kinds (`config/`)

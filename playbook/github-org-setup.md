@@ -35,7 +35,7 @@ launchpad verify-platform
 launchpad seed-work --config work/INIT-<id>.yaml --apply
 ```
 
-Config SSOT: `config/*-example-org.yaml`
+Config SSOT: `config/*-<org>.yaml` (skeleton ships `*-example.yaml` until you rename)
 
 ---
 

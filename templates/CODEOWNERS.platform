@@ -1,7 +1,7 @@
 # Platform / meta profile — copy to <client>-meta root as CODEOWNERS
 
 /playbook/ @example-org/platform-devs
-/scripts/ @example-org/platform-devs
+/config/ @example-org/platform-devs
 /wiki/ @example-org/platform-devs
 /work/ @example-org/pm-team
 * @example-org/pm-team

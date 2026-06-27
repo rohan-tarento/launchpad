@@ -1,5 +1,5 @@
 # GitHub Project bootstrap — example-org (production template)
-# cp to project-example-org.yaml and edit repo list
+# Rename to project-<org>.yaml and edit repo list
 
 org: example-org
 project_title: Example Engineering

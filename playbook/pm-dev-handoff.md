@@ -180,7 +180,7 @@ New work uses **`INIT-<scope>-<nnn>`** only ([pm-workflow.md](pm-workflow.md)).
 ## GitHub setup
 
 ```bash
-launchpad bootstrap-teams --config config/org-example-org.yaml --apply
+launchpad bootstrap-teams --config config/org-example.yaml --apply
 launchpad setup-gitflow --org example-org --apply
 ```
 

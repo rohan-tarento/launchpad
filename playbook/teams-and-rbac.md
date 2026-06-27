@@ -55,7 +55,7 @@ Requires `GITHUB_TOKEN` in `~/.config/launchpad/env.d/<client-id>.env` — [pyth
 ```bash
 launchpad setup-platform --config config/platform-example.yaml --apply
 # or individual steps:
-launchpad bootstrap-teams --config config/org-example-org.yaml --apply
+launchpad bootstrap-teams --config config/org-example.yaml --apply
 launchpad setup-gitflow --config config/gitflow-example.yaml --apply
 ```
 
