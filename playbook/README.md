@@ -13,6 +13,7 @@ Process SSOT for tenant engineering. **Product content** (PRDs, planning, wiki p
 | GitHub board | [github-project.md](github-project.md) |
 | GitLab board (roadmap) | [../docs/multi-forge.md](../docs/multi-forge.md) |
 | Harness pins | [harness-pins.md](harness-pins.md) |
+| Greenfield app repo | [greenfield-app-repo.md](greenfield-app-repo.md) |
 | Factory CLI | [python-automation.md](python-automation.md) |
 | Bootstrap PAT | [bootstrap-prerequisites.md](bootstrap-prerequisites.md) |
 

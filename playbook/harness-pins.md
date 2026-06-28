@@ -74,10 +74,12 @@ Config: `config/harness-<org>.yaml`
 
 Template paths (`agents_template`, `pin_template`) resolve **tenant override first**, then **launchpad kit** `templates/` (pipx install). Store only autrio10x-specific overrides under `<client>-meta/templates/`.
 
-**Onboard a new app repo:**
+**Onboard a new app repo:** see [greenfield-app-repo.md](greenfield-app-repo.md) (scaffold → git push → gitflow → sync-harness).
 
-1. Add entry under `repos:` in harness config.
-2. Clone repo next to `<client>-meta` (see `default_workspace` in harness config).
+Short harness-only path (repo already exists with code):
+
+1. Add entry under `repos:` in harness config (include `scaffold:` for new Python repos).
+2. Ensure clone lives next to `<client>-meta` (see `default_workspace` in harness config).
 3. `launchpad sync-harness --repo <name> --apply`
 4. Commit pin, `AGENTS.md`, rules submodule, `.gitignore` (`.agents/`).
 5. `launchpad verify-harness --repo <name>` before opening PR.
