@@ -7,6 +7,7 @@ import os
 import sys
 from pathlib import Path
 
+from launchpad import __version__
 from launchpad import bootstrap_org, bootstrap_teams, gitflow, harness, platform, project, seed_work, wiki
 from launchpad.clients import ClientRegistryError, apply_client_context, format_clients_table
 from launchpad.config import discover_tenant_config, load_org_config, load_project_config
@@ -15,6 +16,8 @@ from launchpad.adapters.gitlab.client import GitLabError
 from launchpad.github_client import GitHubClient, GitHubError
 from launchpad.verify.runner import VerifyError, run as run_verify
 from launchpad.wiki import WikiError
+from launchpad.onboarding.cli import add_onboard_parser
+from launchpad.onboarding.errors import OnboardingError
 
 def _config_path(args: argparse.Namespace, kind: str) -> str:
     if args.config:
@@ -196,6 +199,13 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="ID",
         help="client id from ~/.config/launchpad/clients.yaml (or LAUNCHPAD_CLIENT env)",
     )
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+        help="print launchpad version and exit",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("clients", help="List configured clients (clients.yaml + env.d)")
@@ -309,6 +319,8 @@ def build_parser() -> argparse.ArgumentParser:
     _add_apply_flags(p)
     p.set_defaults(func=cmd_publish_wiki)
 
+    add_onboard_parser(sub)
+
     return parser
 
 
@@ -336,6 +348,7 @@ def main(argv: list[str] | None = None) -> int:
         harness.HarnessError,
         WikiError,
         ClientRegistryError,
+        OnboardingError,
     ) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

@@ -1,6 +1,6 @@
 # New client onboarding
 
-Checklist. Full walkthrough: **[setup-guide.md](setup-guide.md)**.
+Checklist. Full walkthrough: **[setup-guide.md](setup-guide.md)**. Wizard (recommended): **[onboarding-wizard.md](onboarding-wizard.md)**.
 
 ## Checklist
 

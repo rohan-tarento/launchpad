@@ -1,0 +1,73 @@
+# Example OnboardingSpec — illustrative KOLA tenant.
+# Copy to ~/Workspace/handson/kola/onboarding.yaml and edit.
+#
+#   launchpad onboard plan --spec ~/Workspace/handson/kola/onboarding.yaml
+#   launchpad onboard apply --spec ~/Workspace/handson/kola/onboarding.yaml  # PR3
+
+apiVersion: launchpad/v1
+kind: OnboardingSpec
+
+client_id: kola
+display_name: KOLA
+
+forge:
+  type: github   # github | gitlab (gitlab: scaffold stubbed; see plan warnings)
+
+org: kola-lab
+meta_repo: kola-meta
+
+paths:
+  workspace: ~/Workspace/handson/kola
+  spec: onboarding.yaml
+
+repos:
+  - name: kola-api
+    profile: backend
+    description: KOLA API
+    private: true
+  - name: kola-portal
+    profile: frontend
+    description: KOLA BFF portal
+    private: true
+
+rules:
+  python:
+    repo: kola-lab/python-services-rules
+    initial_ref: v0.1.0
+  frontend:
+    repo: kola-lab/nextjs-bff-rules
+    initial_ref: v0.1.0
+
+agent_skills:
+  repo: drivestream-lab/prayog-skills
+  ref: v0.2.0
+
+teams:
+  - slug: pm-team
+  - slug: backend-devs
+  - slug: frontend-devs
+  - slug: platform-devs
+  - slug: release-managers
+
+gitflow:
+  require_ci: true
+  branch_naming: true
+  with_templates: true
+  branch_naming_mode: strict
+
+project:
+  name: KOLA Engineering
+
+overrides:
+  generate_templates: true
+  generate_playbook_hub: true
+  board_url: ""
+
+registry:
+  register_client: true
+  set_default: false
+  secrets_stub: true
+
+provision:
+  run_setup_platform: false
+  run_doctor: true

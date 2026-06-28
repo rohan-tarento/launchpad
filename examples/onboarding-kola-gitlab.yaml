@@ -1,0 +1,35 @@
+apiVersion: launchpad/v1
+kind: OnboardingSpec
+
+client_id: kola-gitlab
+display_name: KOLA GitLab
+
+forge:
+  type: gitlab
+
+org: kola-lab
+meta_repo: kola-meta
+
+paths:
+  workspace: ~/Workspace/handson/kola-gitlab
+  spec: onboarding.yaml
+
+repos:
+  - name: kola-api
+    profile: backend
+    private: true
+
+rules:
+  python:
+    repo: kola-lab/python-services-rules
+    initial_ref: v0.1.0
+
+gitflow:
+  branch_naming_mode: strict
+
+registry:
+  register_client: true
+  set_default: false
+
+provision:
+  run_setup_platform: false
