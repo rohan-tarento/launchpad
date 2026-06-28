@@ -18,6 +18,9 @@ from launchpad.verify.runner import VerifyError, run as run_verify
 from launchpad.wiki import WikiError
 from launchpad.onboarding.cli import add_onboard_parser
 from launchpad.onboarding.errors import OnboardingError
+from launchpad.scaffold.cli import add_scaffold_parser, parse_scaffold_options
+from launchpad.scaffold.errors import ScaffoldError
+from launchpad.scaffold.run import run_scaffold
 
 def _config_path(args: argparse.Namespace, kind: str) -> str:
     if args.config:
@@ -186,6 +189,22 @@ def cmd_clients(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_scaffold(args: argparse.Namespace) -> int:
+    config = _config_path(args, "harness")
+    run_scaffold(
+        config_path=config,
+        repo_name=args.repo,
+        profile_name=args.profile or "",
+        workspace=args.workspace,
+        template=args.template or "",
+        options=parse_scaffold_options(args),
+        with_harness=args.with_harness,
+        with_gitflow=args.with_gitflow,
+        dry_run=_dry_run_from_args(args),
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="launchpad",
@@ -319,6 +338,9 @@ def build_parser() -> argparse.ArgumentParser:
     _add_apply_flags(p)
     p.set_defaults(func=cmd_publish_wiki)
 
+    p_scaffold = add_scaffold_parser(sub)
+    p_scaffold.set_defaults(func=cmd_scaffold)
+
     add_onboard_parser(sub)
 
     return parser
@@ -349,6 +371,7 @@ def main(argv: list[str] | None = None) -> int:
         WikiError,
         ClientRegistryError,
         OnboardingError,
+        ScaffoldError,
     ) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

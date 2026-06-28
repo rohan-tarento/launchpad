@@ -11,7 +11,7 @@ kind: <KindName>
 |------|---------|
 | `OrgConfig` | Repos, labels, teams |
 | `GitflowConfig` | Branch/merge/PR policy, teams, repo profiles |
-| `HarnessConfig` | Rules submodule + prayog-skills pins |
+| `HarnessConfig` | Rules submodule + prayog-skills pins; optional per-repo `scaffold` cookiecutter overrides |
 | `PlatformManifest` | Ordered `setup-platform` steps |
 | `VerifyManifest` | Post-bootstrap checks |
 | `ProjectConfig` | GitHub Project board + fields |
@@ -42,3 +42,26 @@ Example: [`examples/onboarding-kola.yaml`](../examples/onboarding-kola.yaml) · 
 ## Work manifest 1:1 rule (waves)
 
 One wave ID → one board issue → one feature PR → one merge.
+
+## Scaffold profiles (`launchpad scaffold`)
+
+Generates app repos from cookiecutter templates. Profiles are registered in launchpad (`python-backend` today; `frontend` / `nextjs-bff` planned).
+
+| Profile | Template (default) | Harness `repos.<name>.profile` |
+|---------|-------------------|--------------------------------|
+| `python-backend` | `gh:autrio10x/python-fastapi-foundation` or local sibling | `python-backend` |
+| `frontend` | planned `nextjs-bff-foundation` | `frontend` |
+
+Optional per-repo overrides in `HarnessConfig`:
+
+```yaml
+repos:
+  suchana:
+    profile: python-backend
+    service_name: Suchana
+    scaffold:
+      has_kafka: "yes"
+      has_postgres: "yes"
+```
+
+Template resolution order: `--template` → `LAUNCHPAD_PYTHON_FOUNDATION` → `{workspace}/python-fastapi-foundation` → GitHub default.

@@ -1,0 +1,6 @@
+{
+  "service_name": "my-service",
+  "service_description": "Test service",
+  "auth_mode": "jwt",
+  "has_postgres": "yes"
+}
