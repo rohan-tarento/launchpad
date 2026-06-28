@@ -45,7 +45,7 @@ planning/ (pre-build archive)    docs/specification/adr/
                     PR traceability (INIT, spec paths, verify)
 ```
 
-Deep dives: [SDD workflow](playbook/sdd-workflow.md) · [Spec layout](playbook/spec-layout.md) · [Harness pins](playbook/harness-pins.md) · [PM workflow](playbook/pm-workflow.md)
+Deep dives: [SDD workflow](playbook/sdd-workflow.md) · [Spec layout](playbook/spec-layout.md) · [Harness pins](playbook/harness-pins.md) · [Greenfield app repo](playbook/greenfield-app-repo.md) · [PM workflow](playbook/pm-workflow.md)
 
 ---
 

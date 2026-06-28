@@ -60,8 +60,11 @@ repos:
     profile: python-backend
     service_name: Suchana
     scaffold:
-      has_kafka: "yes"
       has_postgres: "yes"
+      has_redis: "yes"      # profile default; omit if default OK
+      has_kafka: "yes"
+      parichay_client: "yes"
+      has_internal_api: "yes"
 ```
 
-Template resolution order: `--template` → `LAUNCHPAD_PYTHON_FOUNDATION` → `{workspace}/python-fastapi-foundation` → GitHub default.
+All keys: `auth_mode`, `has_postgres`, `has_redis`, `has_kafka`, `has_s3`, `has_cratedb`, `has_emqx`, `has_telemetry`, `has_internal_api`, `parichay_client`, `abhilekh_client`, `kavach_client`, `default_port`. See [greenfield-app-repo.md](../playbook/greenfield-app-repo.md).
