@@ -1,0 +1,50 @@
+apiVersion: launchpad/v1
+kind: HarnessConfig
+
+org: example-org
+
+default_workspace: ..
+
+profiles:
+  python-backend:
+    rules:
+      repo: your-org/service-rules
+      url: https://github.com/your-org/service-rules.git
+      ref: v0.0.0
+      path: .cursor/rules
+    agent_skills:
+      repo: drivestream-lab/prayog-skills
+      url: https://github.com/drivestream-lab/prayog-skills.git
+      ref: v0.2.0
+      skills:
+        - verify
+      skill_paths:
+        verify: skills/development/verify/SKILL.md
+      install_path: .agents/skills
+      lock_file: skills-lock.json
+    agents_template: templates/AGENTS.python.md
+    pin_template: templates/harness-pin.yaml
+
+  frontend:
+    rules:
+      repo: your-org/nextjs-bff-rules
+      url: https://github.com/your-org/nextjs-bff-rules.git
+      ref: v0.0.0
+      path: .cursor/rules
+    agent_skills:
+      repo: drivestream-lab/prayog-skills
+      url: https://github.com/drivestream-lab/prayog-skills.git
+      ref: v0.2.0
+      skills:
+        - verify
+      skill_paths:
+        verify: skills/development/verify/SKILL.md
+      install_path: .agents/skills
+      lock_file: skills-lock.json
+    agents_template: templates/AGENTS.frontend.md
+    pin_template: templates/harness-pin.frontend.yaml
+
+repos:
+  example-api:
+    profile: python-backend
+    service_name: Demo Api

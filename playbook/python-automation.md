@@ -134,6 +134,7 @@ All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub.
 | `seed-work` | Backlog from `WorkManifest` (`work/*.yaml`) |
 | `seed-issues` | Alias for `seed-work` |
 | `sync-harness` | Pin rules submodule, seed prayog-skills dev bundle, `.harness-pin.yaml`, `AGENTS.md` |
+| `scaffold` | Generate app repo from profile cookiecutter (`python-backend`, …) |
 | `verify-harness` | Check harness pins and submodules in app repos |
 | `publish-wiki` | Publish `wiki/*.md` to GitHub Wiki (`WikiConfig` YAML) |
 | `clients` | List configured clients from `~/.config/launchpad/clients.yaml` |
