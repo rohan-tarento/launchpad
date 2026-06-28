@@ -201,6 +201,7 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
         with_harness=args.with_harness,
         with_gitflow=args.with_gitflow,
         dry_run=_dry_run_from_args(args),
+        force=args.force,
     )
     return 0
 

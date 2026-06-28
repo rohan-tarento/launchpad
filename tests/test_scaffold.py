@@ -93,6 +93,37 @@ class ScaffoldApplyTests(unittest.TestCase):
             self.assertIn("example-api", text)
             self.assertIn("Demo Api", text)
 
+    def test_apply_fails_when_target_exists_without_force(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp)
+            (workspace / "example-api").mkdir()
+            with self.assertRaises(ScaffoldError) as ctx:
+                run_scaffold(
+                    config_path=HARNESS_FIXTURE,
+                    repo_name="example-api",
+                    workspace=workspace,
+                    template=str(FIXTURE_TEMPLATE),
+                    dry_run=False,
+                )
+            self.assertIn("target already exists", str(ctx.exception))
+
+    def test_apply_force_replaces_existing_target(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp)
+            stale = workspace / "example-api"
+            stale.mkdir()
+            (stale / "stale.txt").write_text("old", encoding="utf-8")
+            run_scaffold(
+                config_path=HARNESS_FIXTURE,
+                repo_name="example-api",
+                workspace=workspace,
+                template=str(FIXTURE_TEMPLATE),
+                dry_run=False,
+                force=True,
+            )
+            self.assertFalse((stale / "stale.txt").exists())
+            self.assertTrue((stale / "README.md").is_file())
+
 
 @unittest.skipUnless(FOUNDATION.is_dir(), "python-fastapi-foundation not present locally")
 class ScaffoldFoundationIntegrationTests(unittest.TestCase):
