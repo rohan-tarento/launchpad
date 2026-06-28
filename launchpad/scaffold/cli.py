@@ -59,6 +59,11 @@ def add_scaffold_parser(sub: argparse._SubParsersAction) -> argparse.ArgumentPar
         action="store_true",
         help="After generate, run setup-gitflow --apply for this repo",
     )
+    p.add_argument(
+        "--force",
+        action="store_true",
+        help="With --apply: remove existing output directory before generating",
+    )
     group = p.add_mutually_exclusive_group()
     group.add_argument("--dry-run", action="store_true", default=True, help="preview only (default)")
     group.add_argument("--apply", action="store_true", help="run cookiecutter and optional post-steps")

@@ -166,7 +166,7 @@ launchpad scaffold --repo suchana --apply --with-gitflow --with-harness
 
 CLI overrides (one-off): `--option has_kafka=yes` (repeatable).
 
-Fails if target directory already exists — remove or use `--workspace` for a different parent.
+Fails if target directory already exists — use `--workspace` for a different parent, remove manually, or pass **`--apply --force`** to replace the existing folder (destructive; removes git history and local changes).
 
 ---
 

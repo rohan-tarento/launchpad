@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,7 @@ class ScaffoldPlan:
     with_harness: bool
     with_gitflow: bool
     dry_run: bool
+    force: bool = False
 
 
 def _resolve_workspace(cfg: dict[str, Any], workspace: Path | None) -> Path:
@@ -116,6 +118,7 @@ def build_plan(
     with_harness: bool = False,
     with_gitflow: bool = False,
     dry_run: bool = True,
+    force: bool = False,
 ) -> ScaffoldPlan:
     cfg = load_harness_config(config_path)
     resolved_profile_name = _infer_profile(cfg, repo_name, profile_name)
@@ -147,12 +150,13 @@ def build_plan(
         with_harness=with_harness,
         with_gitflow=with_gitflow,
         dry_run=dry_run,
+        force=force,
     )
 
 
 def format_plan(plan: ScaffoldPlan) -> str:
     lines = [
-        f"scaffold profile={plan.profile} repo={plan.repo} dry_run={plan.dry_run}",
+        f"scaffold profile={plan.profile} repo={plan.repo} dry_run={plan.dry_run} force={plan.force}",
         f"  template: {plan.template}",
         f"  output:   {plan.target_dir}",
         "  cookiecutter context:",
@@ -163,7 +167,21 @@ def format_plan(plan: ScaffoldPlan) -> str:
         lines.append(f"  post: sync-harness --repo {plan.repo}")
     if plan.with_gitflow:
         lines.append(f"  post: setup-gitflow --repo {plan.repo}")
+    if plan.force and plan.target_dir.exists():
+        lines.append(f"  force: remove existing {plan.target_dir}")
     return "\n".join(lines)
+
+
+def _prepare_target_dir(plan: ScaffoldPlan) -> None:
+    if not plan.target_dir.exists():
+        return
+    if not plan.force:
+        raise ScaffoldError(
+            f"target already exists: {plan.target_dir} "
+            f"(remove manually, use --workspace, or pass --force with --apply)"
+        )
+    print(f"[scaffold] force: removing {plan.target_dir}")
+    shutil.rmtree(plan.target_dir)
 
 
 def _run_cookiecutter(plan: ScaffoldPlan) -> None:
@@ -174,9 +192,7 @@ def _run_cookiecutter(plan: ScaffoldPlan) -> None:
             "cookiecutter is required for scaffold — reinstall launchpad or run: pip install cookiecutter"
         ) from exc
 
-    if plan.target_dir.exists():
-        raise ScaffoldError(f"target already exists: {plan.target_dir} (remove or pick another --repo)")
-
+    _prepare_target_dir(plan)
     print(f"[scaffold] generating {plan.repo} → {plan.target_dir}")
     print(f"[scaffold] template={plan.template}")
     run_cookiecutter_cli(
@@ -230,6 +246,7 @@ def run_scaffold(
     with_harness: bool = False,
     with_gitflow: bool = False,
     dry_run: bool = True,
+    force: bool = False,
 ) -> ScaffoldPlan:
     plan = build_plan(
         config_path=config_path,
@@ -241,10 +258,19 @@ def run_scaffold(
         with_harness=with_harness,
         with_gitflow=with_gitflow,
         dry_run=dry_run,
+        force=force,
     )
     print(format_plan(plan))
     if dry_run:
-        print("[scaffold] dry-run — pass --apply to generate")
+        if plan.target_dir.exists() and plan.force:
+            print(f"[scaffold] dry-run — would remove existing {plan.target_dir} with --apply --force")
+        elif plan.target_dir.exists():
+            print(
+                f"[scaffold] dry-run — target exists: {plan.target_dir} "
+                f"(use --apply --force to replace)"
+            )
+        else:
+            print("[scaffold] dry-run — pass --apply to generate")
         return plan
 
     _run_cookiecutter(plan)
