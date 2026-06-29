@@ -62,6 +62,8 @@ Document your org's approved `rules` + `agent_skills` ref pairs in tenant `confi
 
 ## Factory commands
 
+Submodule URLs in harness config use **HTTPS** (`rules.url`, `agent_skills.url`). `sync-harness` rewrites stale SSH URLs in `.gitmodules` before `git submodule update`.
+
 From `<client>-meta`:
 
 ```bash
