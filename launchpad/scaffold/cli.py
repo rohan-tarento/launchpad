@@ -62,7 +62,7 @@ def add_scaffold_parser(sub: argparse._SubParsersAction) -> argparse.ArgumentPar
     p.add_argument(
         "--force",
         action="store_true",
-        help="With --apply: remove existing output directory before generating",
+        help="With --apply: overlay scaffold files into existing repo (preserves .git)",
     )
     group = p.add_mutually_exclusive_group()
     group.add_argument("--dry-run", action="store_true", default=True, help="preview only (default)")

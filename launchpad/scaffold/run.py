@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -28,9 +29,9 @@ class ScaffoldPlan:
 
 
 def _resolve_workspace(cfg: dict[str, Any], workspace: Path | None) -> Path:
-    root = tenant_root()
     if workspace is not None:
         return workspace.resolve()
+    root = tenant_root()
     default = str(cfg.get("default_workspace", ".."))
     return (root / default).resolve()
 
@@ -78,8 +79,11 @@ def _resolve_template(
     candidates = [
         workspace / "python-fastapi-foundation",
         workspace.parent / "python-fastapi-foundation",
-        tenant_root().parent / "python-fastapi-foundation",
     ]
+    try:
+        candidates.append(tenant_root().parent / "python-fastapi-foundation")
+    except FileNotFoundError:
+        pass
     if profile.name == "python-backend":
         for candidate in candidates:
             if (candidate / "cookiecutter.json").is_file():
@@ -168,20 +172,16 @@ def format_plan(plan: ScaffoldPlan) -> str:
     if plan.with_gitflow:
         lines.append(f"  post: setup-gitflow --repo {plan.repo}")
     if plan.force and plan.target_dir.exists():
-        lines.append(f"  force: remove existing {plan.target_dir}")
+        lines.append(f"  force: overlay foundation into existing {plan.target_dir} (preserves .git)")
     return "\n".join(lines)
 
 
-def _prepare_target_dir(plan: ScaffoldPlan) -> None:
-    if not plan.target_dir.exists():
-        return
-    if not plan.force:
-        raise ScaffoldError(
-            f"target already exists: {plan.target_dir} "
-            f"(remove manually, use --workspace, or pass --force with --apply)"
-        )
-    print(f"[scaffold] force: removing {plan.target_dir}")
-    shutil.rmtree(plan.target_dir)
+def _overlay_tree(src: Path, dst: Path) -> None:
+    """Copy generated scaffold files into an existing repo (overwrite matching paths only)."""
+    if not src.is_dir():
+        raise ScaffoldError(f"generated scaffold missing: {src}")
+    dst.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(src, dst, dirs_exist_ok=True)
 
 
 def _run_cookiecutter(plan: ScaffoldPlan) -> None:
@@ -192,9 +192,35 @@ def _run_cookiecutter(plan: ScaffoldPlan) -> None:
             "cookiecutter is required for scaffold — reinstall launchpad or run: pip install cookiecutter"
         ) from exc
 
-    _prepare_target_dir(plan)
-    print(f"[scaffold] generating {plan.repo} → {plan.target_dir}")
     print(f"[scaffold] template={plan.template}")
+    overlay = plan.force and plan.target_dir.exists()
+
+    if overlay:
+        print(f"[scaffold] force: overlay into existing {plan.target_dir} (preserves .git)")
+        temp_parent = Path(tempfile.mkdtemp(prefix="launchpad-scaffold-"))
+        try:
+            print(f"[scaffold] generating {plan.repo} in temp, then merging into target")
+            run_cookiecutter_cli(
+                plan.template,
+                no_input=True,
+                extra_context=plan.context,
+                output_dir=str(temp_parent),
+            )
+            generated = temp_parent / plan.repo
+            if not generated.is_dir():
+                raise ScaffoldError(f"cookiecutter finished but {generated} was not created")
+            _overlay_tree(generated, plan.target_dir)
+        finally:
+            shutil.rmtree(temp_parent, ignore_errors=True)
+        return
+
+    if plan.target_dir.exists():
+        raise ScaffoldError(
+            f"target already exists: {plan.target_dir} "
+            f"(clone the repo first, then pass --apply --force to overlay foundation files)"
+        )
+
+    print(f"[scaffold] generating {plan.repo} → {plan.target_dir}")
     run_cookiecutter_cli(
         plan.template,
         no_input=True,
@@ -263,11 +289,14 @@ def run_scaffold(
     print(format_plan(plan))
     if dry_run:
         if plan.target_dir.exists() and plan.force:
-            print(f"[scaffold] dry-run — would remove existing {plan.target_dir} with --apply --force")
+            print(
+                f"[scaffold] dry-run — would overlay foundation into existing {plan.target_dir} "
+                f"with --apply --force (preserves .git)"
+            )
         elif plan.target_dir.exists():
             print(
                 f"[scaffold] dry-run — target exists: {plan.target_dir} "
-                f"(use --apply --force to replace)"
+                f"(use --apply --force to overlay foundation files)"
             )
         else:
             print("[scaffold] dry-run — pass --apply to generate")

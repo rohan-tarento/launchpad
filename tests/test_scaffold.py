@@ -107,12 +107,15 @@ class ScaffoldApplyTests(unittest.TestCase):
                 )
             self.assertIn("target already exists", str(ctx.exception))
 
-    def test_apply_force_replaces_existing_target(self) -> None:
+    def test_apply_force_overlays_existing_target(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp)
-            stale = workspace / "example-api"
-            stale.mkdir()
-            (stale / "stale.txt").write_text("old", encoding="utf-8")
+            existing = workspace / "example-api"
+            existing.mkdir()
+            (existing / "stale.txt").write_text("keep me", encoding="utf-8")
+            git_dir = existing / ".git"
+            git_dir.mkdir()
+            (git_dir / "HEAD").write_text("ref: refs/heads/develop\n", encoding="utf-8")
             run_scaffold(
                 config_path=HARNESS_FIXTURE,
                 repo_name="example-api",
@@ -121,8 +124,11 @@ class ScaffoldApplyTests(unittest.TestCase):
                 dry_run=False,
                 force=True,
             )
-            self.assertFalse((stale / "stale.txt").exists())
-            self.assertTrue((stale / "README.md").is_file())
+            self.assertTrue((existing / "stale.txt").read_text(encoding="utf-8") == "keep me")
+            self.assertTrue((git_dir / "HEAD").is_file())
+            self.assertTrue((existing / "README.md").is_file())
+            text = (existing / "README.md").read_text(encoding="utf-8")
+            self.assertIn("example-api", text)
 
 
 @unittest.skipUnless(FOUNDATION.is_dir(), "python-fastapi-foundation not present locally")
