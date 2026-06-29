@@ -139,26 +139,55 @@ Confirm: `https://github.com/<org>/<repo>` exists (empty is fine).
 
 ## Step 3 — Scaffold foundation code
 
-Preview (no writes):
+### Path A — brand-new local folder (no clone yet)
+
+Preview:
 
 ```bash
 launchpad scaffold --repo suchana --dry-run
 ```
 
-Expect:
-
-- `profile=python-backend` (inferred from harness — no need for `--profile` unless overriding)
-- `template=…/python-fastapi-foundation`
-- `output=<default_workspace>/<repo>` (usually sibling of meta)
-- Cookiecutter context from profile defaults + `scaffold:` block
-
-Generate:
+Generate into an empty path:
 
 ```bash
 launchpad scaffold --repo suchana --apply
 ```
 
-**One-shot** (generate + gitflow + harness):
+Then continue with **Step 4** (`git init`, first push).
+
+### Path B — repo already on GitHub (recommended when remote exists)
+
+Clone **`develop`** first (HTTPS), then **overlay** foundation files into that checkout. This preserves git history, remote, and any files not in the template (e.g. spec handoff docs).
+
+```bash
+cd ~/Workspace/handson/drivestream   # default_workspace parent
+
+# fresh clone (remove local folder only if you want a clean checkout)
+git clone -b develop https://github.com/autrio10x/suchana.git
+
+cd drivestream-meta
+launchpad scaffold --repo suchana --dry-run --force
+launchpad scaffold --repo suchana --apply --force
+```
+
+**`--force` does not delete the folder.** It generates the cookiecutter output in a temp directory and **merges** foundation files into the existing repo:
+
+- **Overwrites** paths that exist in the template (e.g. `src/`, `Makefile`, `pyproject.toml`)
+- **Preserves** `.git/`, remote, branch, and local-only files (e.g. `docs/specification/` not in template)
+
+Skip **Step 4** `git init` if you cloned — go straight to review, commit, push:
+
+```bash
+cd ../suchana
+git status
+git add -A
+git commit -m "chore: overlay python-fastapi-foundation scaffold"
+git push
+```
+
+### Options
+
+**One-shot** (generate + gitflow + harness) — Path A only, or after Path B overlay:
 
 ```bash
 launchpad scaffold --repo suchana --apply --with-gitflow --with-harness
@@ -166,11 +195,13 @@ launchpad scaffold --repo suchana --apply --with-gitflow --with-harness
 
 CLI overrides (one-off): `--option has_kafka=yes` (repeatable).
 
-Fails if target directory already exists — use `--workspace` for a different parent, remove manually, or pass **`--apply --force`** to replace the existing folder (destructive; removes git history and local changes).
+If target exists without `--force`, scaffold errors — use **Path B** (`clone` + `--apply --force`) or pick another `--workspace`.
 
 ---
 
-## Step 4 — First git commit and push (HTTPS)
+## Step 4 — First git commit and push (HTTPS, Path A only)
+
+Skip this step if you used **Path B** (clone + overlay) — you already have `origin` and `develop`.
 
 From the generated app directory:
 
@@ -249,22 +280,37 @@ See [pm-dev-handoff.md](pm-dev-handoff.md) and [delivery-model.md](delivery-mode
 
 Replace `suchana`, `autrio10x`, and client id for each new repo.
 
+### Path A — empty GitHub repo, first local checkout
+
 ```bash
-# Meta
 cd ~/Workspace/handson/drivestream/drivestream-meta
+launchpad scaffold --repo suchana --apply
 
-launchpad --client drivestream scaffold --repo suchana --dry-run
-launchpad --client drivestream scaffold --repo suchana --apply
-
-# App repo — HTTPS
 cd ../suchana
 git init && git checkout -b develop
 git add . && git commit -m "chore: scaffold suchana foundation"
 git remote add origin https://github.com/autrio10x/suchana.git
 git push -u origin develop
+```
 
-# Meta — factory envelope
-cd ../drivestream-meta
+### Path B — remote repo exists (clone develop, overlay foundation)
+
+```bash
+cd ~/Workspace/handson/drivestream
+git clone -b develop https://github.com/autrio10x/suchana.git
+
+cd drivestream-meta
+launchpad scaffold --repo suchana --apply --force
+
+cd ../suchana
+git add -A && git commit -m "chore: overlay python-fastapi-foundation"
+git push
+```
+
+### Factory envelope (both paths)
+
+```bash
+cd ~/Workspace/handson/drivestream/drivestream-meta
 launchpad setup-gitflow --repo suchana --apply
 launchpad sync-harness --repo suchana --apply
 launchpad verify-harness --repo suchana
@@ -283,7 +329,7 @@ cp .env.example .env && make setup && make check && make test
 - [ ] Repo in org YAML + harness YAML (+ gitflow YAML)
 - [ ] harness `scaffold:` block reviewed for cookiecutter options
 - [ ] `launchpad scaffold --repo <name> --dry-run` reviewed
-- [ ] `launchpad scaffold --repo <name> --apply`
+- [ ] Path A: `launchpad scaffold --repo <name> --apply` **or** Path B: `git clone -b develop` then `--apply --force`
 - [ ] `git push` to `https://github.com/<org>/<repo>.git` (develop)
 - [ ] `launchpad setup-gitflow --repo <name> --apply`
 - [ ] `launchpad sync-harness --repo <name> --apply`
