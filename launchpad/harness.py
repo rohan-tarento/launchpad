@@ -26,13 +26,54 @@ def _run_git(args: list[str], *, cwd: Path, dry_run: bool) -> subprocess.Complet
     if dry_run:
         print(f"  [dry-run] {' '.join(cmd)}  (cwd={cwd})")
         return None
-    return subprocess.run(
+    proc = subprocess.run(
         cmd,
         cwd=cwd,
-        check=True,
         capture_output=True,
         text=True,
     )
+    if proc.returncode != 0:
+        err = (proc.stderr or proc.stdout or "").strip()
+        raise HarnessError(
+            f"git {' '.join(args)} failed in {cwd}" + (f": {err}" if err else "")
+        )
+    return proc
+
+
+def _github_https_url(url: str) -> str:
+    """Normalize GitHub remote URLs to HTTPS (factory SSOT; avoids SSH auth failures)."""
+    url = url.strip()
+    if url.startswith("git@github.com:"):
+        return f"https://github.com/{url.removeprefix('git@github.com:')}"
+    if url.startswith("ssh://git@github.com/"):
+        return f"https://github.com/{url.removeprefix('ssh://git@github.com/')}"
+    return url
+
+
+def _sync_submodule_url(repo_path: Path, rel_path: str, url: str, *, dry_run: bool) -> None:
+    if not url:
+        return
+    https_url = _github_https_url(url)
+    print(f"  [submodule] url → {https_url}")
+    _run_git(
+        ["config", "-f", ".gitmodules", f"submodule.{rel_path}.url", https_url],
+        cwd=repo_path,
+        dry_run=dry_run,
+    )
+    _run_git(["submodule", "sync", rel_path], cwd=repo_path, dry_run=dry_run)
+
+
+def _clear_stale_submodule_dir(repo_path: Path, rel_path: str, *, dry_run: bool) -> None:
+    """Remove empty/partial clone dirs left after a failed submodule init."""
+    dest = repo_path / rel_path
+    if not dest.exists() or not dest.is_dir():
+        return
+    git_marker = dest / ".git"
+    if git_marker.is_file() or git_marker.is_dir():
+        return
+    print(f"  [submodule] remove stale directory {rel_path}")
+    if not dry_run:
+        shutil.rmtree(dest)
 
 
 def _run_cmd(cmd: list[str], *, cwd: Path, dry_run: bool) -> None:
@@ -177,9 +218,12 @@ def _ensure_submodule(
     dry_run: bool,
 ) -> None:
     dest = repo_path / rel_path
+    url = _github_https_url(url)
     print(f"[submodule] {rel_path} → {url} @ {ref}")
 
     if _is_submodule(repo_path, rel_path):
+        _sync_submodule_url(repo_path, rel_path, url, dry_run=dry_run)
+        _clear_stale_submodule_dir(repo_path, rel_path, dry_run=dry_run)
         _run_git(["submodule", "update", "--init", rel_path], cwd=repo_path, dry_run=dry_run)
         if not dry_run:
             _run_git(["fetch", "--tags", "origin"], cwd=dest, dry_run=False)
@@ -256,6 +300,7 @@ def _materialize_prayog_source(
     if not url:
         raise HarnessError("agent_skills.url required when local prayog-skills not found")
 
+    url = _github_https_url(url)
     tmp = Path(tempfile.mkdtemp(prefix="prayog-skills-"))
     print(f"[agent_skills] clone {url} @ {ref} → {tmp}")
     if dry_run:
