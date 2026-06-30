@@ -128,6 +128,30 @@ def _install_templates_local(
     if not pr_dest.is_file():
         shutil.copy(pr_tpl, pr_dest)
 
+    issues_dest = dest / ".github" / "ISSUE_TEMPLATE"
+    issues_dest.mkdir(parents=True, exist_ok=True)
+    if profile == "platform":
+        issue_specs = (
+            ("bug.yml", "bug.yml"),
+            ("feature.yml", "feature.yml"),
+            ("chore.yml", "chore.yml"),
+            ("config.yml", "config.yml"),
+        )
+    else:
+        issue_specs = (
+            ("bug.app.yml", "bug.yml"),
+            ("feature.app.yml", "feature.yml"),
+            ("chore.app.yml", "chore.yml"),
+            ("config.app.yml", "config.yml"),
+        )
+    for src_name, dest_name in issue_specs:
+        try:
+            issue_src = resolve_template(f"templates/issues/{src_name}")
+        except FileNotFoundError:
+            print(f"[skip] issue template missing: {src_name}")
+            continue
+        shutil.copy(issue_src, issues_dest / dest_name)
+
     print("  → committed locally; open PR: chore/setup-gitflow-enforcement")
     print(
         f"  → cd {dest} && git checkout -b chore/setup-gitflow-enforcement "
@@ -210,6 +234,9 @@ def run(
             push_teams.insert(0, profile_team)
         for team_slug in dict.fromkeys(push_teams):
             grant_team_repo_push(client, org, repo, team_slug)
+
+        for push_key in repo_entry.get("grant_push") or []:
+            grant_team_repo_push(client, org, repo, team_slug_from_key(teams, push_key))
 
         for read_key in repo_entry.get("grant_read") or []:
             grant_team_repo_read(client, org, repo, team_slug_from_key(teams, read_key))

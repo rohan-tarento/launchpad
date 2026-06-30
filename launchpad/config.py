@@ -173,17 +173,36 @@ def load_gitflow_config(path: Path | str) -> dict[str, Any]:
 
     teams = dict(cfg.get("teams") or {})
     profiles = dict(cfg.get("profiles") or {})
+    defaults_raw = dict(cfg.get("defaults") or {})
+    default_grant_read = [str(k) for k in (defaults_raw.get("grant_read") or [])]
+    default_grant_push = [str(k) for k in (defaults_raw.get("grant_push") or [])]
     repos_raw = cfg.get("repos") or {}
     repos: list[dict[str, Any]] = []
     for name, meta in repos_raw.items():
         if isinstance(meta, dict):
-            grant_read = meta.get("grant_read") or []
+            grant_read = list(
+                dict.fromkeys(
+                    [
+                        *default_grant_read,
+                        *[str(k) for k in (meta.get("grant_read") or [])],
+                    ]
+                )
+            )
+            grant_push = list(
+                dict.fromkeys(
+                    [
+                        *default_grant_push,
+                        *[str(k) for k in (meta.get("grant_push") or [])],
+                    ]
+                )
+            )
             repos.append(
                 {
                     "name": str(name),
                     "profile": str(meta.get("profile", "")),
                     "develop_merge": str(meta.get("develop_merge", "")),
-                    "grant_read": [str(k) for k in grant_read],
+                    "grant_read": grant_read,
+                    "grant_push": grant_push,
                 }
             )
     options = dict(cfg.get("options") or {})
@@ -198,6 +217,7 @@ def load_gitflow_config(path: Path | str) -> dict[str, Any]:
         "branch_naming": policy["branch_naming"],
         "protection": policy["protection"],
         "merge_policy": policy["merge_policy"],
+        "defaults": defaults_raw,
         "org_config": org_cfg,
         "path": str(path),
     }

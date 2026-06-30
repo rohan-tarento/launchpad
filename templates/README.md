@@ -11,6 +11,7 @@ Tenants copy **overrides only** into `<client>-meta/templates/` — launchpad re
 | `github/workflows/` | `setup-gitflow --with-templates` |
 | `CODEOWNERS.*` | same |
 | `pull_request_template.md` | same |
+| `issues/*.yml` | same → `.github/ISSUE_TEMPLATE/` (`*.app.yml` for app profiles) |
 | `INIT-PRD-outline.md`, `INIT-spec-handoff.md` | PM agents in `<client>-meta` |
 
 Constitution (`.mdc`) lives in private `*-rules` repos — not here.

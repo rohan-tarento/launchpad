@@ -331,7 +331,7 @@ cp .env.example .env && make setup && make check && make test
 - [ ] `launchpad scaffold --repo <name> --dry-run` reviewed
 - [ ] Path A: `launchpad scaffold --repo <name> --apply` **or** Path B: `git clone -b develop` then `--apply --force`
 - [ ] `git push` to `https://github.com/<org>/<repo>.git` (develop)
-- [ ] `launchpad setup-gitflow --repo <name> --apply`
+- [ ] `launchpad setup-gitflow --repo <name> --apply` (issue templates + QA access via `defaults.grant_push`)
 - [ ] `launchpad sync-harness --repo <name> --apply`
 - [ ] `launchpad verify-harness --repo <name>`
 - [ ] Harness commit pushed on app repo
