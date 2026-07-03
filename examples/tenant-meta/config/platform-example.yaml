@@ -13,6 +13,10 @@ setup:
     command: bootstrap-teams
     config: config/org-example.yaml
 
+  - id: seed
+    command: seed-repos
+    config: config/gitflow-example.yaml
+
   - id: gitflow
     command: setup-gitflow
     config: config/gitflow-example.yaml

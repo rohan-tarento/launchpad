@@ -6,13 +6,13 @@ Checklist. Full walkthrough: **[setup-guide.md](setup-guide.md)**. Wizard (recom
 
 1. **Install Launchpad** (once per machine) — [multi-laptop.md](multi-laptop.md) (`pipx install -e .`)
 2. **Client registry** — `~/.config/launchpad/clients.yaml` + `env.d/<id>.env` for secrets
-3. **Copy tenant skeleton** — `cp -r examples/tenant-meta ~/Workspace/handson/<client>/<client>-meta`
-4. **Push meta** to your forge (meta is **not** created by `bootstrap-org`)
-5. **Edit `config/*.yaml`** — org, repos, gitflow, harness; rename files to `*-<org>.yaml`
-6. **`launchpad doctor`**
-7. **`launchpad setup-platform --config config/platform-<org>.yaml --apply`**
-8. **`launchpad verify-platform`**
-9. Clone app repos as siblings → **`launchpad sync-harness --repo <app> --apply`**
+3. **Scaffold tenant meta** — `launchpad onboard apply` or `cp -r examples/tenant-meta …`
+4. **Edit `config/*.yaml`** — org, repos, gitflow, harness; rename files to `*-<org>.yaml`
+5. **`launchpad doctor`**
+6. **`launchpad setup-platform --config config/platform-<org>.yaml --apply`** — creates **all** gitflow repos (meta + apps), seeds `main`/`develop`, sets default branch `develop`
+7. **`launchpad verify-platform`**
+8. **PM:** PR local meta content → `<client>-meta/develop` · **Dev:** scaffold app repos → PR to `develop`
+9. **`launchpad sync-harness --repo <app> --apply`**
 10. PRD → `work/INIT-*.yaml` → **`launchpad seed-work --apply`**
 
 ## Workspace layout

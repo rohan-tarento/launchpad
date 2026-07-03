@@ -33,11 +33,13 @@ launchpad onboard plan --spec ~/Workspace/handson/kola/onboarding.yaml
 launchpad onboard apply --spec ~/Workspace/handson/kola/onboarding.yaml
 ```
 
+Do **not** set `options.seed_empty: false` unless repos already have history you must preserve.
+
 After apply:
 
 1. Paste token in `~/.config/launchpad/env.d/kola.env`
-2. Create GitHub remote and push `kola-meta`
-3. `launchpad --client kola setup-platform --config config/platform-kola-lab.yaml --apply`
+2. `launchpad --client kola setup-platform --config config/platform-kola-lab.yaml --apply`
+3. PM: PR local meta content → `kola-meta/develop`
 
 ## GitLab
 

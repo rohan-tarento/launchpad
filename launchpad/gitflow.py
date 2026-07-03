@@ -20,59 +20,27 @@ from launchpad.github_ops import (
     branch_exists,
     grant_team_repo_push,
     grant_team_repo_read,
-    init_empty_repo_main,
-    main_sha,
     repo_exists,
     repo_has_main,
     team_slug_from_config,
     team_slug_from_key,
 )
+from launchpad.repo_seed import factory_app_repo_names
 
 
-def _ensure_main(
-    client: GitHubClient,
-    org: str,
-    repo: str,
-    *,
-    init_empty: bool,
-    is_meta: bool,
-) -> bool:
-    if repo_has_main(client, org, repo):
-        return True
-    if init_empty:
-        init_empty_repo_main(client, org, repo)
-        return True
-    print(f"[skip] {org}/{repo} has no commits on main — cannot create develop yet")
-    if is_meta:
-        print(
-            f"  meta: create github.com/{org}/{repo} if needed, then from local "
-            "<client>-meta: git push -u origin main"
+class GitflowError(RuntimeError):
+    """Gitflow setup could not complete for one or more repos."""
+
+
+def _require_branches(client: GitHubClient, org: str, repo: str) -> None:
+    if not repo_has_main(client, org, repo):
+        raise GitflowError(
+            f"{org}/{repo} has no main — run seed-repos --apply before setup-gitflow"
         )
-    else:
-        print(
-            f"  app: launchpad scaffold --repo {repo} --apply && git push, "
-            "or set options.init_empty: true in gitflow YAML"
+    if not branch_exists(client, org, repo, "develop"):
+        raise GitflowError(
+            f"{org}/{repo} has no develop — run seed-repos --apply before setup-gitflow"
         )
-    return False
-
-
-def _ensure_develop(client: GitHubClient, org: str, repo: str) -> None:
-    if branch_exists(client, org, repo, "develop"):
-        print(f"Branch exists: {org}/{repo}@develop")
-        return
-    if client.dry_run and not repo_has_main(client, org, repo):
-        print(f"[dry-run] create refs/heads/develop from main on {org}/{repo}")
-        return
-    sha = main_sha(client, org, repo)
-    if client.dry_run:
-        print(f"[dry-run] create refs/heads/develop @ {sha[:7]} on {org}/{repo}")
-        return
-    print(f"[run] create develop from main on {org}/{repo}")
-    client.rest(
-        "POST",
-        f"/repos/{org}/{repo}/git/refs",
-        json_body={"ref": "refs/heads/develop", "sha": sha},
-    )
 
 
 def _resolve_workspace(options: dict[str, Any]) -> Path:
@@ -199,7 +167,6 @@ def run(
     require_ci = bool(options.get("require_ci", False))
     apply_naming_ruleset = bool(options.get("branch_naming", False))
     with_templates = bool(options.get("with_templates", False))
-    init_empty = bool(options.get("init_empty", False))
     workspace = _resolve_workspace(options)
 
     print("=== setup-gitflow ===")
@@ -208,7 +175,6 @@ def run(
     print(f"Authenticated as: {client.whoami()}")
     print(f"options.require_ci: {require_ci}")
     print(f"options.with_templates: {with_templates}")
-    print(f"options.init_empty: {init_empty}")
     print(f"options.branch_naming: {apply_naming_ruleset}")
     print(f"branch_naming.mode: {branch_naming.get('mode')}")
     print(f"options.workspace: {workspace}")
@@ -219,8 +185,8 @@ def run(
 
     team_pm = teams.get("pm", "pm-team")
     ref_excludes = branch_naming_ref_excludes(branch_naming)
-    app_repos = set((cfg.get("org_config") or {}).get("repo_names") or [])
-    skipped: list[tuple[str, str]] = []
+    app_repos = factory_app_repo_names(cfg)
+    errors: list[str] = []
 
     for repo_entry in cfg["repos"]:
         repo = repo_entry["name"]
@@ -229,15 +195,9 @@ def run(
         if filter_repo and repo != filter_repo:
             continue
         if not repo_exists(client, org, repo):
-            print(f"[skip] {org}/{repo} not found on GitHub")
-            if is_meta:
-                print(
-                    "  meta repos are NOT created by bootstrap-org — create the GitHub repo "
-                    "and push main from your local <client>-meta clone (docs/new-client.md)"
-                )
-            else:
-                print("  run bootstrap-org --apply first, or create the repo manually")
-            skipped.append((repo, "missing"))
+            msg = f"{org}/{repo} not found — run bootstrap-org --apply first"
+            print(f"[FAIL] {msg}")
+            errors.append(msg)
             print("")
             continue
 
@@ -245,16 +205,18 @@ def run(
         develop_team = team_slug_from_key(teams, develop_key)
         profile_team = team_slug_from_config(teams, profile)
 
+        kind = "meta" if is_meta else "app"
         print(
-            f"--- {org}/{repo} (profile={profile}, develop_merge={develop_team}) ---"
+            f"--- {org}/{repo} ({kind}, profile={profile}, develop_merge={develop_team}) ---"
         )
 
-        if not _ensure_main(client, org, repo, init_empty=init_empty, is_meta=is_meta):
-            skipped.append((repo, "no_main"))
+        try:
+            _require_branches(client, org, repo)
+        except GitflowError as exc:
+            print(f"[FAIL] {exc}")
+            errors.append(str(exc))
             print("")
             continue
-
-        _ensure_develop(client, org, repo)
 
         push_teams: list[str] = [team_pm, team_release]
         if develop_key != "pm":
@@ -300,16 +262,11 @@ def run(
         )
         print("")
 
-    if skipped:
-        print("=== Skipped repos (develop not configured) ===")
-        for repo, reason in skipped:
-            label = "not on GitHub" if reason == "missing" else "no commits on main"
-            kind = "meta" if repo not in app_repos else "app"
-            print(f"  {org}/{repo} ({kind}): {label}")
-        print("")
-        print("After all repos have main on GitHub:")
-        print(f"  launchpad setup-gitflow --config {cfg_path} --apply")
-        print("")
+    if errors:
+        print("=== setup-gitflow: FAILED ===")
+        raise GitflowError(
+            f"{len(errors)} repo(s) not configured — run seed-repos --apply first"
+        )
 
     print("=== Done ===")
     if client.dry_run:

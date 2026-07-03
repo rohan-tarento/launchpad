@@ -126,5 +126,6 @@ def run_apply(
     print("")
     print("Manual next steps:")
     print(f"  1. Edit {ENV_D_DIR / (client_id + '.env')} — paste forge token")
-    print(f"  2. Create remote {org}/{ctx.meta_repo} and push meta")
-    print(f"  3. launchpad --client {client_id} setup-platform --config config/platform-{org}.yaml --dry-run")
+    print(f"  2. launchpad --client {client_id} setup-platform --config config/platform-{org}.yaml --apply")
+    print(f"  3. PM: PR local meta content → {ctx.meta_repo}/develop")
+    print(f"  4. Dev: scaffold app repos → PR to develop; launchpad sync-harness --apply")

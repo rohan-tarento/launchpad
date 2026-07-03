@@ -8,6 +8,7 @@ DEFAULT_GITFLOW_OPTIONS: dict[str, Any] = {
     "require_ci": False,
     "branch_naming": False,
     "with_templates": False,
+    "seed_empty": True,
     "init_empty": False,
     "workspace": "",
 }
@@ -65,7 +66,10 @@ def _merge_dict(base: dict[str, Any], override: dict[str, Any] | None) -> dict[s
 
 def normalize_gitflow_policy(cfg: dict[str, Any]) -> dict[str, Any]:
     """Fill gitflow policy sections with defaults; YAML is the only source of truth."""
-    options = _merge_dict(DEFAULT_GITFLOW_OPTIONS, cfg.get("options"))
+    raw_options = dict(cfg.get("options") or {})
+    options = _merge_dict(DEFAULT_GITFLOW_OPTIONS, raw_options)
+    if "seed_empty" not in raw_options and raw_options.get("init_empty"):
+        options["seed_empty"] = bool(raw_options["init_empty"])
     branch_naming = _merge_dict(DEFAULT_BRANCH_NAMING, cfg.get("branch_naming"))
     protection_raw = cfg.get("protection") or {}
     protection = {
