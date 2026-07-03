@@ -60,7 +60,7 @@ def _template_files(spec: dict) -> list[str]:
     if any(r["profile"] == "data_platform" for r in repos):
         files.extend(
             [
-                "templates/AGENTS.data-platform.md",
+                
                 "templates/CODEOWNERS.data-platform",
                 "templates/harness-pin.data-platform.yaml",
             ]
