@@ -91,6 +91,9 @@ def run(
     if client.dry_run:
         print("=== Done (dry-run) ===")
         print("Re-run with --apply to execute setup + verify.")
+        print("")
+        print("Reminder: <client>-meta is pushed manually before gitflow can configure develop.")
+        print("          App repos start empty — scaffold or push main before gitflow step fully applies.")
         return
 
     print("")
