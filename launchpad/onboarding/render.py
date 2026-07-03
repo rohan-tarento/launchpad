@@ -7,6 +7,7 @@ from typing import Any
 import yaml
 
 from launchpad.onboarding.context import OnboardingContext
+from launchpad.service_catalog import entries_from_onboarding_spec, render_service_catalog
 
 _PRAYOG_SKILLS = [
     "spec-draft",
@@ -127,6 +128,12 @@ def render_platform_config(ctx: OnboardingContext) -> str:
             {"id": "seed", "command": "seed-repos", "config": f"config/gitflow-{org}.yaml"},
             {"id": "gitflow", "command": "setup-gitflow", "config": f"config/gitflow-{org}.yaml"},
             {"id": "board", "command": "bootstrap-project", "config": f"config/project-{org}.yaml"},
+            {
+                "id": "catalog",
+                "command": "sync-catalog",
+                "config": f"config/service-catalog-{org}.yaml",
+                "gitflow_config": f"config/gitflow-{org}.yaml",
+            },
         ],
         "verify": {"config": f"config/verify-platform-{org}.yaml"},
     }
@@ -393,6 +400,11 @@ def render_verify_config(ctx: OnboardingContext) -> str:
     return _dump(data)
 
 
+def render_service_catalog_config(ctx: OnboardingContext) -> str:
+    services = entries_from_onboarding_spec(ctx.spec)
+    return render_service_catalog(org=ctx.org, services=services)
+
+
 def render_playbook_readme(ctx: OnboardingContext) -> str:
     org = ctx.org
     name = ctx.display_name
@@ -441,4 +453,5 @@ def all_config_renders(ctx: OnboardingContext) -> dict[str, str]:
         f"config/project-{org}.yaml": render_project_config(ctx),
         f"config/wiki-{org}.yaml": render_wiki_config(ctx),
         f"config/verify-platform-{org}.yaml": render_verify_config(ctx),
+        f"config/service-catalog-{org}.yaml": render_service_catalog_config(ctx),
     }

@@ -110,6 +110,9 @@ def normalize_spec(raw: dict[str, Any]) -> dict[str, Any]:
                 "profile": profile,
                 "description": str(item.get("description") or name),
                 "private": bool(item.get("private", True)),
+                "branch_code": str(item.get("branch_code") or "").strip(),
+                "owns": [str(x) for x in (item.get("owns") or [])],
+                "depends_on": [str(x) for x in (item.get("depends_on") or [])],
             }
         )
 

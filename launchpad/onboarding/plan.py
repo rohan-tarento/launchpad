@@ -35,6 +35,7 @@ def _config_files(org: str) -> list[str]:
         f"{base}/project-{org}.yaml",
         f"{base}/wiki-{org}.yaml",
         f"{base}/verify-platform-{org}.yaml",
+        f"{base}/service-catalog-{org}.yaml",
     ]
 
 

@@ -63,8 +63,8 @@ Add under `config/harness-<org>.yaml`:
 repos:
   example-api:
     profile: python-backend          # harness + scaffold profile (same name)
-    service_name: Suchana            # human label → service_description
-    conda_env: example-api               # local verify env name
+    service_name: Example API        # human label → service_description
+    conda_env: example-api           # local verify env name
     verify_smoke: make test
     scaffold:                        # cookiecutter options (optional overrides)
       has_postgres: "yes"
@@ -98,14 +98,14 @@ repos:
 
 Values must be strings `"yes"` / `"no"` (cookiecutter choice format).
 
-**Suchana note:** P1 idempotency is **Postgres** (**D1**), not Redis. Redis cooldown / rule engine is later (**NG8**). Profile default still includes Redis (`has_redis: yes`) so local `docker-compose` matches other python-backend repos; set `has_redis: "no"` under `scaffold:` only if you want a slimmer W0 skeleton.
+**Note:** Profile default includes Redis (`has_redis: yes`) so local `docker-compose` matches other python-backend repos; set `has_redis: "no"` under `scaffold:` only if you want a slimmer W0 skeleton.
 
 Common overrides (quick reference):
 
 | Scaffold key | Typical override | Example repos |
 |--------------|------------------|---------------|
-| `has_kafka` | `yes` | Suchana, Pravah-style consumers |
-| `has_internal_api` | `yes` | Suchana E1 (`/internal/v1/messages/…`) |
+| `has_kafka` | `yes` | Event consumers, message ingress |
+| `has_internal_api` | `yes` | Services with `/internal/v1/…` peers |
 | `has_redis` | `no` | Minimal W0 with no cache yet |
 | `abhilekh_client` | `yes` | Services needing device registry |
 

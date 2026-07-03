@@ -58,6 +58,7 @@ class OnboardingPlanTests(unittest.TestCase):
         text = format_plan(plan)
         self.assertIn("config/org-kola-lab.yaml", text)
         self.assertIn("config/harness-kola-lab.yaml", text)
+        self.assertIn("config/service-catalog-kola-lab.yaml", text)
         self.assertIn("templates/AGENTS.md", text)
         self.assertIn("launchpad onboard apply", text)
 
