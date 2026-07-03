@@ -90,6 +90,8 @@ def run(
 
     print("")
     print("=== Done ===")
+    print("Note: only app repos listed in OrgConfig are created here.")
+    print("      <client>-meta is scaffolded locally and pushed manually — see docs/new-client.md")
     if client.dry_run:
         print("Re-run with --apply to execute.")
     print(f"Next: launchpad bootstrap-teams --config {cfg_path} --apply")

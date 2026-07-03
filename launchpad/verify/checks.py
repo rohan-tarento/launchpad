@@ -33,6 +33,16 @@ def _repo_list(ctx: dict[str, Any], spec: dict[str, Any]) -> list[str]:
     return []
 
 
+def _factory_app_repo_names(ctx: dict[str, Any]) -> set[str]:
+    org_cfg = ctx.get("org_config") or {}
+    return set(org_cfg.get("repo_names") or [])
+
+
+def _gitflow_meta_repo_names(ctx: dict[str, Any]) -> list[str]:
+    app_repos = _factory_app_repo_names(ctx)
+    return [r for r in _repo_list(ctx, {"repos_from": "gitflow.repos"}) if r not in app_repos]
+
+
 @_register("org.access")
 def check_org_access(client: GitHubClient, org: str, ctx: dict, spec: dict) -> CheckResult:
     _ = ctx, spec
@@ -94,10 +104,18 @@ def check_teams_present(client: GitHubClient, org: str, ctx: dict, spec: dict) -
 
 @_register("gitflow.develop")
 def check_gitflow_develop(client: GitHubClient, org: str, ctx: dict, spec: dict) -> CheckResult:
-    missing = [r for r in _repo_list(ctx, spec) if not branch_exists(client, org, r, "develop")]
+    repos = _repo_list(ctx, spec)
+    missing = [r for r in repos if not branch_exists(client, org, r, "develop")]
     if missing:
-        return False, f"no develop branch: {missing}"
-    return True, f"develop on {len(_repo_list(ctx, spec))} repos"
+        meta = [r for r in missing if r in _gitflow_meta_repo_names(ctx)]
+        app = [r for r in missing if r not in set(meta)]
+        parts = [f"no develop branch: {missing}"]
+        if meta:
+            parts.append(f"meta not pushed yet: {meta} (bootstrap-org does not create meta)")
+        if app:
+            parts.append(f"app repos need main+develop: {app} (scaffold/push or init_empty)")
+        return False, " — ".join(parts)
+    return True, f"develop on {len(repos)} repos"
 
 
 @_register("gitflow.protection")
