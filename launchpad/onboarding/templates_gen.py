@@ -19,14 +19,41 @@ def _read_kit(rel: str) -> str:
 
 
 def _codeowners(ctx: OnboardingContext, role: str) -> str:
-    team = ctx.org_at_team(role)
-    return f"""# {role} profile — {ctx.display_name}
+    """Generate org-customized CODEOWNERS for a profile.
 
-/docs/specification/ {team}
-/src/ {team}
-/tests/ {team}
-* {team}
-"""
+    Reads the kit template for this profile and substitutes example-org
+    placeholder team references with the actual org-scoped team names.
+    This preserves the spec pipeline gate structure while localising team refs.
+    """
+    import re
+    kit_file = f"CODEOWNERS.{role.replace('_', '-')}"
+    try:
+        text = _read_kit(kit_file)
+    except FileNotFoundError:
+        # Fallback for unknown profiles — minimal safe default
+        team = ctx.org_at_team(role)
+        return f"# {role} profile — {ctx.display_name}\n* {team}\n"
+
+    # Map placeholder team names → org-scoped team names
+    substitutions = {
+        "@example-org/pe-team": ctx.org_at_team("pe"),
+        "@example-org/pm-team": ctx.org_at_team("pm"),
+        "@example-org/platform-devs": ctx.org_at_team("platform"),
+        "@example-org/backend-devs": ctx.org_at_team("backend"),
+        "@example-org/frontend-devs": ctx.org_at_team("frontend"),
+        "@example-org/data-platform-devs": ctx.org_at_team("data_platform"),
+        "@example-org/qa-team": ctx.org_at_team("qa"),
+    }
+    for placeholder, real in substitutions.items():
+        text = text.replace(placeholder, real)
+    # Update the profile comment line
+    text = re.sub(
+        r"^# (Backend|Frontend|Data platform|Platform) profile",
+        f"# {role} profile — {ctx.display_name}",
+        text,
+        flags=re.MULTILINE,
+    )
+    return text
 
 
 def _harness_pin(ctx: OnboardingContext, profile: str, rules_key: str) -> str:

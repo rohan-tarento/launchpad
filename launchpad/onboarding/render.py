@@ -167,6 +167,8 @@ def render_gitflow_config(ctx: OnboardingContext) -> str:
             "frontend": ctx.team_slug("frontend"),
             "platform": ctx.team_slug("platform"),
             "data_platform": ctx.team_slug("data_platform"),
+            "qa": ctx.team_slug("qa"),
+            "pe": ctx.team_slug("pe"),
         },
         "profiles": {
             "backend": "backend",
