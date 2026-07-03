@@ -438,3 +438,7 @@ def load_wiki_config(path: Path | str) -> dict[str, Any]:
 
 def default_wiki_config_path(org: str) -> Path:
     return tenant_config_dir() / f"wiki-{org}.yaml"
+
+
+def default_service_catalog_config_path(org: str) -> Path:
+    return tenant_config_dir() / f"service-catalog-{org}.yaml"

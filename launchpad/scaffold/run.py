@@ -28,9 +28,21 @@ class ScaffoldPlan:
     force: bool = False
 
 
-def _resolve_workspace(cfg: dict[str, Any], workspace: Path | None) -> Path:
+def _resolve_workspace(
+    cfg: dict[str, Any],
+    workspace: Path | None,
+    *,
+    config_path: Path | None = None,
+) -> Path:
     if workspace is not None:
         return workspace.resolve()
+    if config_path is not None:
+        config_dir = config_path.resolve().parent
+        default = str(cfg.get("default_workspace", ".."))
+        if config_dir.name == "config":
+            meta_root = config_dir.parent
+            return (meta_root / default).resolve()
+        return (config_dir / default).resolve()
     root = tenant_root()
     default = str(cfg.get("default_workspace", ".."))
     return (root / default).resolve()
@@ -134,7 +146,8 @@ def build_plan(
         )
 
     repo_meta = _repo_meta(cfg, repo_name)
-    output_dir = _resolve_workspace(cfg, workspace)
+    harness_path = Path(config_path).resolve()
+    output_dir = _resolve_workspace(cfg, workspace, config_path=harness_path)
     template_ref = _resolve_template(profile, workspace=output_dir, explicit=template)
     context = build_context(
         profile,

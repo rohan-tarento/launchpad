@@ -25,5 +25,10 @@ setup:
     command: bootstrap-project
     config: config/project-example.yaml
 
+  - id: catalog
+    command: sync-catalog
+    config: config/service-catalog-example.yaml
+    gitflow_config: config/gitflow-example.yaml
+
 verify:
   config: config/verify-platform-example.yaml

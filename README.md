@@ -165,8 +165,8 @@ launchpad doctor                    # uses default client
 launchpad --client drivestream doctor
 
 # Harness (no GitHub API — works offline for sync/verify)
-launchpad scaffold --repo suchana --dry-run
-launchpad scaffold --repo suchana --option has_kafka=yes --apply
+launchpad scaffold --repo example-api --dry-run
+launchpad scaffold --repo example-api --option has_kafka=yes --apply
 launchpad sync-harness --repo example-api --apply
 launchpad verify-harness --repo example-api
 launchpad publish-wiki --apply

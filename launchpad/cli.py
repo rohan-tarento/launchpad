@@ -160,6 +160,19 @@ def cmd_whoami(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sync_catalog(args: argparse.Namespace) -> int:
+    from launchpad.service_catalog import run_sync
+
+    config = _config_path(args, "service-catalog") if not args.config else args.config
+    run_sync(
+        org=args.org or "",
+        config_path=config,
+        gitflow_path=args.gitflow or None,
+        dry_run=_dry_run_from_args(args),
+    )
+    return 0
+
+
 def cmd_sync_harness(args: argparse.Namespace) -> int:
     config = _config_path(args, "harness")
     harness.run_sync(
@@ -331,6 +344,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("whoami", help="Verify GITHUB_TOKEN and print login")
     p.set_defaults(func=cmd_whoami)
+
+    p = sub.add_parser(
+        "sync-catalog",
+        help="Merge config/service-catalog-<org>.yaml from gitflow (preserves curated owns/depends_on)",
+    )
+    p.add_argument("--org", default="")
+    p.add_argument("--config", default="", help="Catalog path (default: config/service-catalog-<org>.yaml)")
+    p.add_argument("--gitflow", default="", help="Gitflow config (default: config/gitflow-<org>.yaml)")
+    _add_apply_flags(p)
+    p.set_defaults(func=cmd_sync_catalog)
 
     p = sub.add_parser(
         "sync-harness",
