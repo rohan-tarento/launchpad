@@ -16,7 +16,7 @@ Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`*
 | Who | Open in Cursor | Skills |
 |-----|----------------|--------|
 | **PM / PO** | `<client>-meta` | `prd` + **prayog-skills** (install below) |
-| **Developer** | app repo (e.g. `example-api`) | prayog-skills dev bundle via harness — `/spec-feasibility-review`, `/spec-technical-review`, `/spec-implementation-plan`, `/pre-implement`, `/loop-spec`, `/ground-spec`, `/verify` |
+| **Developer** | app repo (e.g. `example-api`) | prayog-skills dev bundle via harness — `/spec-draft`, `/initiative-feasibility`, `/spec-technical-review`, `/spec-implementation-plan`, `/pre-implement`, `/loop-spec`, `/ground-spec`, `/verify` |
 
 ---
 
@@ -33,7 +33,7 @@ Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`*
 | Backlog | `generate-work-manifest` | **prayog-skills** | `work/INIT-*.yaml` — reads PRD `delivery_model` ([delivery-model.md](delivery-model.md)) |
 | Board | `launchpad seed-work` | Factory CLI | Issues on Project |
 
-**Spec handoff PRs** (app repo) — dev gate is **`/spec-feasibility-review`** only (harness dev bundle). PRD traceability: spec links Validation report; PM already ran `/validate-requirements` in meta. See [pm-dev-handoff.md](pm-dev-handoff.md).
+**prd-handoff PRs** (app repo) — PM opens PRD-link-only PR per repo; dev runs `/spec-draft` to write spec slice, then `/initiative-feasibility`. PM does **not** write spec files. See [pm-dev-handoff.md](pm-dev-handoff.md).
 
 ### Install (from `<client>-meta` root)
 
