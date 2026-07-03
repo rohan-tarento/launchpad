@@ -89,6 +89,20 @@ def cmd_seed_repos(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_clone_repos(args: argparse.Namespace) -> int:
+    from launchpad import workspace_clone
+
+    config = _config_path(args, "gitflow")
+    with _client(args) as client:
+        workspace_clone.run(
+            client,
+            org=args.org or "",
+            config_path=config,
+            filter_repo=args.repo or "",
+        )
+    return 0
+
+
 def cmd_bootstrap_project(args: argparse.Namespace) -> int:
     config = _config_path(args, "project")
     with _client(args) as client:
@@ -288,6 +302,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--repo", default="", help="limit to one repo (debug re-run only)")
     _add_apply_flags(p)
     p.set_defaults(func=cmd_seed_repos)
+
+    p = sub.add_parser(
+        "clone-repos",
+        help="Clone gitflow repos locally on develop (workspace parent from gitflow options)",
+    )
+    p.add_argument("--org", default="")
+    p.add_argument("--config", default="")
+    p.add_argument("--repo", default="", help="limit to one repo (debug re-run only)")
+    _add_apply_flags(p)
+    p.set_defaults(func=cmd_clone_repos)
 
     p = sub.add_parser("bootstrap-project", help="Org project board + fields + repo links")
     p.add_argument("--org", default="")
