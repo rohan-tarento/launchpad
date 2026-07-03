@@ -17,8 +17,20 @@ DEFAULT_BRANCH_NAMING: dict[str, Any] = {
     "allowed_prefixes": ["feature", "fix", "hotfix", "release", "chore"],
     "exceptions": ["dependabot/*"],
     "slug_pattern": r"^[a-zA-Z0-9][a-zA-Z0-9._-]+$",
+    # Strict feature pattern: feature/INIT-{COMPONENT}-{NUMBER}-{slug}
+    #   COMPONENT = repo/service abbreviation, 2-7 uppercase chars
+    #               e.g. KAVACH, MOBBT, MNTHAN, PRCHY, SETU
+    #   NUMBER    = initiative sequence number, 1-7 digits (relaxed — no exact width)
+    #               e.g. 001, 0012, 1234567
+    #   slug      = lowercase kebab description (include wave info here if needed)
+    #               e.g. w2-jwt-login, wave-token-refresh-reattempt, w0-bootstrap
+    # Examples:
+    #   feature/INIT-KAVACH-001-w2-jwt-login
+    #   feature/INIT-MNTHAN-001-w1-flink-core
+    #   feature/INIT-MOBBT-0001-wave-extraction-cli
+    #   feature/INIT-PRCHY-002-w3-api-contracts
     "strict_feature_pattern": (
-        r"^feature/INIT-[A-Z]+-[A-Z0-9]+-[0-9]{3}-[a-z0-9][a-z0-9._-]+$"
+        r"^feature/INIT-[A-Z]{2,7}-[0-9]{1,7}-[a-z][a-z0-9._-]+$"
     ),
     "block_sources": ["main", "develop"],
 }

@@ -39,13 +39,24 @@ jobs:
             exit 1
           fi
 
-          # Strict mode (set NAMING_MODE=strict in repo/org variable later for prod)
+          # Strict mode: feature branches must follow initiative branch convention
+          # Pattern: feature/INIT-{COMPONENT}-{NUMBER}-{slug}
+          #   COMPONENT = repo/service abbreviation 2-7 uppercase chars
+          #   NUMBER    = initiative sequence number 1-7 digits
+          #   slug      = lowercase description (include wave info here)
+          # Examples:
+          #   feature/INIT-KAVACH-001-w2-jwt-login
+          #   feature/INIT-MNTHAN-001-w1-flink-core
+          #   feature/INIT-MOBBT-0001-wave-extraction-cli
           if [[ "$NAMING_MODE" == "strict" ]]; then
             case "$HEAD" in
               feature/*)
-                if [[ ! "$HEAD" =~ ^feature/INIT-[A-Z]+-[A-Z0-9]+-[0-9]{3}-[a-z0-9][a-z0-9._-]+$ ]]; then
-                  echo "Strict mode: feature branches must be feature/INIT-<AREA>-<NNN>-<slug>"
-                  echo "  Example: feature/BOOTSTRAP-001-example-api-jwt"
+                if [[ ! "$HEAD" =~ ^feature/INIT-[A-Z]{2,7}-[0-9]{1,7}-[a-z][a-z0-9._-]+$ ]]; then
+                  echo "Strict mode: feature branches must be feature/INIT-{COMPONENT}-{NUMBER}-{slug}"
+                  echo "  COMPONENT: 2-7 uppercase chars (repo abbreviation, e.g. KAVACH, MNTHAN, MOBBT)"
+                  echo "  NUMBER:    1-7 digits (initiative sequence, e.g. 001, 0012)"
+                  echo "  slug:      lowercase description (e.g. w2-jwt-login, wave-extraction-cli)"
+                  echo "  Example:   feature/INIT-KAVACH-001-w2-jwt-login"
                   echo "  Got: $HEAD"
                   exit 1
                 fi
