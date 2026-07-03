@@ -108,10 +108,18 @@ def _resolve_include_path(include_path: str | Path, parent_config: Path | str) -
     p = Path(include_path)
     if p.is_absolute():
         return p
+    if str(p).startswith("config/"):
+        root_candidate = tenant_root() / p
+        if root_candidate.is_file():
+            return root_candidate
     parent = Path(parent_config).resolve().parent
     candidate = parent / p
     if candidate.is_file():
         return candidate
+    if len(p.parts) == 1:
+        sibling = parent / p.name
+        if sibling.is_file():
+            return sibling
     root_candidate = tenant_root() / p
     if root_candidate.is_file():
         return root_candidate
@@ -170,6 +178,12 @@ def load_gitflow_config(path: Path | str) -> dict[str, Any]:
     includes = cfg.get("includes") or {}
     if includes.get("org"):
         org_cfg = load_org_config(_resolve_include_path(includes["org"], cfg_path))
+    else:
+        org_name = str(cfg.get("org", "")).strip()
+        if org_name:
+            sibling = cfg_path.parent / f"org-{org_name}.yaml"
+            if sibling.is_file():
+                org_cfg = load_org_config(sibling)
 
     teams = dict(cfg.get("teams") or {})
     profiles = dict(cfg.get("profiles") or {})

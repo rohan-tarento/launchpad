@@ -87,22 +87,74 @@ def team_exists(client: GitHubClient, org: str, slug: str) -> bool:
         return False
 
 
-def init_empty_repo_main(client: GitHubClient, org: str, repo: str) -> None:
-    content = (
-        f"# {repo}\n\nInitialized by tenant meta `launchpad setup-gitflow` (options.init_empty in gitflow YAML).\n"
-    )
+def seed_repo_main(client: GitHubClient, org: str, repo: str, *, is_meta: bool = False) -> None:
+    if is_meta:
+        content = (
+            f"# {repo}\n\n"
+            "Tenant meta seeded by launchpad setup-platform.\n"
+            "PM: open a chore PR to develop with prd/, work/, and config/ content.\n"
+        )
+    else:
+        content = (
+            f"# {repo}\n\n"
+            "Seeded by launchpad setup-platform.\n"
+            "Replace via scaffold + PR to develop.\n"
+        )
     b64 = base64.b64encode(content.encode()).decode()
     if client.dry_run:
         print(f"[dry-run] PUT repos/{org}/{repo}/contents/README.md (initial commit on main)")
         return
-    print(f"[run] initial commit on main: {org}/{repo}")
+    print(f"[run] seed main: {org}/{repo}")
     client.rest(
         "PUT",
         f"/repos/{org}/{repo}/contents/README.md",
         json_body={
-            "message": "chore: initial commit (setup-gitflow)",
+            "message": "chore: seed repo (setup-platform)",
             "content": b64,
         },
+    )
+
+
+def init_empty_repo_main(client: GitHubClient, org: str, repo: str) -> None:
+    """Backward-compatible alias for seed_repo_main."""
+    seed_repo_main(client, org, repo, is_meta=False)
+
+
+def get_default_branch(client: GitHubClient, org: str, repo: str) -> str:
+    if client.dry_run and not repo_exists(client, org, repo):
+        return "main"
+    data = client.rest("GET", f"/repos/{org}/{repo}")
+    return str(data.get("default_branch") or "main")
+
+
+def set_default_branch(client: GitHubClient, org: str, repo: str, branch: str) -> None:
+    if client.dry_run:
+        print(f"[dry-run] PATCH repos/{org}/{repo} default_branch={branch}")
+        return
+    print(f"[run] default branch → {branch}: {org}/{repo}")
+    client.rest(
+        "PATCH",
+        f"/repos/{org}/{repo}",
+        json_body={"default_branch": branch},
+    )
+
+
+def create_develop_from_main(client: GitHubClient, org: str, repo: str) -> None:
+    if branch_exists(client, org, repo, "develop"):
+        print(f"Branch exists: {org}/{repo}@develop")
+        return
+    if client.dry_run and not repo_has_main(client, org, repo):
+        print(f"[dry-run] create refs/heads/develop from main on {org}/{repo}")
+        return
+    sha = main_sha(client, org, repo)
+    if client.dry_run:
+        print(f"[dry-run] create refs/heads/develop @ {sha[:7]} on {org}/{repo}")
+        return
+    print(f"[run] create develop from main on {org}/{repo}")
+    client.rest(
+        "POST",
+        f"/repos/{org}/{repo}/git/refs",
+        json_body={"ref": "refs/heads/develop", "sha": sha},
     )
 
 

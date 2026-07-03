@@ -124,6 +124,7 @@ def render_platform_config(ctx: OnboardingContext) -> str:
         "setup": [
             {"id": "repos", "command": "bootstrap-org", "config": f"config/org-{org}.yaml"},
             {"id": "teams", "command": "bootstrap-teams", "config": f"config/org-{org}.yaml"},
+            {"id": "seed", "command": "seed-repos", "config": f"config/gitflow-{org}.yaml"},
             {"id": "gitflow", "command": "setup-gitflow", "config": f"config/gitflow-{org}.yaml"},
             {"id": "board", "command": "bootstrap-project", "config": f"config/project-{org}.yaml"},
         ],
@@ -153,11 +154,12 @@ def render_gitflow_config(ctx: OnboardingContext) -> str:
         "apiVersion": "launchpad/v1",
         "kind": "GitflowConfig",
         "org": org,
-        "includes": {"org": f"config/org-{org}.yaml"},
+        "includes": {"org": f"org-{org}.yaml"},
         "options": {
             "require_ci": gf["require_ci"],
             "branch_naming": gf["branch_naming"],
             "with_templates": gf["with_templates"],
+            "seed_empty": True,
             "init_empty": False,
             "workspace": "..",
         },
@@ -343,9 +345,9 @@ def render_verify_config(ctx: OnboardingContext) -> str:
         "kind": "VerifyManifest",
         "org": org,
         "includes": {
-            "org": f"config/org-{org}.yaml",
-            "gitflow": f"config/gitflow-{org}.yaml",
-            "project": f"config/project-{org}.yaml",
+            "org": f"org-{org}.yaml",
+            "gitflow": f"gitflow-{org}.yaml",
+            "project": f"project-{org}.yaml",
         },
         "checks": [
             {"id": "org.access", "phase": "scopes", "required": True},
@@ -356,10 +358,16 @@ def render_verify_config(ctx: OnboardingContext) -> str:
                 "required": True,
                 "when": "project.issue_types_required",
             },
-            {"id": "repos.present", "phase": "applied", "required": True, "repos_from": "org.repos"},
+            {"id": "repos.present", "phase": "applied", "required": True, "repos_from": "gitflow.repos"},
             {"id": "teams.present", "phase": "applied", "required": True, "teams_from": "org.teams"},
             {
                 "id": "gitflow.develop",
+                "phase": "applied",
+                "required": True,
+                "repos_from": "gitflow.repos",
+            },
+            {
+                "id": "gitflow.default_branch",
                 "phase": "applied",
                 "required": True,
                 "repos_from": "gitflow.repos",

@@ -8,6 +8,9 @@ kind: GitflowConfig
 
 org: example-org
 
+includes:
+  org: org-example.yaml
+
 teams:
   release_managers: release-managers
   pm: pm-team
@@ -23,6 +26,14 @@ profiles:
   data_platform: data_platform
 
 repos:
+  example-meta:
+    profile: platform
+    develop_merge: pm
+    grant_read:
+      - backend
+      - frontend
+      - platform
+      - data_platform
   example-api:
     profile: backend
   example-registry:
@@ -37,7 +48,7 @@ options:
   require_ci: false
   branch_naming: false
   with_templates: false
-  init_empty: false
+  seed_empty: true
   workspace: ..   # parent directory of local repo clones (for with_templates)
 
 # Branch naming (ruleset + policy-branch-name workflow when options.branch_naming is true)

@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from launchpad import bootstrap_org, bootstrap_teams, gitflow, project
-from launchpad.config import load_platform_manifest, resolve_config_path
+from launchpad import bootstrap_org, bootstrap_teams, gitflow, project, repo_seed
+from launchpad.config import load_platform_manifest, resolve_config_path, tenant_config_dir
 from launchpad.github_client import GitHubClient
 from launchpad.verify.runner import VerifyError, run as run_verify
 
@@ -16,10 +16,16 @@ def _resolve_step_config(step: dict[str, Any], manifest_path: Path) -> str:
     if not raw:
         raise ValueError(f"setup step {step.get('id')!r} missing config path")
     p = Path(raw)
-    if p.is_absolute():
-        return str(p)
-    for base in (manifest_path.parent, manifest_path.parent.parent.parent):
-        candidate = base / p
+    if p.is_absolute() and p.is_file():
+        return str(p.resolve())
+    config_dir = tenant_config_dir()
+    candidates = [
+        config_dir / p.name,
+        config_dir / p,
+        manifest_path.parent / p.name,
+        manifest_path.parent / p,
+    ]
+    for candidate in candidates:
         if candidate.is_file():
             return str(candidate.resolve())
     return str(p)
@@ -39,6 +45,13 @@ def _run_step(client: GitHubClient, step: dict[str, Any], *, org: str, platform_
         bootstrap_org.run(client, org=org, config_path=cfg)
     elif command == "bootstrap-teams":
         bootstrap_teams.run(client, org=org, config_path=cfg)
+    elif command == "seed-repos":
+        repo_seed.run(
+            client,
+            org=org,
+            config_path=cfg,
+            filter_repo=str(step.get("repo") or ""),
+        )
     elif command == "setup-gitflow":
         gitflow.run(
             client,
@@ -64,9 +77,9 @@ def run(
     org = org or manifest["org"]
     verify_config = manifest.get("verify_config", "")
     if verify_config and not Path(verify_config).is_absolute():
-        candidate = platform_path.parent / verify_config
-        if candidate.is_file():
-            verify_config = str(candidate.resolve())
+        resolved = _resolve_step_config({"config": verify_config}, platform_path)
+        if Path(resolved).is_file():
+            verify_config = resolved
 
     print("=== setup-platform ===")
     print(f"Manifest: {platform_path}")
@@ -92,13 +105,13 @@ def run(
         print("=== Done (dry-run) ===")
         print("Re-run with --apply to execute setup + verify.")
         print("")
-        print("Reminder: <client>-meta is pushed manually before gitflow can configure develop.")
-        print("          App repos start empty — scaffold or push main before gitflow step fully applies.")
+        print("Pipeline: bootstrap-org (all gitflow repos) → seed-repos (main+develop) → setup-gitflow")
         return
 
     print("")
     run_verify(client, config_path=verify_config, org=org, phase="applied")
     print("")
     print("=== Platform ready for backlog ===")
-    print("Create or choose a WorkManifest, then:")
+    print("Push real content via PRs to develop, then:")
+    print("  launchpad sync-harness --repo <app> --apply")
     print("  launchpad seed-work --config <work-manifest.yaml> --apply")
