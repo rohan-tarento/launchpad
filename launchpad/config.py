@@ -48,6 +48,23 @@ def tenant_config_dir() -> Path:
     return config_dir
 
 
+def resolve_workspace_parent(
+    *,
+    gitflow_options: dict[str, Any] | None = None,
+    harness_cfg: dict[str, Any] | None = None,
+) -> Path:
+    """Parent directory for app repo clones (sibling of tenant meta)."""
+    root = tenant_root()
+    for options, key in ((gitflow_options, "workspace"), (harness_cfg, "default_workspace")):
+        if not options:
+            continue
+        raw = str(options.get(key) or "").strip()
+        if raw:
+            p = Path(raw).expanduser()
+            return (p if p.is_absolute() else (root / p)).resolve()
+    return root.parent
+
+
 def discover_tenant_config(kind: str, *, org: str = "") -> Path:
     """Find config/{kind}-<org>.yaml or the sole non-example file for kind."""
     config_dir = tenant_config_dir()

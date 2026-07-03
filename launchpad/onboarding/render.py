@@ -126,6 +126,7 @@ def render_platform_config(ctx: OnboardingContext) -> str:
             {"id": "repos", "command": "bootstrap-org", "config": f"config/org-{org}.yaml"},
             {"id": "teams", "command": "bootstrap-teams", "config": f"config/org-{org}.yaml"},
             {"id": "seed", "command": "seed-repos", "config": f"config/gitflow-{org}.yaml"},
+            {"id": "clone", "command": "clone-repos", "config": f"config/gitflow-{org}.yaml"},
             {"id": "gitflow", "command": "setup-gitflow", "config": f"config/gitflow-{org}.yaml"},
             {"id": "board", "command": "bootstrap-project", "config": f"config/project-{org}.yaml"},
             {

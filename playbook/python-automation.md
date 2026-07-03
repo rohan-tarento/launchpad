@@ -130,6 +130,7 @@ All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub.
 | `bootstrap-org` | Repos + labels (`org-*.yaml` + gitflow union, includes meta) |
 | `bootstrap-teams` | Teams (`org-*.yaml`) |
 | `seed-repos` | Seed `main`, create `develop`, default branch `develop` (`gitflow-*.yaml`) |
+| `clone-repos` | Clone/link all gitflow repos on `develop` under workspace parent (`gitflow-*.yaml`) |
 | `setup-gitflow` | Branch protection + rulesets (`gitflow-*.yaml`) |
 | `bootstrap-project` | Board + fields + issue types (`project-*.yaml`) |
 | `seed-work` | Backlog from `WorkManifest` (`work/*.yaml`) |

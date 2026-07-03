@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from launchpad import bootstrap_org, bootstrap_teams, gitflow, project, repo_seed
+from launchpad import bootstrap_org, bootstrap_teams, gitflow, project, repo_seed, workspace_clone
 from launchpad.service_catalog import run_sync as run_sync_catalog
 from launchpad.config import load_platform_manifest, resolve_config_path, tenant_config_dir
 from launchpad.github_client import GitHubClient
@@ -48,6 +48,13 @@ def _run_step(client: GitHubClient, step: dict[str, Any], *, org: str, platform_
         bootstrap_teams.run(client, org=org, config_path=cfg)
     elif command == "seed-repos":
         repo_seed.run(
+            client,
+            org=org,
+            config_path=cfg,
+            filter_repo=str(step.get("repo") or ""),
+        )
+    elif command == "clone-repos":
+        workspace_clone.run(
             client,
             org=org,
             config_path=cfg,
@@ -115,13 +122,14 @@ def run(
         print("=== Done (dry-run) ===")
         print("Re-run with --apply to execute setup + verify.")
         print("")
-        print("Pipeline: bootstrap-org (all gitflow repos) → seed-repos (main+develop) → setup-gitflow")
+        print("Pipeline: bootstrap-org → seed-repos → clone-repos → setup-gitflow")
         return
 
     print("")
     run_verify(client, config_path=verify_config, org=org, phase="applied")
     print("")
     print("=== Platform ready for backlog ===")
+    print("Local clones ready — scaffold app repos, then:")
     print(f"Curate config/service-catalog-{org}.yaml (owns, depends_on), then:")
     print("Push real content via PRs to develop, then:")
     print("  launchpad sync-harness --repo <app> --apply")

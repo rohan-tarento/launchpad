@@ -116,10 +116,85 @@ pipx install -e .
 # One-time client registry — see docs/multi-laptop.md
 launchpad clients
 launchpad doctor
-launchpad setup-platform --config config/platform-<org>.yaml --apply
 ```
 
+Greenfield and incremental repo flows: see **Workflows** below.
+
 Full walkthrough: [docs/setup-guide.md](docs/setup-guide.md) · [docs/multi-laptop.md](docs/multi-laptop.md)
+
+---
+
+## Workflows
+
+Run all commands from **`<client>-meta`** (after `clients.yaml` + `env.d/<client>.env` are set). Default is **`--dry-run`**; add **`--apply`** to execute.
+
+**Workspace layout** (default `options.workspace: ..` in gitflow YAML):
+
+```text
+~/Workspace/<client>/
+  <client>-meta/     # tenant meta — run launchpad here
+  example-api/       # app clones (siblings of meta)
+  example-registry/
+```
+
+### A — Greenfield (new client / new org)
+
+First-time bootstrap: onboarding spec → local meta → GitHub factory → local clones → app scaffolding.
+
+| Step | What | Command |
+|------|------|---------|
+| 1 | Install kit + registry | `pipx install -e .` · see [multi-laptop.md](docs/multi-laptop.md) |
+| 2 | Plan tenant | `launchpad onboard plan --spec ~/Workspace/handson/<client>/onboarding.yaml` |
+| 3 | Scaffold meta locally | `launchpad onboard apply --spec …/onboarding.yaml` |
+| 4 | Paste forge token | edit `~/.config/launchpad/env.d/<client>.env` |
+| 5 | Platform baseline | `launchpad --client <client> setup-platform --config config/platform-<org>.yaml --apply` |
+
+`setup-platform --apply` runs in order:
+
+```text
+bootstrap-org → bootstrap-teams → seed-repos → clone-repos → setup-gitflow → bootstrap-project → sync-catalog
+```
+
+Creates GitHub repos, seeds `develop`, **clones every repo locally**, applies gitflow + board, writes `config/service-catalog-<org>.yaml`.
+
+| Step | What | Command |
+|------|------|---------|
+| 6 | Curate service catalog | edit `config/service-catalog-<org>.yaml` (`owns`, `depends_on`, `branch_code`) |
+| 7 | Push meta to GitHub | commit meta → PR to `<client>-meta/develop` |
+| 8 | Scaffold each app | `launchpad scaffold --repo <app> --apply --force` (into existing clone) |
+| 9 | Harness each app | `launchpad sync-harness --repo <app> --apply` |
+| 10 | Backlog | PRD → `work/INIT-*.yaml` → `launchpad seed-work --apply` |
+
+Wizard details: [docs/onboarding-wizard.md](docs/onboarding-wizard.md) · App repo deep dive: [playbook/greenfield-app-repo.md](playbook/greenfield-app-repo.md)
+
+### B — Ongoing project (add a new app repo)
+
+When the org already exists and you are adding repo **N+1** incrementally:
+
+| Step | What | Where |
+|------|------|-------|
+| 1 | Register repo | edit `config/org-<org>.yaml`, `gitflow-<org>.yaml`, `harness-<org>.yaml` |
+| 2 | Commit meta | PR meta config to `<client>-meta/develop` |
+
+Then from `<client>-meta`:
+
+```bash
+launchpad bootstrap-org --apply                    # create GitHub repo if missing
+launchpad seed-repos --repo <new-app> --apply     # main + develop on GitHub
+launchpad clone-repos --repo <new-app> --apply    # local clone on develop
+launchpad setup-gitflow --repo <new-app> --apply  # protection + templates
+launchpad sync-catalog --apply                    # merge into service-catalog (keeps curated fields)
+```
+
+Curate the new entry in `config/service-catalog-<org>.yaml`, then scaffold:
+
+```bash
+launchpad scaffold --repo <new-app> --apply --force
+launchpad sync-harness --repo <new-app> --apply
+launchpad verify-harness --repo <new-app>
+```
+
+**Meta YAML is SSOT** — launchpad does not auto-edit org/gitflow/harness when you scaffold. Add the repo to config first, then run the commands above.
 
 ---
 
@@ -150,12 +225,15 @@ Each private tenant repo holds **real product content** (not shipped in launchpa
 | `work/` | WorkManifest YAML → `launchpad seed-work` |
 | `wiki/` | Client wiki |
 | `config/` | Org factory YAML (gitflow policy is **authoritative** here) |
+| `config/service-catalog-{org}.yaml` | Repo → team, branch_code, owns/depends_on (maintained by launchpad) |
 
 Tenant skeleton: [`examples/tenant-meta/`](examples/tenant-meta/) — copy per client; rename `example-org` / `example-api` in YAML to your forge.
 
+See **Workflows** above for greenfield vs incremental repo steps.
+
 ---
 
-## CLI (factory + harness)
+## CLI reference
 
 Run from `<client>-meta`, or configure clients once in `~/.config/launchpad/` (see [docs/multi-laptop.md](docs/multi-laptop.md)):
 
@@ -164,16 +242,20 @@ launchpad clients                   # list configured clients
 launchpad doctor                    # uses default client
 launchpad --client drivestream doctor
 
-# Harness (no GitHub API — works offline for sync/verify)
+# Harness (local app clones — scaffold / sync-harness need these)
+launchpad clone-repos --dry-run
+launchpad clone-repos --apply
 launchpad scaffold --repo example-api --dry-run
-launchpad scaffold --repo example-api --option has_kafka=yes --apply
+launchpad scaffold --repo example-api --option has_kafka=yes --apply --force
 launchpad sync-harness --repo example-api --apply
 launchpad verify-harness --repo example-api
 launchpad publish-wiki --apply
 
 # Factory (GitHub v1 — needs GITHUB_TOKEN)
 launchpad setup-platform --config config/platform-<org>.yaml --apply
+launchpad seed-repos --config config/gitflow-<org>.yaml --apply
 launchpad setup-gitflow --config config/gitflow-<org>.yaml --apply
+launchpad sync-catalog --apply
 launchpad seed-work --config work/INIT-*.yaml --apply
 ```
 
@@ -211,7 +293,7 @@ Full command reference: [playbook/python-automation.md](playbook/python-automati
 
 ## Schema
 
-All config and manifests use **`apiVersion: launchpad/v1`**. See [docs/SCHEMA.md](docs/SCHEMA.md) for `kind` types.
+All config and manifests use **`apiVersion: launchpad/v1`**. See [docs/SCHEMA.md](docs/SCHEMA.md) for `kind` types (`OrgConfig`, `GitflowConfig`, `ServiceCatalog`, `PlatformManifest`, …).
 
 ---
 

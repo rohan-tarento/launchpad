@@ -17,6 +17,10 @@ setup:
     command: seed-repos
     config: config/gitflow-example.yaml
 
+  - id: clone
+    command: clone-repos
+    config: config/gitflow-example.yaml
+
   - id: gitflow
     command: setup-gitflow
     config: config/gitflow-example.yaml

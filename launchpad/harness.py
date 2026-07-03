@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from launchpad.config import load_harness_config, tenant_root
+from launchpad.config import load_harness_config, resolve_workspace_parent, tenant_root
 from launchpad.paths import resolve_template
 
 
@@ -137,11 +137,9 @@ def _render(text: str, values: dict[str, str]) -> str:
 
 
 def _resolve_workspace(cfg: dict[str, Any], workspace: Path | None) -> Path:
-    root = tenant_root()
     if workspace is not None:
         return workspace.resolve()
-    default = str(cfg.get("default_workspace", ".."))
-    return (root / default).resolve()
+    return resolve_workspace_parent(harness_cfg=cfg)
 
 
 def _repo_entry(cfg: dict[str, Any], repo_name: str) -> dict[str, Any]:
