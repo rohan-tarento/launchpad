@@ -20,8 +20,32 @@ labels:
   - name: initiative
     color: "1E3A8A"
     description: "Platform epic / INIT work"
+  - name: spec
+    color: "0E7490"
+    description: "Spec handoff PR"
 
 teams:
+  - slug: pm-team
+    description: "Product / program managers"
+    privacy: closed
+  - slug: backend-devs
+    description: "backend-devs — example-org"
+    privacy: closed
+  - slug: frontend-devs
+    description: "frontend-devs — example-org"
+    privacy: closed
+  - slug: platform-devs
+    description: "platform-devs — example-org"
+    privacy: closed
+  - slug: data-platform-devs
+    description: "data-platform-devs — example-org"
+    privacy: closed
   - slug: release-managers
-    description: "Release managers — only merge to main"
+    description: "release-managers — example-org"
+    privacy: closed
+  - slug: qa-team
+    description: "qa-team — example-org"
+    privacy: closed
+  - slug: pe-team
+    description: "pe-team — example-org"
     privacy: closed
