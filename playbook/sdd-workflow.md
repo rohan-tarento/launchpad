@@ -55,6 +55,6 @@ Integration tests: [`example-api/tests/README.md`](https://github.com/example-or
 
 ## Meta references
 
-- Active INIT PRD: [prd/INIT-EXAMPLE-001.md](../prd/INIT-EXAMPLE-001.md)
+- Active INIT PRD: `prd/INIT-EXAMPLE-001.md` (in `<client>-meta/prd/`)
 - Skills: [skills-matrix.md](skills-matrix.md)
 - Agent prompts: [agent-prompt-templates.md](agent-prompt-templates.md)

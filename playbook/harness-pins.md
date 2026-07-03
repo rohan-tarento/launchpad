@@ -47,7 +47,8 @@ Document your org's approved `rules` + `agent_skills` ref pairs in tenant `confi
 
 | rules | agent_skills | Notes |
 |-------|--------------|-------|
-| v1.0.0 | v0.2.0 | Example python-backend pair |
+| v1.0.0 | v0.3.0 | Current — 7-skill dev bundle (spec-feasibility, spec-technical, spec-implementation-plan, pre-implement, loop-spec, ground-spec, verify) |
+| v1.0.0 | v0.2.0 | Superseded — 4-skill dev bundle |
 
 ---
 

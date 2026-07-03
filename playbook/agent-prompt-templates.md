@@ -11,7 +11,7 @@ Copy-paste starters for Cursor Agent. **Use the section for your role** — work
 | Role | Open in Cursor | Skills | Typical work |
 |------|----------------|--------|--------------|
 | **Product owner / PM** | `<client>-meta` | `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/generate-work-manifest` | PRD, spec handoff PRs, work manifests, `seed-work` |
-| **Developer** | App repo (e.g. `example-api`) | `/spec-feasibility-review`, `/spec-implementation-plan`, `/pre-implement`, `/verify` | Spec review, plan, implementation PRs, tests, as-built |
+| **Developer** | App repo (e.g. `example-api`) | `/spec-feasibility-review`, `/spec-technical-review`, `/spec-implementation-plan`, `/pre-implement`, `/loop-spec`, `/ground-spec`, `/verify` | Spec review, PE lane, plan, implementation, wave grounding |
 
 **Board:** cite **GitHub issue #** and **full title** — not manifest ids (`Q1`, `T2`) in conversation.
 
@@ -120,7 +120,7 @@ Update docs/specification/product/ only:
 No src/. No tests/.
 Link meta PRD: prd/INIT-EXAMPLE-002.md (meta PR branch or develop after Phase 2 merge).
 
-Then run /validate-requirements on this branch against that PRD.
+# Note: /validate-requirements is PM-only (meta workspace). Dev opens PR; PM runs validation in meta.
 ```
 
 ---
@@ -195,7 +195,7 @@ PR title: [spec] handoff — INIT-EXAMPLE-001 — example-api
 Label: spec
 ```
 
-**PRD:** [prd/INIT-EXAMPLE-001.md](../prd/INIT-EXAMPLE-001.md)
+**PRD:** `prd/INIT-EXAMPLE-001.md` (in `<client>-meta/prd/`)
 
 ---
 
@@ -233,7 +233,7 @@ Execute one slice:
 3. Update as-built/implementation-status.md in same PR
 4. Run board Verify command
 
-Branch: feature/INIT-EXAMPLE-002-<slug>
+Branch: feature/INIT-EXMPL-002-w{N}-{slug}  ← see branching-policy.md
 Verify: (paste from board — e.g. make check && poetry run python -m tests.verify.verify_all)
 
 Do not edit .cursor/rules/ submodule.

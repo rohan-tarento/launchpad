@@ -44,7 +44,7 @@ Three layers — do not skip or reorder:
 - [ ] Client registry + token: `~/.config/launchpad/clients.yaml`, `env.d/<client>.env`
 - [ ] `launchpad doctor` clean from meta
 - [ ] Repo listed in `config/org-<org>.yaml` and `config/harness-<org>.yaml`
-- [ ] For Python: [python-fastapi-foundation](https://github.com/autrio10x/python-fastapi-foundation) reachable (local sibling or `LAUNCHPAD_PYTHON_FOUNDATION` or `gh:` URL after publish)
+- [ ] For Python: [python-fastapi-foundation](https://github.com/example-org/python-fastapi-foundation) reachable (local sibling or `LAUNCHPAD_PYTHON_FOUNDATION` or `gh:` URL after publish)
 - [ ] GitHub HTTPS auth: `gh auth login` or PAT with `repo` scope (`git config --global credential.helper` / osxkeychain)
 
 ---
@@ -61,10 +61,10 @@ Add under `config/harness-<org>.yaml`:
 
 ```yaml
 repos:
-  suchana:
+  example-api:
     profile: python-backend          # harness + scaffold profile (same name)
     service_name: Suchana            # human label → service_description
-    conda_env: suchana               # local verify env name
+    conda_env: example-api               # local verify env name
     verify_smoke: make test
     scaffold:                        # cookiecutter options (optional overrides)
       has_postgres: "yes"
@@ -119,7 +119,7 @@ Commit meta changes before scaffolding so `--repo` resolves scaffold context fro
 
 ```bash
 cd <client>-meta
-launchpad --client drivestream verify-platform
+launchpad --client <client-id> verify-platform
 ```
 
 Confirms org repos, teams, board, gitflow config are aligned.
@@ -144,13 +144,13 @@ Confirm: `https://github.com/<org>/<repo>` exists (empty is fine).
 Preview:
 
 ```bash
-launchpad scaffold --repo suchana --dry-run
+launchpad scaffold --repo example-api --dry-run
 ```
 
 Generate into an empty path:
 
 ```bash
-launchpad scaffold --repo suchana --apply
+launchpad scaffold --repo example-api --apply
 ```
 
 Then continue with **Step 4** (`git init`, first push).
@@ -160,14 +160,14 @@ Then continue with **Step 4** (`git init`, first push).
 Clone **`develop`** first (HTTPS), then **overlay** foundation files into that checkout. This preserves git history, remote, and any files not in the template (e.g. spec handoff docs).
 
 ```bash
-cd ~/Workspace/handson/drivestream   # default_workspace parent
+cd ~/Workspace/<client>   # default_workspace parent
 
 # fresh clone (remove local folder only if you want a clean checkout)
-git clone -b develop https://github.com/autrio10x/suchana.git
+git clone -b develop https://github.com/example-org/example-api.git
 
-cd drivestream-meta
-launchpad scaffold --repo suchana --dry-run --force
-launchpad scaffold --repo suchana --apply --force
+cd <client>-meta
+launchpad scaffold --repo example-api --dry-run --force
+launchpad scaffold --repo example-api --apply --force
 ```
 
 **`--force` does not delete the folder.** It generates the cookiecutter output in a temp directory and **merges** foundation files into the existing repo:
@@ -178,7 +178,7 @@ launchpad scaffold --repo suchana --apply --force
 Skip **Step 4** `git init` if you cloned — go straight to review, commit, push:
 
 ```bash
-cd ../suchana
+cd ../example-api
 git status
 git add -A
 git commit -m "chore: overlay python-fastapi-foundation scaffold"
@@ -190,7 +190,7 @@ git push
 **One-shot** (generate + gitflow + harness) — Path A only, or after Path B overlay:
 
 ```bash
-launchpad scaffold --repo suchana --apply --with-gitflow --with-harness
+launchpad scaffold --repo example-api --apply --with-gitflow --with-harness
 ```
 
 CLI overrides (one-off): `--option has_kafka=yes` (repeatable).
@@ -206,14 +206,14 @@ Skip this step if you used **Path B** (clone + overlay) — you already have `or
 From the generated app directory:
 
 ```bash
-cd ../suchana   # sibling of meta; adjust if default_workspace differs
+cd ../example-api   # sibling of meta; adjust if default_workspace differs
 
 git init
 git checkout -b develop
 git add .
-git commit -m "chore: scaffold suchana from python-fastapi-foundation"
+git commit -m "chore: scaffold example-api from python-fastapi-foundation"
 
-git remote add origin https://github.com/autrio10x/suchana.git
+git remote add origin https://github.com/example-org/example-api.git
 git push -u origin develop
 ```
 
@@ -227,7 +227,7 @@ From meta (after at least one push to `develop`):
 
 ```bash
 cd <client>-meta
-launchpad setup-gitflow --repo suchana --apply
+launchpad setup-gitflow --repo example-api --apply
 ```
 
 Applies branch protection, merge policy, PR/issue templates, CI workflow stubs from `config/gitflow-<org>.yaml`.
@@ -237,14 +237,14 @@ Applies branch protection, merge policy, PR/issue templates, CI workflow stubs f
 ## Step 6 — Harness sync and verify
 
 ```bash
-launchpad sync-harness --repo suchana --apply
-launchpad verify-harness --repo suchana
+launchpad sync-harness --repo example-api --apply
+launchpad verify-harness --repo example-api
 ```
 
 Commit harness artifacts in the app repo:
 
 ```bash
-cd ../suchana
+cd ../example-api
 git add .
 git commit -m "chore: sync harness pins"
 git push
@@ -255,7 +255,7 @@ git push
 ## Step 7 — Day-1 quality gate (app repo)
 
 ```bash
-cd ../suchana
+cd ../example-api
 cp .env.example .env    # fill local secrets
 make setup
 make check
@@ -278,31 +278,31 @@ See [pm-dev-handoff.md](pm-dev-handoff.md) and [delivery-model.md](delivery-mode
 
 ## Full cheat sheet (python-backend)
 
-Replace `suchana`, `autrio10x`, and client id for each new repo.
+Replace `example-api`, `autrio10x`, and client id for each new repo.
 
 ### Path A — empty GitHub repo, first local checkout
 
 ```bash
-cd ~/Workspace/handson/drivestream/drivestream-meta
-launchpad scaffold --repo suchana --apply
+cd ~/Workspace/<client>/<client>-meta
+launchpad scaffold --repo example-api --apply
 
-cd ../suchana
+cd ../example-api
 git init && git checkout -b develop
-git add . && git commit -m "chore: scaffold suchana foundation"
-git remote add origin https://github.com/autrio10x/suchana.git
+git add . && git commit -m "chore: scaffold example-api foundation"
+git remote add origin https://github.com/example-org/example-api.git
 git push -u origin develop
 ```
 
 ### Path B — remote repo exists (clone develop, overlay foundation)
 
 ```bash
-cd ~/Workspace/handson/drivestream
-git clone -b develop https://github.com/autrio10x/suchana.git
+cd ~/Workspace/<client>
+git clone -b develop https://github.com/example-org/example-api.git
 
-cd drivestream-meta
-launchpad scaffold --repo suchana --apply --force
+cd <client>-meta
+launchpad scaffold --repo example-api --apply --force
 
-cd ../suchana
+cd ../example-api
 git add -A && git commit -m "chore: overlay python-fastapi-foundation"
 git push
 ```
@@ -310,13 +310,13 @@ git push
 ### Factory envelope (both paths)
 
 ```bash
-cd ~/Workspace/handson/drivestream/drivestream-meta
-launchpad setup-gitflow --repo suchana --apply
-launchpad sync-harness --repo suchana --apply
-launchpad verify-harness --repo suchana
+cd ~/Workspace/<client>/<client>-meta
+launchpad setup-gitflow --repo example-api --apply
+launchpad sync-harness --repo example-api --apply
+launchpad verify-harness --repo example-api
 
 # App repo — harness commit + dev setup
-cd ../suchana
+cd ../example-api
 git add . && git commit -m "chore: sync harness pins" && git push
 cp .env.example .env && make setup && make check && make test
 ```
@@ -349,7 +349,7 @@ cp .env.example .env && make setup && make check && make test
 | `python-backend` | `python-fastapi-foundation` | Implemented |
 | `frontend` (`nextjs-bff` alias) | `nextjs-bff-foundation` (planned) | Stub |
 
-Same command shape when frontend lands: `launchpad scaffold --repo drivestream-ops` with `profile: frontend` in harness.
+Same command shape when frontend lands: `launchpad scaffold --repo example-ops` with `profile: frontend` in harness.
 
 ---
 
@@ -358,4 +358,4 @@ Same command shape when frontend lands: `launchpad scaffold --repo drivestream-o
 - [harness-pins.md](harness-pins.md) — pin file and sync-harness details
 - [python-automation.md](python-automation.md) — full CLI reference
 - [docs/SCHEMA.md](../docs/SCHEMA.md) — `HarnessConfig` and `scaffold:` overrides
-- [python-fastapi-foundation](https://github.com/autrio10x/python-fastapi-foundation) — cookiecutter option reference
+- [python-fastapi-foundation](https://github.com/example-org/python-fastapi-foundation) — cookiecutter option reference
