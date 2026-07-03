@@ -26,11 +26,14 @@ rules:
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: v0.2.0
+  ref: v0.3.0
   skills:
     - spec-feasibility-review
+    - spec-technical-review
     - spec-implementation-plan
     - pre-implement
+    - loop-spec
+    - ground-spec
     - verify
 ```
 

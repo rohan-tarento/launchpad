@@ -1,6 +1,6 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Playbook (drivestream-meta)
-    url: https://github.com/autrio10x/drivestream-meta/blob/develop/playbook/README.md
-  - name: DriveStream Engineering board
-    url: https://github.com/orgs/autrio10x/projects/1
+  - name: Playbook
+    url: https://github.com/YOUR_ORG/YOUR_META_REPO/blob/develop/playbook/README.md
+  - name: Engineering board
+    url: https://github.com/orgs/YOUR_ORG/projects/1

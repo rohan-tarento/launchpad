@@ -54,4 +54,4 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Branch:** `feature/<initiative>-<slug>` → `develop`
+        **Branch:** `feature/INIT-{COMPONENT}-{NUMBER}-{slug}` → `develop`

@@ -384,7 +384,7 @@ Task: Harness only — no product features.
 
 /pre-implement
 
-Deliverables: AGENTS.md links to <client>-meta playbook; .cursor/skills; PR template; as-built columns.
+Deliverables: AGENTS.md links to <client>-meta playbook; .agents/skills; PR template; as-built columns.
 Verify: make check
 ```
 

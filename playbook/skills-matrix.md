@@ -16,7 +16,7 @@ Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`*
 | Who | Open in Cursor | Skills |
 |-----|----------------|--------|
 | **PM / PO** | `<client>-meta` | `prd` + **prayog-skills** (install below) |
-| **Developer** | app repo (e.g. `example-api`) | prayog-skills dev bundle via harness — `/spec-feasibility-review`, `/spec-implementation-plan`, `/pre-implement`, `/verify` |
+| **Developer** | app repo (e.g. `example-api`) | prayog-skills dev bundle via harness — `/spec-feasibility-review`, `/spec-technical-review`, `/spec-implementation-plan`, `/pre-implement`, `/loop-spec`, `/ground-spec`, `/verify` |
 
 ---
 
@@ -78,15 +78,18 @@ Production sources: merged `docs/specification/product/` and `04-cross-service-c
 | Phase | Skill | Where |
 |-------|--------|-------|
 | Spec feasibility | `spec-feasibility-review` | `.agents/skills/` (prayog-skills @ harness pin) |
+| Technical review (PE) | `spec-technical-review` | same |
 | Execution plan | `spec-implementation-plan` | same |
 | Pre-flight | `pre-implement` | same |
+| Implementation loop | `loop-spec` | same |
+| Wave grounding | `ground-spec` | same |
 | Live proof | `verify` | same |
 | SDD | `.cursor/rules/*.mdc` + [sdd-workflow.md](sdd-workflow.md) | rules submodule |
 
 ```text
-spec PR → /spec-feasibility-review → merge spec
+spec PR → /spec-feasibility-review → /spec-technical-review (PE) → merge spec
        → /spec-implementation-plan
-board issue → /pre-implement → implement → /verify → PR → develop
+board issue → /pre-implement → /loop-spec → /ground-spec → /verify → PR → develop
 ```
 
 Harness: `launchpad sync-harness --repo <name> --apply` — see [harness-pins.md](harness-pins.md).
@@ -102,7 +105,7 @@ PRD loop (meta, prayog-skills)
     → spec handoff PRs per repo (Phase 1 open, Phase 2 merge)
     → /generate-work-manifest → work/INIT-*.yaml
     → launchpad seed-work --apply
-    → dev: /pre-implement → /verify → feature PRs
+    → dev: /pre-implement → /loop-spec → /ground-spec → /verify → feature PRs
 ```
 
 Detail: [pm-workflow.md](pm-workflow.md) · [pm-dev-handoff.md](pm-dev-handoff.md)

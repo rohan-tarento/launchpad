@@ -195,7 +195,7 @@ If no response by deadline: escalate — do not proceed and do not assume approv
 | Implementation plan | `chore/{sc}-plan` | `[{sc}] Implementation plan — team review` | `@dev-leads` | 3 business days |
 | Wave W{N} + ground report | `feature/{sc}-w{N}-{slug}` | `[{sc} W{N}] {slug}` | `@dev-leads` (CODEOWNERS) | 2 business days |
 
-CODEOWNERS template: `launchpad/templates/.github/CODEOWNERS` — copy to each repo on bootstrap.
+CODEOWNERS template: ``launchpad/templates/CODEOWNERS.backend` (or profile variant)` — copy to each repo on bootstrap.
 Branch protection required: **"Require review from Code Owners"** on `develop`.
 
 ---

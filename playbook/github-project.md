@@ -17,7 +17,7 @@ Fixed order — **7 columns, not optional:**
 | 1 | Backlog | Captured, not triaged |
 | 2 | Spec/CR | Spec gap, CR draft, cross-service review |
 | 3 | Ready | Approved to start; all required fields set |
-| 4 | In progress | `feature/INIT-…-*` or `chore/…` branch active |
+| 4 | In progress | `feature/INIT-{COMPONENT}-{NUMBER}-*` or `chore/…` branch active |
 | 5 | Verify | Live verify run |
 | 6 | In review | PR open to `develop` |
 | 7 | Done | Merged to `develop` or closed |
