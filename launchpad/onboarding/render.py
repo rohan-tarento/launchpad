@@ -10,15 +10,21 @@ from launchpad.onboarding.context import OnboardingContext
 
 _PRAYOG_SKILLS = [
     "spec-feasibility-review",
+    "spec-technical-review",
     "spec-implementation-plan",
     "pre-implement",
+    "loop-spec",
+    "ground-spec",
     "verify",
 ]
 
 _SKILL_PATHS = {
     "spec-feasibility-review": "skills/development/spec-feasibility-review/SKILL.md",
+    "spec-technical-review": "skills/development/spec-technical-review/SKILL.md",
     "spec-implementation-plan": "skills/development/spec-implementation-plan/SKILL.md",
     "pre-implement": "skills/development/pre-implement/SKILL.md",
+    "loop-spec": "skills/development/loop-spec/SKILL.md",
+    "ground-spec": "skills/development/ground-spec/SKILL.md",
     "verify": "skills/development/verify/SKILL.md",
 }
 
@@ -173,11 +179,29 @@ def render_gitflow_config(ctx: OnboardingContext) -> str:
     return _dump(data)
 
 
+_PROFILE_COMMANDS: dict[str, dict[str, str]] = {
+    "python-backend": {
+        "check_command": "make check",
+        "test_command": "make test",
+        "setup_notes": "conda activate {{CONDA_ENV}}",
+    },
+    "data-platform": {
+        "check_command": "make check",
+        "test_command": "make test",
+        "setup_notes": "conda activate {{CONDA_ENV}}",
+    },
+    "frontend": {
+        "check_command": "npm run lint && npm run typecheck",
+        "test_command": "npm test",
+        "setup_notes": "",
+    },
+}
+
+
 def _harness_profile(
     ctx: OnboardingContext,
     profile_key: str,
     pin_template: str,
-    agents_template: str,
     rules_key: str,
     default_suffix: str,
 ) -> dict[str, Any]:
@@ -185,6 +209,7 @@ def _harness_profile(
         "repo": f"{ctx.org}/{default_suffix}",
         "initial_ref": "v0.1.0",
     }
+    commands = _PROFILE_COMMANDS.get(profile_key, _PROFILE_COMMANDS["python-backend"])
     return {
         "rules": {
             "repo": rules_spec["repo"],
@@ -193,8 +218,9 @@ def _harness_profile(
             "path": ".cursor/rules",
         },
         "agent_skills": _agent_skills_block(ctx),
+        **commands,
         "legacy_skills_submodule_path": ".cursor/skills",
-        "agents_template": agents_template,
+        "agents_template": "templates/AGENTS.md",
         "pin_template": pin_template,
         "forbidden_paths": [
             "docs/specification/harness/",
@@ -209,7 +235,6 @@ def render_harness_config(ctx: OnboardingContext) -> str:
             ctx,
             "python-backend",
             "templates/harness-pin.yaml",
-            "templates/AGENTS.python.md",
             "python",
             "python-services-rules",
         ),
@@ -219,7 +244,6 @@ def render_harness_config(ctx: OnboardingContext) -> str:
             ctx,
             "frontend",
             "templates/harness-pin.frontend.yaml",
-            "templates/AGENTS.frontend.md",
             "frontend",
             "nextjs-bff-rules",
         )
@@ -228,7 +252,6 @@ def render_harness_config(ctx: OnboardingContext) -> str:
             ctx,
             "data-platform",
             "templates/harness-pin.data-platform.yaml",
-            "templates/AGENTS.data-platform.md",
             "python",
             "data-platform-rules",
         )

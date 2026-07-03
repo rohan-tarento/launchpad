@@ -6,7 +6,7 @@ Tenants copy **overrides only** into `<client>-meta/templates/` — launchpad re
 
 | Path | Used by |
 |------|---------|
-| `AGENTS.{python,frontend,data-platform}.md` | `sync-harness` → app `AGENTS.md` |
+| `AGENTS.md` | `sync-harness` → app `AGENTS.md` (single unified template; profile variables `{{CHECK_COMMAND}}`, `{{TEST_COMMAND}}`, `{{SETUP_NOTES}}`, `{{PROFILE}}`, `{{AGENT_SKILLS_SLASH_LIST}}` substituted at sync time) |
 | `harness-pin*.yaml` | `sync-harness` → app `.harness-pin.yaml` |
 | `github/workflows/` | `setup-gitflow --with-templates` |
 | `CODEOWNERS.*` | same |

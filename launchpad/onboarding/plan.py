@@ -43,7 +43,7 @@ def _template_files(spec: dict) -> list[str]:
         return ["templates/README.md"]
     files = [
         "templates/README.md",
-        "templates/AGENTS.python.md",
+        "templates/AGENTS.md",
         "templates/CODEOWNERS.backend",
         "templates/CODEOWNERS.platform",
         "templates/harness-pin.yaml",
@@ -53,7 +53,6 @@ def _template_files(spec: dict) -> list[str]:
     if any(r["profile"] == "frontend" for r in repos):
         files.extend(
             [
-                "templates/AGENTS.frontend.md",
                 "templates/CODEOWNERS.frontend",
                 "templates/harness-pin.frontend.yaml",
             ]

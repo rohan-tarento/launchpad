@@ -153,7 +153,8 @@ New work uses **`INIT-<scope>-<nnn>`** only ([pm-workflow.md](pm-workflow.md)).
 
 ### Dev — after spec merge (before or with seed)
 
-- [ ] Run `/spec-implementation-plan` — wave-level plan in `docs/specification/reports/` ([skills-audition §5](skills-audition.md))
+- [ ] Run `/spec-technical-review` when feasibility has PE-lane (NEW-ADR) findings — save TDD; open `chore/{sc}-technical-review` PR; PE approves before proceeding
+- [ ] Run `/spec-implementation-plan` — wave-level plan in `docs/specification/reports/` ([skills-audition §5](skills-audition.md)); plan includes §WorkManifest YAML
 
 ### PM — Phase 2 merge
 
@@ -169,11 +170,33 @@ New work uses **`INIT-<scope>-<nnn>`** only ([pm-workflow.md](pm-workflow.md)).
 - [ ] Issues cite **merged** `prd/INIT-*.md` + repo `INIT-*.md` + verify command
 - [ ] Reinstall prayog-skills after upstream manifest skill updates ([skills-matrix](skills-matrix.md))
 
-### Dev — implementation
+### Dev — implementation (per wave)
 
-- [ ] `feature/INIT-*` from `develop`
-- [ ] Update `as-built` in same PR as code
+- [ ] Open `feature/{sc}-w{N}-{slug}` from `develop` (see [branching-policy.md](branching-policy.md) for `{sc}` short-code rule)
+- [ ] `/pre-implement` — gate check: prior wave `human_approved`; confirm contracts from prior ground report
+- [ ] Implement → `/loop-spec` until green
+- [ ] `/ground-spec` — commit Ground Report as last commit on same branch; update `as-built` to `grounded`
+- [ ] Open PR — ground report is part of the PR (not a separate PR)
+- [ ] Required reviewer (`@dev-leads` via CODEOWNERS) approves → merge → `as-built` = `human_approved`
 - [ ] PR traceability block ([sdd-workflow.md](sdd-workflow.md))
+
+---
+
+## Sign-off workflow (GitHub-first)
+
+Every skill gate is a merged PR with required reviewer approval.
+Approval by silence is forbidden — reviewer must give explicit GitHub Approve or Request Changes.
+If no response by deadline: escalate — do not proceed and do not assume approval.
+
+| Artifact | Branch | PR title | Required reviewer | Deadline |
+|----------|--------|----------|-------------------|----------|
+| Feasibility report | `chore/{sc}-feasibility` | `[{sc}] Feasibility — {N} blocking items` | PM + Domain SME | 3 business days |
+| Technical Design Doc | `chore/{sc}-technical-review` | `[{sc}] TDD — PE review required` | `@pe-team` (CODEOWNERS) | 5 business days |
+| Implementation plan | `chore/{sc}-plan` | `[{sc}] Implementation plan — team review` | `@dev-leads` | 3 business days |
+| Wave W{N} + ground report | `feature/{sc}-w{N}-{slug}` | `[{sc} W{N}] {slug}` | `@dev-leads` (CODEOWNERS) | 2 business days |
+
+CODEOWNERS template: `launchpad/templates/.github/CODEOWNERS` — copy to each repo on bootstrap.
+Branch protection required: **"Require review from Code Owners"** on `develop`.
 
 ---
 
