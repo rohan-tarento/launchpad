@@ -155,7 +155,7 @@ First-time bootstrap: onboarding spec → local meta → GitHub factory → loca
 bootstrap-org → bootstrap-teams → seed-repos → clone-repos → setup-gitflow → bootstrap-project → sync-catalog
 ```
 
-Creates GitHub repos, seeds `develop`, **clones every repo locally**, applies gitflow + board, writes `config/service-catalog-<org>.yaml`.
+Creates GitHub repos, seeds `develop`, **clones locally** (greenfield meta keeps onboard content over factory seed), applies gitflow + board, writes `config/service-catalog-<org>.yaml`.
 
 | Step | What | Command |
 |------|------|---------|

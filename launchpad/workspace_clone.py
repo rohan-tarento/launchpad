@@ -30,6 +30,13 @@ def repo_dest_path(
     return workspace_parent / repo
 
 
+def is_greenfield_link(dest: Path, *, repo: str, meta_repo: str) -> bool:
+    """Greenfield: onboard/scaffold ran locally before clone-repos — keep local files on link."""
+    if repo == meta_repo or dest.resolve() == tenant_root().resolve():
+        return True
+    return (dest / ".launchpad-version").is_file()
+
+
 def _run_git(args: list[str], *, cwd: Path, dry_run: bool) -> None:
     cmd = ["git", *args]
     if dry_run:
@@ -41,6 +48,15 @@ def _run_git(args: list[str], *, cwd: Path, dry_run: bool) -> None:
         raise WorkspaceCloneError(
             f"git {' '.join(args)} failed in {cwd}" + (f": {err}" if err else "")
         )
+
+
+def _abort_merge_if_needed(dest: Path, *, dry_run: bool) -> None:
+    if not (dest / ".git").exists():
+        return
+    if not (dest / ".git" / "MERGE_HEAD").exists():
+        return
+    print(f"[link] aborting incomplete merge in {dest}")
+    _run_git(["merge", "--abort"], cwd=dest, dry_run=dry_run)
 
 
 def _clone_fresh(*, url: str, branch: str, dest: Path, dry_run: bool) -> None:
@@ -59,19 +75,39 @@ def _clone_fresh(*, url: str, branch: str, dest: Path, dry_run: bool) -> None:
     _run_git(["clone", "--branch", branch, url, str(dest)], cwd=dest.parent, dry_run=dry_run)
 
 
-def _link_existing(*, url: str, branch: str, dest: Path, dry_run: bool) -> None:
-    print(f"[link] {dest} → {url} @ {branch} (existing directory)")
-    _run_git(["init"], cwd=dest, dry_run=dry_run)
+def _link_existing(
+    *,
+    url: str,
+    branch: str,
+    dest: Path,
+    dry_run: bool,
+    prefer_local: bool,
+) -> None:
+    strategy = " (prefer local — greenfield)" if prefer_local else ""
+    print(f"[link] {dest} → {url} @ {branch} (existing directory{strategy})")
+    _abort_merge_if_needed(dest, dry_run=dry_run)
+
+    merge_args = [
+        "merge",
+        f"origin/{branch}",
+        "--allow-unrelated-histories",
+        "-m",
+        "chore: merge factory develop seed",
+    ]
+    if prefer_local:
+        merge_args[1:1] = ["-X", "ours"]
+
     if dry_run:
+        if not (dest / ".git").exists():
+            _run_git(["init"], cwd=dest, dry_run=True)
         _run_git(["remote", "add", "origin", url], cwd=dest, dry_run=True)
         _run_git(["fetch", "origin", branch], cwd=dest, dry_run=True)
         _run_git(["checkout", "-B", branch], cwd=dest, dry_run=True)
-        _run_git(
-            ["merge", f"origin/{branch}", "--allow-unrelated-histories", "-m", "launchpad: merge remote develop"],
-            cwd=dest,
-            dry_run=True,
-        )
+        _run_git(merge_args, cwd=dest, dry_run=True)
         return
+
+    if not (dest / ".git").exists():
+        _run_git(["init"], cwd=dest, dry_run=False)
 
     proc = subprocess.run(
         ["git", "remote", "get-url", "origin"],
@@ -91,17 +127,7 @@ def _link_existing(*, url: str, branch: str, dest: Path, dry_run: bool) -> None:
 
     _run_git(["fetch", "origin", branch], cwd=dest, dry_run=False)
     _run_git(["checkout", "-B", branch], cwd=dest, dry_run=False)
-    _run_git(
-        [
-            "merge",
-            f"origin/{branch}",
-            "--allow-unrelated-histories",
-            "-m",
-            "chore: merge factory develop seed",
-        ],
-        cwd=dest,
-        dry_run=False,
-    )
+    _run_git(merge_args, cwd=dest, dry_run=False)
 
 
 def clone_one_repo(
@@ -113,10 +139,12 @@ def clone_one_repo(
     dry_run: bool,
     check_remote: bool = True,
     client: Any | None = None,
+    meta_repo: str = "",
 ) -> None:
     url = github_https_url(org, repo)
 
-    if (dest / ".git").exists():
+    git_dir = dest / ".git"
+    if git_dir.exists() and not (dest / ".git" / "MERGE_HEAD").exists():
         print(f"[skip] {dest} — already a git checkout")
         return
 
@@ -124,8 +152,10 @@ def clone_one_repo(
         if not repo_exists(client, org, repo):
             raise WorkspaceCloneError(f"{org}/{repo} not found on GitHub — run bootstrap-org first")
 
+    prefer_local = is_greenfield_link(dest, repo=repo, meta_repo=meta_repo)
+
     if dest.exists() and dest.is_dir() and any(dest.iterdir()):
-        _link_existing(url=url, branch=branch, dest=dest, dry_run=dry_run)
+        _link_existing(url=url, branch=branch, dest=dest, dry_run=dry_run, prefer_local=prefer_local)
         return
 
     _clone_fresh(url=url, branch=branch, dest=dest, dry_run=dry_run)
@@ -181,6 +211,7 @@ def run(
                 branch=branch,
                 dry_run=dry_run,
                 client=client,
+                meta_repo=meta,
             )
         except WorkspaceCloneError as exc:
             print(f"[FAIL] {exc}")
