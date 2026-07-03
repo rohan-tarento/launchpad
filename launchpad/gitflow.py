@@ -29,16 +29,30 @@ from launchpad.github_ops import (
 )
 
 
-def _ensure_main(client: GitHubClient, org: str, repo: str, *, init_empty: bool) -> bool:
+def _ensure_main(
+    client: GitHubClient,
+    org: str,
+    repo: str,
+    *,
+    init_empty: bool,
+    is_meta: bool,
+) -> bool:
     if repo_has_main(client, org, repo):
         return True
     if init_empty:
         init_empty_repo_main(client, org, repo)
         return True
-    print(
-        f"[skip] {org}/{repo} has no commits on main — push content or set options.init_empty: true "
-        "in gitflow YAML"
-    )
+    print(f"[skip] {org}/{repo} has no commits on main — cannot create develop yet")
+    if is_meta:
+        print(
+            f"  meta: create github.com/{org}/{repo} if needed, then from local "
+            "<client>-meta: git push -u origin main"
+        )
+    else:
+        print(
+            f"  app: launchpad scaffold --repo {repo} --apply && git push, "
+            "or set options.init_empty: true in gitflow YAML"
+        )
     return False
 
 
@@ -205,14 +219,26 @@ def run(
 
     team_pm = teams.get("pm", "pm-team")
     ref_excludes = branch_naming_ref_excludes(branch_naming)
+    app_repos = set((cfg.get("org_config") or {}).get("repo_names") or [])
+    skipped: list[tuple[str, str]] = []
 
     for repo_entry in cfg["repos"]:
         repo = repo_entry["name"]
         profile = repo_entry["profile"]
+        is_meta = repo not in app_repos
         if filter_repo and repo != filter_repo:
             continue
         if not repo_exists(client, org, repo):
-            print(f"[skip] repo not found: {org}/{repo}")
+            print(f"[skip] {org}/{repo} not found on GitHub")
+            if is_meta:
+                print(
+                    "  meta repos are NOT created by bootstrap-org — create the GitHub repo "
+                    "and push main from your local <client>-meta clone (docs/new-client.md)"
+                )
+            else:
+                print("  run bootstrap-org --apply first, or create the repo manually")
+            skipped.append((repo, "missing"))
+            print("")
             continue
 
         develop_key = repo_entry.get("develop_merge") or profile
@@ -223,7 +249,8 @@ def run(
             f"--- {org}/{repo} (profile={profile}, develop_merge={develop_team}) ---"
         )
 
-        if not _ensure_main(client, org, repo, init_empty=init_empty):
+        if not _ensure_main(client, org, repo, init_empty=init_empty, is_meta=is_meta):
+            skipped.append((repo, "no_main"))
             print("")
             continue
 
@@ -271,6 +298,17 @@ def run(
             merge_policy=merge_policy,
             dry_run=client.dry_run,
         )
+        print("")
+
+    if skipped:
+        print("=== Skipped repos (develop not configured) ===")
+        for repo, reason in skipped:
+            label = "not on GitHub" if reason == "missing" else "no commits on main"
+            kind = "meta" if repo not in app_repos else "app"
+            print(f"  {org}/{repo} ({kind}): {label}")
+        print("")
+        print("After all repos have main on GitHub:")
+        print(f"  launchpad setup-gitflow --config {cfg_path} --apply")
         print("")
 
     print("=== Done ===")

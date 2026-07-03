@@ -5,6 +5,7 @@ from __future__ import annotations
 from launchpad.config import load_verify_manifest, resolve_config_path
 from launchpad.github_client import GitHubClient
 from launchpad.verify import checks
+from launchpad.verify.checks import _factory_app_repo_names, _gitflow_meta_repo_names, _repo_list
 
 
 class VerifyError(RuntimeError):
@@ -32,9 +33,10 @@ def _run_checks(
     ctx: dict,
     *,
     phase: str | None = None,
-) -> bool:
+) -> tuple[bool, list[str]]:
     org = ctx.get("org", "")
     all_ok = True
+    failed: list[str] = []
     handlers = checks.CHECKS
 
     for spec in ctx.get("checks") or []:
@@ -48,16 +50,20 @@ def _run_checks(
             continue
         handler = handlers.get(check_id)
         if not handler:
-            all_ok = _check(check_id, False, "unknown check id") and False
+            if not _check(check_id, False, "unknown check id"):
+                all_ok = False
+                failed.append(check_id)
             continue
         try:
             ok, detail = handler(client, org, ctx, spec)
             if not _check(check_id, ok, detail):
                 all_ok = False
+                failed.append(check_id)
         except Exception as exc:
             if not _check(check_id, False, str(exc)):
                 all_ok = False
-    return all_ok
+                failed.append(check_id)
+    return all_ok, failed
 
 
 def run(
@@ -86,7 +92,8 @@ def run(
 
     if phase in (None, "scopes"):
         print("Token / API:")
-        if not _run_checks(client, ctx, phase="scopes"):
+        scopes_ok, _ = _run_checks(client, ctx, phase="scopes")
+        if not scopes_ok:
             _fail_scopes()
         print("")
         if phase == "scopes":
@@ -95,8 +102,9 @@ def run(
 
     if phase in (None, "applied"):
         print("Platform state:")
-        if not _run_checks(client, ctx, phase="applied"):
-            raise VerifyError("platform verify failed — run setup-platform --apply")
+        applied_ok, failed = _run_checks(client, ctx, phase="applied")
+        if not applied_ok:
+            _fail_applied(ctx, failed, org)
         print("")
         print("=== verify-platform: OK ===")
 
@@ -119,3 +127,41 @@ def _fail_scopes() -> None:
     print("  Organization → Projects: Read and write")
     print("  Organization → Administration: Read and write")
     raise VerifyError("factory PAT scopes insufficient")
+
+
+def _fail_applied(ctx: dict, failed: list[str], org: str) -> None:
+    print("")
+    print("=== verify-platform: FAILED (applied) ===")
+    if "gitflow.develop" in failed:
+        _print_gitflow_develop_hints(ctx, org)
+    print("")
+    print("Docs: docs/new-client.md · playbook/greenfield-app-repo.md")
+    raise VerifyError("platform verify failed — see hints above")
+
+
+def _print_gitflow_develop_hints(ctx: dict, org: str) -> None:
+    gitflow = ctx.get("gitflow") or {}
+    app_repos = _factory_app_repo_names(ctx)
+    all_repos = _repo_list(ctx, {"repos_from": "gitflow.repos"})
+    meta_repos = _gitflow_meta_repo_names(ctx)
+    app_only = [r for r in all_repos if r in app_repos]
+
+    print("")
+    print("How to fix gitflow.develop:")
+    print("  setup-gitflow creates develop from main — repos need at least one commit on main first.")
+    if meta_repos:
+        print("")
+        print("  Meta repo (NOT created by bootstrap-org — you push it manually):")
+        for name in meta_repos:
+            print(f"    • {org}/{name}: create on GitHub → push main from local <client>-meta")
+    if app_only:
+        print("")
+        print("  App repos (created empty by bootstrap-org):")
+        for name in app_only:
+            print(f"    • {org}/{name}: launchpad scaffold --repo {name} --apply && git push")
+            print(f"      or push main, or set gitflow options.init_empty: true for an empty seed")
+    cfg_path = gitflow.get("path") or f"config/gitflow-{org}.yaml"
+    print("")
+    print("  Then re-run:")
+    print(f"    launchpad setup-gitflow --config {cfg_path} --apply")
+    print(f"    launchpad verify-platform --config config/verify-platform-{org}.yaml")
