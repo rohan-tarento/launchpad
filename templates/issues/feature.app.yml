@@ -14,7 +14,7 @@ body:
     id: initiative
     attributes:
       label: Initiative
-      placeholder: INIT-SUCHANA-001
+      placeholder: INIT-API-001
     validations:
       required: true
 

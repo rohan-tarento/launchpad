@@ -17,6 +17,7 @@ kind: <KindName>
 | `ProjectConfig` | GitHub Project board + fields |
 | `WorkManifest` | `seed-work` — epic + wave issues |
 | `WikiConfig` | `publish-wiki` — wiki source dir, org, repo |
+| `ServiceCatalog` | Repo → team, branch_code, owns/depends_on (PM skills, strict branches) |
 | `OnboardingSpec` | `onboard plan` / `onboard apply` — tenant bootstrap intent |
 
 Gitflow and project configs include `apiVersion` and `kind` — see [`examples/tenant-meta/config/`](../examples/tenant-meta/config/).
@@ -56,9 +57,9 @@ Optional per-repo overrides in `HarnessConfig`:
 
 ```yaml
 repos:
-  suchana:
+  example-api:
     profile: python-backend
-    service_name: Suchana
+    service_name: Example API
     scaffold:
       has_postgres: "yes"
       has_redis: "yes"      # profile default; omit if default OK
@@ -68,3 +69,25 @@ repos:
 ```
 
 All keys: `auth_mode`, `has_postgres`, `has_redis`, `has_kafka`, `has_s3`, `has_cratedb`, `has_emqx`, `has_telemetry`, `has_internal_api`, `parichay_client`, `abhilekh_client`, `kavach_client`, `default_port`. See [greenfield-app-repo.md](../playbook/greenfield-app-repo.md).
+
+## ServiceCatalog
+
+Lives at `config/service-catalog-{org}.yaml` in tenant meta (same convention as `gitflow-{org}.yaml`, `harness-{org}.yaml`). Maintained by Launchpad — do not hand-author the full file from scratch.
+
+| Command | When |
+|---------|------|
+| `onboard apply` | Initial catalog from OnboardingSpec repos |
+| `sync-catalog --apply` | Merge from gitflow after adding repos (preserves curated fields) |
+| `setup-platform --apply` | Final platform step writes/updates catalog |
+
+| Field (per service) | Purpose |
+|---------------------|---------|
+| `name` | Repo name (key for merge) |
+| `repo` | `{org}/{name}` |
+| `team` | Engineering team slug from gitflow profile |
+| `branch_code` | `{COMPONENT}` in `feature/INIT-{COMPONENT}-{NUMBER}-{slug}` |
+| `description` | Human summary for PM/dev skills |
+| `owns` | Capabilities this service provides (curate manually) |
+| `depends_on` | Other service names (curate manually) |
+
+Optional OnboardingSpec repo fields: `branch_code`, `owns`, `depends_on` — seeded on first generate only; later edits in meta are preserved by `sync-catalog`.

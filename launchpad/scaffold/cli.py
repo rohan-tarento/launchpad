@@ -24,7 +24,7 @@ def add_scaffold_parser(sub: argparse._SubParsersAction) -> argparse.ArgumentPar
         "scaffold",
         help="Generate app repo from a profile cookiecutter (python-backend, …)",
     )
-    p.add_argument("--repo", required=True, help="App repo name (e.g. suchana)")
+    p.add_argument("--repo", required=True, help="App repo name (e.g. example-api)")
     p.add_argument(
         "--profile",
         default="",

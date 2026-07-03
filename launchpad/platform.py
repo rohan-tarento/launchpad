@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from launchpad import bootstrap_org, bootstrap_teams, gitflow, project, repo_seed
+from launchpad.service_catalog import run_sync as run_sync_catalog
 from launchpad.config import load_platform_manifest, resolve_config_path, tenant_config_dir
 from launchpad.github_client import GitHubClient
 from launchpad.verify.runner import VerifyError, run as run_verify
@@ -61,6 +62,15 @@ def _run_step(client: GitHubClient, step: dict[str, Any], *, org: str, platform_
         )
     elif command == "bootstrap-project":
         project.run(client, org=org, config_path=cfg)
+    elif command == "sync-catalog":
+        gf_cfg = step.get("gitflow_config") or f"config/gitflow-{org}.yaml"
+        gf_resolved = _resolve_step_config({"config": gf_cfg}, platform_path)
+        run_sync_catalog(
+            org=org,
+            config_path=cfg,
+            gitflow_path=gf_resolved,
+            dry_run=client.dry_run,
+        )
     else:
         raise ValueError(f"unknown setup command: {command!r}")
     print("")
@@ -112,6 +122,7 @@ def run(
     run_verify(client, config_path=verify_config, org=org, phase="applied")
     print("")
     print("=== Platform ready for backlog ===")
+    print(f"Curate config/service-catalog-{org}.yaml (owns, depends_on), then:")
     print("Push real content via PRs to develop, then:")
     print("  launchpad sync-harness --repo <app> --apply")
     print("  launchpad seed-work --config <work-manifest.yaml> --apply")

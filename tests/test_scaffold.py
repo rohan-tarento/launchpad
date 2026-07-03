@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,7 +13,6 @@ from launchpad.scaffold.run import build_context, build_plan, run_scaffold
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_TEMPLATE = ROOT / "tests" / "fixtures" / "scaffold-python-minimal"
 HARNESS_FIXTURE = ROOT / "tests" / "fixtures" / "harness-scaffold.yaml"
-FOUNDATION = Path.home() / "Workspace" / "handson" / "drivestream" / "python-fastapi-foundation"
 
 
 class ScaffoldProfileTests(unittest.TestCase):
@@ -39,12 +37,12 @@ class ScaffoldContextTests(unittest.TestCase):
         profile = get_profile("python-backend")
         ctx = build_context(
             profile,
-            repo_name="suchana",
-            repo_meta={"service_name": "Suchana", "scaffold": {"has_kafka": "yes"}},
+            repo_name="example-api",
+            repo_meta={"service_name": "Example API", "scaffold": {"has_kafka": "yes"}},
             cli_options={"has_emqx": "no"},
         )
-        self.assertEqual(ctx["service_name"], "suchana")
-        self.assertEqual(ctx["service_description"], "Suchana")
+        self.assertEqual(ctx["service_name"], "example-api")
+        self.assertEqual(ctx["service_description"], "Example API")
         self.assertEqual(ctx["has_kafka"], "yes")
         self.assertEqual(ctx["auth_mode"], "jwt")
 
@@ -53,7 +51,7 @@ class ScaffoldContextTests(unittest.TestCase):
         with self.assertRaises(ScaffoldError):
             build_context(
                 profile,
-                repo_name="suchana",
+                repo_name="example-api",
                 repo_meta={},
                 cli_options={"not_a_real_key": "yes"},
             )
@@ -129,45 +127,6 @@ class ScaffoldApplyTests(unittest.TestCase):
             self.assertTrue((existing / "README.md").is_file())
             text = (existing / "README.md").read_text(encoding="utf-8")
             self.assertIn("example-api", text)
-
-
-@unittest.skipUnless(FOUNDATION.is_dir(), "python-fastapi-foundation not present locally")
-class ScaffoldFoundationIntegrationTests(unittest.TestCase):
-    def test_suchana_plan_against_real_foundation(self) -> None:
-        harness = Path.home() / "Workspace" / "handson" / "drivestream" / "drivestream-meta" / "config" / "harness-autrio10x.yaml"
-        if not harness.is_file():
-            self.skipTest("drivestream-meta harness config not found")
-
-        plan = build_plan(
-            config_path=harness,
-            repo_name="suchana",
-            template=str(FOUNDATION),
-            options={"has_kafka": "yes", "has_postgres": "yes", "parichay_client": "yes"},
-        )
-        self.assertEqual(plan.profile, "python-backend")
-        self.assertEqual(plan.context["service_name"], "suchana")
-        self.assertEqual(plan.context["has_kafka"], "yes")
-        self.assertTrue(str(plan.template).endswith("python-fastapi-foundation"))
-
-    def test_apply_suchana_smoke(self) -> None:
-        harness = Path.home() / "Workspace" / "handson" / "drivestream" / "drivestream-meta" / "config" / "harness-autrio10x.yaml"
-        if not harness.is_file():
-            self.skipTest("drivestream-meta harness config not found")
-
-        with tempfile.TemporaryDirectory() as tmp:
-            workspace = Path(tmp)
-            run_scaffold(
-                config_path=harness,
-                repo_name="suchana",
-                workspace=workspace,
-                template=str(FOUNDATION),
-                options={"has_kafka": "yes", "has_postgres": "yes"},
-                dry_run=False,
-            )
-            service_dir = workspace / "suchana"
-            self.assertTrue((service_dir / "src" / "main.py").is_file())
-            self.assertTrue((service_dir / "Makefile").is_file())
-            self.assertTrue((service_dir / "tests" / "unit" / "api" / "test_health.py").is_file())
 
 
 if __name__ == "__main__":

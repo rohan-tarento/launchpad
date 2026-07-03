@@ -45,6 +45,7 @@ class PlatformManifestTests(unittest.TestCase):
         text = render_platform_config(ctx)
         self.assertIn("seed-repos", text)
         self.assertIn("seed", text)
+        self.assertIn("sync-catalog", text)
 
 
 class BootstrapReposUnionTests(unittest.TestCase):
