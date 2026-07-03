@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from launchpad import __version__
-from launchpad import bootstrap_org, bootstrap_teams, gitflow, harness, platform, project, seed_work, wiki
+from launchpad import bootstrap_org, bootstrap_teams, gitflow, harness, platform, project, repo_seed, seed_work, wiki
 from launchpad.clients import ClientRegistryError, apply_client_context, format_clients_table
 from launchpad.config import discover_tenant_config, load_org_config, load_project_config
 from launchpad.doctor import run as run_doctor
@@ -69,6 +69,18 @@ def cmd_setup_gitflow(args: argparse.Namespace) -> int:
     config = _config_path(args, "gitflow")
     with _client(args) as client:
         gitflow.run(
+            client,
+            org=args.org or "",
+            config_path=config,
+            filter_repo=args.repo or "",
+        )
+    return 0
+
+
+def cmd_seed_repos(args: argparse.Namespace) -> int:
+    config = _config_path(args, "gitflow")
+    with _client(args) as client:
+        repo_seed.run(
             client,
             org=args.org or "",
             config_path=config,
@@ -254,6 +266,16 @@ def build_parser() -> argparse.ArgumentParser:
     _add_apply_flags(p)
     p.set_defaults(func=cmd_setup_gitflow)
 
+    p = sub.add_parser(
+        "seed-repos",
+        help="Seed main + develop + default branch develop for all gitflow repos",
+    )
+    p.add_argument("--org", default="")
+    p.add_argument("--config", default="")
+    p.add_argument("--repo", default="", help="limit to one repo (debug re-run only)")
+    _add_apply_flags(p)
+    p.set_defaults(func=cmd_seed_repos)
+
     p = sub.add_parser("bootstrap-project", help="Org project board + fields + repo links")
     p.add_argument("--org", default="")
     p.add_argument("--config", default="")
@@ -373,6 +395,8 @@ def main(argv: list[str] | None = None) -> int:
         ClientRegistryError,
         OnboardingError,
         ScaffoldError,
+        gitflow.GitflowError,
+        repo_seed.RepoSeedError,
     ) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

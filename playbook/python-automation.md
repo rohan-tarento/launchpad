@@ -58,7 +58,7 @@ Choose **All repositories** in `example-org`, or select at least **<client>-meta
 | Permission | Access | Why |
 |------------|--------|-----|
 | **Administration** | Read and write | Branch protection, rulesets |
-| **Contents** | Read and write | `options.init_empty: true` in gitflow YAML |
+| **Contents** | Read and write | `seed-repos` seeds empty repos on `main` |
 | **Metadata** | Read | Required by GitHub API |
 | **Issues** | Read and write | Create labels |
 
@@ -127,9 +127,10 @@ All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub.
 | `setup-platform` | **Platform baseline** from `PlatformManifest` YAML |
 | `verify-platform` | **Ready for backlog?** from `VerifyManifest` YAML |
 | `verify-factory` | Alias for `verify-platform` |
-| `bootstrap-org` | Repos + labels (`org-*.yaml`) |
+| `bootstrap-org` | Repos + labels (`org-*.yaml` + gitflow union, includes meta) |
 | `bootstrap-teams` | Teams (`org-*.yaml`) |
-| `setup-gitflow` | `develop`, protection (`gitflow-*.yaml`) |
+| `seed-repos` | Seed `main`, create `develop`, default branch `develop` (`gitflow-*.yaml`) |
+| `setup-gitflow` | Branch protection + rulesets (`gitflow-*.yaml`) |
 | `bootstrap-project` | Board + fields + issue types (`project-*.yaml`) |
 | `seed-work` | Backlog from `WorkManifest` (`work/*.yaml`) |
 | `seed-issues` | Alias for `seed-work` |
@@ -160,6 +161,7 @@ launchpad seed-work --config work/INIT-<id>.yaml --apply
 # Individual steps (debug / partial re-run)
 launchpad bootstrap-org --config config/org-example.yaml --apply
 launchpad bootstrap-teams --config config/org-example.yaml --apply
+launchpad seed-repos --config config/gitflow-example.yaml --apply
 launchpad setup-gitflow --config config/gitflow-example.yaml --apply
 launchpad bootstrap-project --config config/project-example.yaml --apply
 ```
@@ -169,7 +171,7 @@ launchpad bootstrap-project --config config/project-example.yaml --apply
 | File | `kind` | Used by |
 |------|--------|---------|
 | `org-{org}.yaml` | `OrgConfig` | `bootstrap-org`, `bootstrap-teams` |
-| `gitflow-{org}.yaml` | `GitflowConfig` | `setup-gitflow` — **authoritative** for branch naming, merge policy, PR rules, CI gates |
+| `gitflow-{org}.yaml` | `GitflowConfig` | `seed-repos`, `setup-gitflow` — **authoritative** for branch naming, merge policy, PR rules, CI gates |
 | `project-{org}.yaml` | `ProjectConfig` | `bootstrap-project`, `seed-work` (fields) |
 | `platform-{org}.yaml` | `PlatformManifest` | `setup-platform` |
 | `verify-platform-{org}.yaml` | `VerifyManifest` | `verify-platform` |
@@ -191,7 +193,7 @@ See [harness-pins.md](harness-pins.md).
 
 Help: `launchpad --help` or `launchpad setup-platform --help`.
 
-Do **not** set `options.init_empty: true` on repos that already have history.
+Do **not** set `options.seed_empty: false` on repos that already have history.
 
 ---
 

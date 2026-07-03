@@ -33,15 +33,6 @@ def _repo_list(ctx: dict[str, Any], spec: dict[str, Any]) -> list[str]:
     return []
 
 
-def _factory_app_repo_names(ctx: dict[str, Any]) -> set[str]:
-    org_cfg = ctx.get("org_config") or {}
-    return set(org_cfg.get("repo_names") or [])
-
-
-def _gitflow_meta_repo_names(ctx: dict[str, Any]) -> list[str]:
-    app_repos = _factory_app_repo_names(ctx)
-    return [r for r in _repo_list(ctx, {"repos_from": "gitflow.repos"}) if r not in app_repos]
-
 
 @_register("org.access")
 def check_org_access(client: GitHubClient, org: str, ctx: dict, spec: dict) -> CheckResult:
@@ -102,19 +93,25 @@ def check_teams_present(client: GitHubClient, org: str, ctx: dict, spec: dict) -
     return True, f"{len(teams)} teams"
 
 
+@_register("gitflow.default_branch")
+def check_gitflow_default_branch(
+    client: GitHubClient, org: str, ctx: dict, spec: dict
+) -> CheckResult:
+    from launchpad.github_ops import get_default_branch
+
+    repos = _repo_list(ctx, spec)
+    wrong = [r for r in repos if get_default_branch(client, org, r) != "develop"]
+    if wrong:
+        return False, f"default branch not develop: {wrong} (run seed-repos --apply)"
+    return True, f"develop default on {len(repos)} repos"
+
+
 @_register("gitflow.develop")
 def check_gitflow_develop(client: GitHubClient, org: str, ctx: dict, spec: dict) -> CheckResult:
     repos = _repo_list(ctx, spec)
     missing = [r for r in repos if not branch_exists(client, org, r, "develop")]
     if missing:
-        meta = [r for r in missing if r in _gitflow_meta_repo_names(ctx)]
-        app = [r for r in missing if r not in set(meta)]
-        parts = [f"no develop branch: {missing}"]
-        if meta:
-            parts.append(f"meta not pushed yet: {meta} (bootstrap-org does not create meta)")
-        if app:
-            parts.append(f"app repos need main+develop: {app} (scaffold/push or init_empty)")
-        return False, " — ".join(parts)
+        return False, f"no develop branch: {missing} (run seed-repos --apply)"
     return True, f"develop on {len(repos)} repos"
 
 

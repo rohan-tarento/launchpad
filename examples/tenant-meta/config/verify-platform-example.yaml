@@ -4,9 +4,9 @@ kind: VerifyManifest
 org: example-org
 
 includes:
-  org: config/org-example.yaml
-  gitflow: config/gitflow-example.yaml
-  project: config/project-example.yaml
+  org: org-example.yaml
+  gitflow: gitflow-example.yaml
+  project: project-example.yaml
 
 checks:
   - id: org.access
@@ -22,12 +22,16 @@ checks:
   - id: repos.present
     phase: applied
     required: true
-    repos_from: org.repos
+    repos_from: gitflow.repos
   - id: teams.present
     phase: applied
     required: true
     teams_from: org.teams
   - id: gitflow.develop
+    phase: applied
+    required: true
+    repos_from: gitflow.repos
+  - id: gitflow.default_branch
     phase: applied
     required: true
     repos_from: gitflow.repos

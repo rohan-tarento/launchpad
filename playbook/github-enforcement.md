@@ -23,12 +23,14 @@ All bootstrap uses **`launchpad`** + `GITHUB_TOKEN`. See [python-automation.md](
 
 | Command | Purpose |
 |---------|---------|
-| `bootstrap-org` | Ensure repos + labels exist |
+| `bootstrap-org` | Ensure repos + labels exist (OrgConfig + gitflow union, includes meta) |
 | `bootstrap-teams` | Create org teams |
+| `seed-repos` | Seed `main`, create `develop`, set default branch `develop` |
 | `setup-gitflow` | Reconcile GitHub to `gitflow-*.yaml` |
 | `bootstrap-project` | Project board + fields |
 
 ```bash
+launchpad seed-repos --config config/gitflow-<org>.yaml --apply
 launchpad setup-gitflow --config config/gitflow-<org>.yaml --apply
 ```
 
@@ -42,7 +44,8 @@ Only `--config`, `--apply` / `--dry-run`, `--org`, and `--repo` (debug filter) a
 | `options.require_ci` | Require `ci`, `policy-branch-name` (develop), `policy-merge-source` (main) |
 | `options.branch_naming` | Create `branch-naming-standard` ruleset |
 | `options.with_templates` | Copy workflows + CODEOWNERS into local clones under `options.workspace` |
-| `options.init_empty` | Initial commit on `main` for empty repos |
+| `options.seed_empty` | Seed empty repos on `main` during `seed-repos` (default: true) |
+| `options.init_empty` | Deprecated alias for `seed_empty` |
 | `branch_naming` | Prefixes, `mode` (standard/strict), exceptions |
 | `protection` | Review count, stale dismiss, enforce admins per branch |
 | `merge_policy` | Allowed PR sources to `develop` / `main` (workflow content) |
