@@ -77,7 +77,7 @@ Production sources: merged `docs/specification/product/` and `04-cross-service-c
 
 | Phase | Skill | Where |
 |-------|--------|-------|
-| Spec feasibility | `spec-feasibility-review` | `.agents/skills/` (prayog-skills @ harness pin) |
+| Spec feasibility | `initiative-feasibility` | `.agents/skills/` (prayog-skills @ harness pin) |
 | Technical review (PE) | `spec-technical-review` | same |
 | Execution plan | `spec-implementation-plan` | same |
 | Pre-flight | `pre-implement` | same |
@@ -87,7 +87,7 @@ Production sources: merged `docs/specification/product/` and `04-cross-service-c
 | SDD | `.cursor/rules/*.mdc` + [sdd-workflow.md](sdd-workflow.md) | rules submodule |
 
 ```text
-spec PR → /spec-feasibility-review → /spec-technical-review (PE) → merge spec
+prd-handoff PR → /spec-draft → /initiative-feasibility → /spec-technical-review (PE) → merge spec
        → /spec-implementation-plan
 board issue → /pre-implement → /loop-spec → /ground-spec → /verify → PR → develop
 ```

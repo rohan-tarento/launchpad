@@ -9,7 +9,8 @@ import yaml
 from launchpad.onboarding.context import OnboardingContext
 
 _PRAYOG_SKILLS = [
-    "spec-feasibility-review",
+    "spec-draft",
+    "initiative-feasibility",
     "spec-technical-review",
     "spec-implementation-plan",
     "pre-implement",
@@ -19,7 +20,8 @@ _PRAYOG_SKILLS = [
 ]
 
 _SKILL_PATHS = {
-    "spec-feasibility-review": "skills/development/spec-feasibility-review/SKILL.md",
+    "spec-draft": "skills/development/spec-draft/SKILL.md",
+    "initiative-feasibility": "skills/development/initiative-feasibility/SKILL.md",
     "spec-technical-review": "skills/development/spec-technical-review/SKILL.md",
     "spec-implementation-plan": "skills/development/spec-implementation-plan/SKILL.md",
     "pre-implement": "skills/development/pre-implement/SKILL.md",
