@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from launchpad.config import load_harness_config, tenant_root
+from launchpad.config import load_harness_config, resolve_workspace_parent, tenant_root
 from launchpad.scaffold.errors import ScaffoldError
 from launchpad.scaffold.profiles import ScaffoldProfile, get_profile, normalize_options
 
@@ -38,14 +38,11 @@ def _resolve_workspace(
         return workspace.resolve()
     if config_path is not None:
         config_dir = config_path.resolve().parent
-        default = str(cfg.get("default_workspace", ".."))
         if config_dir.name == "config":
-            meta_root = config_dir.parent
-            return (meta_root / default).resolve()
+            return resolve_workspace_parent(harness_cfg=cfg)
+        default = str(cfg.get("default_workspace", ".."))
         return (config_dir / default).resolve()
-    root = tenant_root()
-    default = str(cfg.get("default_workspace", ".."))
-    return (root / default).resolve()
+    return resolve_workspace_parent(harness_cfg=cfg)
 
 
 def _repo_meta(cfg: dict[str, Any], repo_name: str) -> dict[str, Any]:

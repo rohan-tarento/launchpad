@@ -46,6 +46,7 @@ class PlatformManifestTests(unittest.TestCase):
         self.assertIn("seed-repos", text)
         self.assertIn("seed", text)
         self.assertIn("sync-catalog", text)
+        self.assertIn("clone-repos", text)
 
 
 class BootstrapReposUnionTests(unittest.TestCase):

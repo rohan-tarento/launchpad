@@ -113,4 +113,4 @@ def run(
     print("=== Done ===")
     if client.dry_run:
         print("Re-run with --apply to execute.")
-    print(f"Next: launchpad setup-gitflow --config {cfg_path} --apply")
+    print(f"Next: launchpad clone-repos --config {cfg_path} --apply")

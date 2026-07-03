@@ -137,6 +137,28 @@ Confirm: `https://github.com/<org>/<repo>` exists (empty is fine).
 
 ---
 
+## Step 2b — Seed branches and clone locally
+
+After repos exist on GitHub, run from meta (or use `setup-platform --apply`, which includes these steps):
+
+```bash
+launchpad seed-repos --apply          # main + develop on GitHub; default branch develop
+launchpad clone-repos --apply         # git clone develop into workspace parent
+```
+
+Layout (default `options.workspace: ..` in gitflow YAML):
+
+```text
+~/Workspace/<client>/
+  <client>-meta/     # tenant meta (linked if created by onboard apply)
+  example-api/       # app clone on develop
+  example-registry/
+```
+
+If meta was scaffolded locally by `onboard apply` (files but no `.git`), `clone-repos` links the directory to the remote and merges `origin/develop`.
+
+---
+
 ## Step 3 — Scaffold foundation code
 
 ### Path A — brand-new local folder (no clone yet)

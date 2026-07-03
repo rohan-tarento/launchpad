@@ -6,7 +6,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from launchpad.config import load_gitflow_config, tenant_root
+from launchpad.config import load_gitflow_config, resolve_workspace_parent, tenant_root
 from launchpad.paths import resolve_template
 from launchpad.gitflow_policy import (
     branch_naming_ref_excludes,
@@ -44,10 +44,7 @@ def _require_branches(client: GitHubClient, org: str, repo: str) -> None:
 
 
 def _resolve_workspace(options: dict[str, Any]) -> Path:
-    raw = str(options.get("workspace") or "").strip()
-    if raw:
-        return Path(raw).expanduser().resolve()
-    return tenant_root().parent
+    return resolve_workspace_parent(gitflow_options=options)
 
 
 def _install_templates_local(
