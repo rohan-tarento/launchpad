@@ -53,6 +53,8 @@ https://github.com/orgs/example-org/teams
 | `platform-devs` | Factory / meta automation |
 | `frontend-devs` | BFF repos (when added) |
 | `data-platform-devs` | Data platform repos (when added) |
+| `qa-team` | QA manifests and deploy verification (repo read/push) |
+| `pe-team` | Technical review, ADR, harness/rules (CODEOWNERS) |
 
 Details: [teams-and-rbac.md](teams-and-rbac.md)
 

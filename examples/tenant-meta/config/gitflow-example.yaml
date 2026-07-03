@@ -18,6 +18,12 @@ teams:
   frontend: frontend-devs
   platform: platform-devs
   data_platform: data-platform-devs
+  qa: qa-team
+  pe: pe-team
+
+defaults:
+  grant_push: [qa]
+  grant_read: [qa, pe]
 
 profiles:
   backend: backend

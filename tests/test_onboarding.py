@@ -28,6 +28,9 @@ class OnboardingSpecTests(unittest.TestCase):
         self.assertEqual(spec["forge"]["type"], "github")
         self.assertEqual(len(spec["repos"]), 2)
         self.assertIn("frontend", spec["rules"])
+        team_slugs = {t["slug"] for t in spec["teams"]}
+        self.assertIn("qa-team", team_slugs)
+        self.assertIn("pe-team", team_slugs)
 
     def test_gitlab_forge_accepted(self) -> None:
         spec = load_onboarding_spec(KOLA_GITLAB_SPEC)
@@ -94,6 +97,9 @@ class OnboardingInterviewTests(unittest.TestCase):
         self.assertEqual(len(spec["repos"]), 2)
         self.assertEqual(spec["gitflow"]["branch_naming_mode"], "strict")
         self.assertFalse(spec["registry"]["set_default"])
+        team_slugs = {t["slug"] for t in spec["teams"]}
+        self.assertIn("qa-team", team_slugs)
+        self.assertIn("pe-team", team_slugs)
 
 
 class OnboardingApplyTests(unittest.TestCase):
@@ -125,6 +131,13 @@ class OnboardingApplyTests(unittest.TestCase):
             self.assertTrue((meta / "templates/AGENTS.md").is_file())
             self.assertTrue((meta / "playbook/README.md").is_file())
             self.assertIn("kola-lab", (meta / "config/org-kola-lab.yaml").read_text())
+            org_text = (meta / "config/org-kola-lab.yaml").read_text()
+            self.assertIn("qa-team", org_text)
+            self.assertIn("pe-team", org_text)
+            gitflow_text = (meta / "config/gitflow-kola-lab.yaml").read_text()
+            self.assertIn("qa: qa-team", gitflow_text)
+            self.assertIn("pe: pe-team", gitflow_text)
+            self.assertIn("grant_push:", gitflow_text)
 
     def test_registry_patch(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
