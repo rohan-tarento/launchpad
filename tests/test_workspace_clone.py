@@ -11,6 +11,7 @@ from unittest import mock
 from launchpad.config import resolve_workspace_parent
 from launchpad.workspace_clone import (
     github_https_url,
+    is_greenfield_link,
     meta_repo_name,
     repo_dest_path,
     run,
@@ -85,6 +86,36 @@ class WorkspaceCloneRunTests(unittest.TestCase):
 
     def test_github_https_url(self) -> None:
         self.assertEqual(github_https_url("example-org", "example-api"), "https://github.com/example-org/example-api.git")
+
+    def test_is_greenfield_link_meta(self) -> None:
+        os.environ["LAUNCHPAD_TENANT_ROOT"] = str(TENANT_META)
+        self.assertTrue(is_greenfield_link(TENANT_META, repo="example-meta", meta_repo="example-meta"))
+        self.assertFalse(
+            is_greenfield_link(TENANT_META.parent / "example-api", repo="example-api", meta_repo="example-meta")
+        )
+
+    def test_link_meta_uses_prefer_local_in_dry_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            meta = Path(tmp) / "mobbot-meta"
+            meta.mkdir()
+            (meta / ".launchpad-version").write_text("0.3.6\n", encoding="utf-8")
+            (meta / "README.md").write_text("# local meta\n", encoding="utf-8")
+            os.environ["LAUNCHPAD_TENANT_ROOT"] = str(meta)
+            with mock.patch("launchpad.workspace_clone._run_git") as git_mock:
+                from launchpad.workspace_clone import clone_one_repo
+
+                clone_one_repo(
+                    org="autrio10x",
+                    repo="mobbot-meta",
+                    dest=meta,
+                    dry_run=True,
+                    check_remote=False,
+                    meta_repo="mobbot-meta",
+                )
+                merge_calls = [c for c in git_mock.call_args_list if c.args[0][0] == "merge"]
+                self.assertTrue(merge_calls)
+                self.assertIn("-X", merge_calls[0].args[0])
+                self.assertIn("ours", merge_calls[0].args[0])
 
 
 if __name__ == "__main__":
