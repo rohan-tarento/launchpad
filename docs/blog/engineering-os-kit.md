@@ -98,7 +98,7 @@ rules:
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: v0.2.0
+  ref: v0.3.0
   skills:
     - spec-feasibility-review
     - spec-implementation-plan

@@ -15,7 +15,7 @@ Policy docs describe intent. **These mechanisms enforce it.**
 | **`policy-merge-source` workflow** | `main` accepts only allowed sources — generated from `merge_policy.main` |
 | **`ci` workflow** | Lint/test; required when `options.require_ci: true` |
 | **CODEOWNERS** | Review routing per profile |
-| **QA manifest** | Deploy mix (not git) — see [qa-mixed-deploy.md](qa-mixed-deploy.md) |
+| **QA manifest** | Deploy mix (not git) — documented in tenant `qa/` directory per org (not in launchpad kit) |
 
 ## Factory CLI
 

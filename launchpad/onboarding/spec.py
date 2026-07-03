@@ -22,7 +22,10 @@ DEFAULT_TEAMS = [
     {"slug": "backend-devs"},
     {"slug": "frontend-devs"},
     {"slug": "platform-devs"},
+    {"slug": "data-platform-devs"},
     {"slug": "release-managers"},
+    {"slug": "qa-team"},
+    {"slug": "pe-team"},
 ]
 
 DEFAULT_LABELS = [

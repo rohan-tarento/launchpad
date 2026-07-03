@@ -80,8 +80,8 @@ Base URL: `tenant <client>-meta/blob/develop/`
 |------|------|
 | Skills matrix | `playbook/skills-matrix.md` |
 | Skills audition | `playbook/skills-audition.md` |
-| Pre-implement (example-api) | `example-org/example-api` → `.cursor/skills/pre-implement/SKILL.md` |
-| Verify skill (example-api) | `example-org/example-api` → `.cursor/skills/verify/SKILL.md` |
+| Pre-implement (example-api) | `example-org/example-api` → `.agents/skills/pre-implement/SKILL.md` |
+| Verify skill (example-api) | `example-org/example-api` → `.agents/skills/verify/SKILL.md` |
 
 ---
 

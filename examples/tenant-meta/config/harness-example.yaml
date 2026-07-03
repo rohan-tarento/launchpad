@@ -19,20 +19,29 @@ profiles:
     agent_skills:
       repo: drivestream-lab/prayog-skills
       url: https://github.com/drivestream-lab/prayog-skills.git
-      ref: v0.2.0
+      ref: v0.3.0
       skills:
         - spec-feasibility-review
+        - spec-technical-review
         - spec-implementation-plan
         - pre-implement
+        - loop-spec
+        - ground-spec
         - verify
       skill_paths:
         spec-feasibility-review: skills/development/spec-feasibility-review/SKILL.md
+        spec-technical-review: skills/development/spec-technical-review/SKILL.md
         spec-implementation-plan: skills/development/spec-implementation-plan/SKILL.md
         pre-implement: skills/development/pre-implement/SKILL.md
+        loop-spec: skills/development/loop-spec/SKILL.md
+        ground-spec: skills/development/ground-spec/SKILL.md
         verify: skills/development/verify/SKILL.md
       install_path: .agents/skills
       lock_file: skills-lock.json
-    agents_template: templates/AGENTS.python.md
+    check_command: "make check"
+    test_command: "make test"
+    setup_notes: "conda activate {{CONDA_ENV}}"
+    agents_template: templates/AGENTS.md
     pin_template: templates/harness-pin.yaml
 
 repos:

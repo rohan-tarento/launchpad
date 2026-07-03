@@ -68,6 +68,8 @@ class OnboardingContext:
             "platform": "platform-devs",
             "data_platform": "data-platform-devs",
             "release_managers": "release-managers",
+            "qa": "qa-team",
+            "pe": "pe-team",
         }
         slugs = {t["slug"] for t in self.spec["teams"]}
         preferred = mapping.get(role, role)
