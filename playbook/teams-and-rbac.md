@@ -14,6 +14,8 @@ Config: [`gitflow-example.yaml`](../examples/tenant-meta/config/gitflow-example.
 | `frontend-devs` | Ops portal / BFF — merge to **`develop`** on frontend repos |
 | `platform-devs` | Compose, shared workflows — merge to **`develop`** on platform app repos (not meta) |
 | `data-platform-devs` | Data platform / analytics repos |
+| `qa-team` | **QA** — read/push on app repos (manifests, phase A/B deploy); not a `develop` merge team |
+| `pe-team` | **Platform engineering** — technical review, ADR/harness paths (CODEOWNERS); read on repos |
 
 Optional: nest all dev teams under parent team `engineers` for @mentions (not used for `main`).
 

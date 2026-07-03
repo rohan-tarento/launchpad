@@ -164,6 +164,10 @@ def render_gitflow_config(ctx: OnboardingContext) -> str:
             "workspace": "..",
         },
         "branch_naming": {"mode": gf["branch_naming_mode"]},
+        "defaults": {
+            "grant_push": ["qa"],
+            "grant_read": ["qa", "pe"],
+        },
         "teams": {
             "release_managers": ctx.team_slug("release_managers"),
             "pm": ctx.team_slug("pm"),
