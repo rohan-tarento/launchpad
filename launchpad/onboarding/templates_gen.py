@@ -19,14 +19,41 @@ def _read_kit(rel: str) -> str:
 
 
 def _codeowners(ctx: OnboardingContext, role: str) -> str:
-    team = ctx.org_at_team(role)
-    return f"""# {role} profile — {ctx.display_name}
+    """Generate org-customized CODEOWNERS for a profile.
 
-/docs/specification/ {team}
-/src/ {team}
-/tests/ {team}
-* {team}
-"""
+    Reads the kit template for this profile and substitutes example-org
+    placeholder team references with the actual org-scoped team names.
+    This preserves the spec pipeline gate structure while localising team refs.
+    """
+    import re
+    kit_file = f"CODEOWNERS.{role.replace('_', '-')}"
+    try:
+        text = _read_kit(kit_file)
+    except FileNotFoundError:
+        # Fallback for unknown profiles — minimal safe default
+        team = ctx.org_at_team(role)
+        return f"# {role} profile — {ctx.display_name}\n* {team}\n"
+
+    # Map placeholder team names → org-scoped team names
+    substitutions = {
+        "@example-org/pe-team": ctx.org_at_team("pe"),
+        "@example-org/pm-team": ctx.org_at_team("pm"),
+        "@example-org/platform-devs": ctx.org_at_team("platform"),
+        "@example-org/backend-devs": ctx.org_at_team("backend"),
+        "@example-org/frontend-devs": ctx.org_at_team("frontend"),
+        "@example-org/data-platform-devs": ctx.org_at_team("data_platform"),
+        "@example-org/qa-team": ctx.org_at_team("qa"),
+    }
+    for placeholder, real in substitutions.items():
+        text = text.replace(placeholder, real)
+    # Update the profile comment line
+    text = re.sub(
+        r"^# (Backend|Frontend|Data platform|Platform) profile",
+        f"# {role} profile — {ctx.display_name}",
+        text,
+        flags=re.MULTILINE,
+    )
+    return text
 
 
 def _harness_pin(ctx: OnboardingContext, profile: str, rules_key: str) -> str:
@@ -69,49 +96,21 @@ Process SSOT: [launchpad playbook]({_LAUNCHPAD_PLAYBOOK}) · Tenant deltas: [{ct
 """
 
 
-def _agents_python(ctx: OnboardingContext) -> str:
-    rules = ctx.spec["rules"]["python"]["repo"]
-    text = _read_kit("AGENTS.python.md")
+def _agents(ctx: OnboardingContext, rules_key: str) -> str:
+    """Render the unified AGENTS.md template with org-specific rules link."""
+    rules_spec = ctx.spec["rules"].get(rules_key) or {}
+    rules_repo = rules_spec.get("repo", f"{ctx.org}/service-rules")
+    rules_label = rules_repo.split("/")[-1]
+    text = _read_kit("AGENTS.md")
+    # Substitute the generic rules placeholder with the actual rules repo link.
     text = text.replace(
-        "Shared rules: **`.cursor/rules/*.mdc`** (git submodule `your-org/service-rules`, pinned at **{{RULES_PIN}}**).",
-        f"Shared rules: **`.cursor/rules/*.mdc`** (git submodule [{rules.split('/')[-1]}](https://github.com/{rules}), pinned at **{{{{RULES_PIN}}}}**).",
+        "Shared rules: **`.cursor/rules/*.mdc`** (git submodule, pinned at **{{RULES_PIN}}**).",
+        f"Shared rules: **`.cursor/rules/*.mdc`** (git submodule [{rules_label}](https://github.com/{rules_repo}), pinned at **{{{{RULES_PIN}}}}**).",
     )
-    old_process = """## Process
-
-Playbook SSOT: **launchpad** `playbook/` (pinned from tenant `<client>-meta`).
-
-| Topic | Where |
-|-------|--------|
-| SDD workflow | launchpad `playbook/sdd-workflow.md` |
-| Harness pins | launchpad `playbook/harness-pins.md` |
-| PM ↔ dev handoff | launchpad `playbook/pm-dev-handoff.md` |
-| Program board | Your forge engineering board (tenant wiki) |
-
-**PRs:** use `.github/pull_request_template.md` — Initiative, Spec path, Verify command."""
-    text = text.replace(old_process, _agents_process_section(ctx, rules, rules.split("/")[-1]))
-    return text
-
-
-def _agents_frontend(ctx: OnboardingContext) -> str:
-    rules = ctx.spec["rules"]["frontend"]["repo"]
-    text = _read_kit("AGENTS.frontend.md")
-    text = text.replace(
-        "Shared rules: **`.cursor/rules/*.mdc`** (git submodule `your-org/frontend-rules`, pinned at **{{RULES_PIN}}**).",
-        f"Shared rules: **`.cursor/rules/*.mdc`** (git submodule [nextjs-bff-rules](https://github.com/{rules}), pinned at **{{{{RULES_PIN}}}}**).",
-    )
-    old_process = """## Process
-
-Playbook SSOT: **launchpad** `playbook/` (tenant `<client>-meta` holds product deltas only).
-
-| Topic | Where |
-|-------|--------|
-| SDD workflow | launchpad `playbook/sdd-workflow.md` |
-| Harness pins | launchpad `playbook/harness-pins.md` |
-| PM ↔ dev handoff | launchpad `playbook/pm-dev-handoff.md` |
-| Program board | Your forge engineering board (tenant wiki) |
-
-**PRs:** use `.github/pull_request_template.md` — Initiative, Spec path, Verify command."""
-    text = text.replace(old_process, _agents_process_section(ctx, rules, "nextjs-bff-rules"))
+    # Replace the generic process section with org-specific links.
+    old_process = """Playbook SSOT: **launchpad** `playbook/` (pinned from tenant `<client>-meta`)."""
+    new_process = f"Playbook SSOT: [launchpad playbook]({_LAUNCHPAD_PLAYBOOK}) · Tenant deltas: [{ctx.meta_repo} playbook]({ctx.meta_playbook_url})"
+    text = text.replace(old_process, new_process)
     return text
 
 
@@ -157,19 +156,17 @@ def all_template_renders(ctx: OnboardingContext) -> dict[str, str]:
 
     out: dict[str, str] = {
         "templates/README.md": _templates_readme(ctx),
-        "templates/AGENTS.python.md": _agents_python(ctx),
+        "templates/AGENTS.md": _agents(ctx, "python"),
         "templates/CODEOWNERS.backend": _codeowners(ctx, "backend"),
         "templates/CODEOWNERS.platform": _codeowners(ctx, "platform"),
         "templates/harness-pin.yaml": _harness_pin(ctx, "python-backend", "python"),
         "templates/pull_request_template.md": _pr_template(ctx),
     }
     if any(r["profile"] == "frontend" for r in ctx.spec["repos"]):
-        out["templates/AGENTS.frontend.md"] = _agents_frontend(ctx)
         out["templates/CODEOWNERS.frontend"] = _codeowners(ctx, "frontend")
         out["templates/harness-pin.frontend.yaml"] = _harness_pin(ctx, "frontend", "frontend")
     if any(r["profile"] == "data_platform" for r in ctx.spec["repos"]):
         rules_key = "data_platform" if "data_platform" in ctx.spec["rules"] else "python"
-        out["templates/AGENTS.data-platform.md"] = _agents_python(ctx)
         out["templates/CODEOWNERS.data-platform"] = _codeowners(ctx, "data_platform")
         out["templates/harness-pin.data-platform.yaml"] = _harness_pin(ctx, "data-platform", rules_key)
     return out

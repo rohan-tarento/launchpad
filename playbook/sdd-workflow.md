@@ -12,7 +12,7 @@ How agents and engineers use the **truth hierarchy** in Launchpad repos. Constit
 | 2 | `AGENTS.md` | Router — rules boundary, verify commands |
 | 3 | `docs/specification/product/` | **What** to build |
 | 4 | `docs/specification/adr/` | **Why** (accepted decisions) |
-| 5 | `docs/specification/as-built/` | **What is live today** — `implementation-status.md` (+ optional `## Testing harness`; Option B) |
+| 5 | `docs/specification/as-built/` | **What is live today** — `implementation-status.md`  |
 
 **Mandatory layout:** [spec-layout.md](spec-layout.md) — **no** `docs/specification/harness/`.
 
@@ -55,6 +55,6 @@ Integration tests: [`example-api/tests/README.md`](https://github.com/example-or
 
 ## Meta references
 
-- Active INIT PRD: [prd/INIT-EXAMPLE-001.md](../prd/INIT-EXAMPLE-001.md)
+- Active INIT PRD: `prd/INIT-EXAMPLE-001.md` (in `<client>-meta/prd/`)
 - Skills: [skills-matrix.md](skills-matrix.md)
 - Agent prompts: [agent-prompt-templates.md](agent-prompt-templates.md)

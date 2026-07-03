@@ -51,7 +51,7 @@ Manifest task `id` **must equal** PRD/spec wave id (`W0`, `W1`, `PRE1`, …).
 | **W1–Wn** | Domain — unit tests + verify alignment per wave table |
 | **PRE*** | Optional plan/doc gate before a wave (e.g. unit test case matrix before W1) |
 
-**Branch:** `feature/INIT-<id>-w<N>-<kebab-slug>`  
+**Branch:** `feature/INIT-{COMPONENT}-{NUMBER}-{slug}` (e.g. `feature/INIT-KAVACH-001-w1-auth-login`)  
 **Issue title:** `[W<N>] <short summary>` or `[PRE1] <gate name>`
 
 Do **not** use legacy labels (`4a`, `Phase 4b`) in new INITs — use **W0–Wn** only.

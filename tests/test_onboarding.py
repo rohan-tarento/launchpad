@@ -55,7 +55,7 @@ class OnboardingPlanTests(unittest.TestCase):
         text = format_plan(plan)
         self.assertIn("config/org-kola-lab.yaml", text)
         self.assertIn("config/harness-kola-lab.yaml", text)
-        self.assertIn("templates/AGENTS.frontend.md", text)
+        self.assertIn("templates/AGENTS.md", text)
         self.assertIn("launchpad onboard apply", text)
 
     def test_gitlab_plan_warning(self) -> None:
@@ -122,7 +122,7 @@ class OnboardingApplyTests(unittest.TestCase):
             meta = workspace / "kola-meta"
             self.assertTrue((meta / "config/org-kola-lab.yaml").is_file())
             self.assertTrue((meta / "config/harness-kola-lab.yaml").is_file())
-            self.assertTrue((meta / "templates/AGENTS.python.md").is_file())
+            self.assertTrue((meta / "templates/AGENTS.md").is_file())
             self.assertTrue((meta / "playbook/README.md").is_file())
             self.assertIn("kola-lab", (meta / "config/org-kola-lab.yaml").read_text())
 

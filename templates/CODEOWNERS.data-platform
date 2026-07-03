@@ -1,2 +1,28 @@
-# Default reviewers for data platform repos (example-platform, etc.).
-* @ORG_PLACEHOLDER/data-platform-devs
+# Data platform profile — copy to .github/CODEOWNERS in each data platform repo
+# Replace @example-org/... with actual GitHub org/team names.
+#
+# Branch protection required:
+#   Settings → Branches → develop → "Require review from Code Owners" ON
+#
+# Sign-off workflow: launchpad/playbook/pm-dev-handoff.md § Sign-off workflow
+
+# ── Spec pipeline reports (skill gates) ──────────────────────────────────────
+
+/docs/specification/reports/Technical-Review-*       @example-org/pe-team
+/docs/specification/reports/Implementation-Plan-*    @example-org/data-platform-devs
+/docs/specification/reports/Ground-Report-*          @example-org/data-platform-devs
+/docs/specification/reports/Feasibility-Report-*     @example-org/pm-team @example-org/data-platform-devs
+
+# ── Product specs ─────────────────────────────────────────────────────────────
+
+/docs/specification/product/                         @example-org/pm-team @example-org/data-platform-devs
+/docs/specification/adr/                             @example-org/pe-team
+/docs/specification/as-built/                        @example-org/data-platform-devs
+
+# ── Source ────────────────────────────────────────────────────────────────────
+
+/src/                                                @example-org/data-platform-devs
+
+# ── Default ───────────────────────────────────────────────────────────────────
+
+*                                                    @example-org/data-platform-devs

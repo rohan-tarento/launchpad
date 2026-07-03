@@ -18,8 +18,11 @@ Score skills before marking harness or PM pipeline ready. Lab sample prompts: [l
 | update-documents | | | prayog-skills |
 | generate-work-manifest | | | prayog-skills |
 | spec-feasibility-review | | | prayog-skills dev |
+| spec-technical-review | | | prayog-skills dev (PE lane) |
 | spec-implementation-plan | | | prayog-skills dev |
 | pre-implement | | | prayog-skills dev |
+| loop-spec | | | prayog-skills dev |
+| ground-spec | | | prayog-skills dev |
 | verify | | | prayog-skills dev |
 
 ---
@@ -77,20 +80,61 @@ Spec: docs/specification/product/INIT-EXAMPLE-003.md
 
 ---
 
-## 5. spec-implementation-plan (app repo, post-feasibility)
+## 5. spec-technical-review (app repo, PE lane — after feasibility)
+
+**When:** Feasibility report has NEW-ADR or Critical engineering findings.
+
+```text
+/spec-technical-review
+
+Initiative: INIT-EXAMPLE-003
+Feasibility report: docs/specification/reports/Feasibility-Report-INIT-EXAMPLE-003.md
+```
+
+**Pass if:** TDD produced; T1–T10 checks evidenced; draft ADRs for each NEW-ADR finding; PE questions resolved or deferred with defaults; PM questions explicitly routed (not answered by agent).
+
+---
+
+## 6. spec-implementation-plan (app repo, post-feasibility + PE sign-off)
 
 ```text
 /spec-implementation-plan
 
 Initiative: INIT-EXAMPLE-003
 Feasibility report path: docs/specification/reports/Feasibility-Report-INIT-EXAMPLE-003.md
+Technical review path: docs/specification/reports/Technical-Review-INIT-EXAMPLE-003.md
 ```
 
-**Pass if:** W0–Wn phases with REQ/TASK/FILE; done-when per task; P-checks in report.
+**Pass if:** §0 PE sign-off referenced; W0–Wn phases with REQ/TASK/FILE; done-when per task; P1–P14 checks in report; §WorkManifest YAML present.
+
+---
+
+## 7. loop-spec (app repo, during wave implementation)
+
+```text
+/loop-spec
+
+Implement W1 for INIT-EXAMPLE-003. Run {verify_command} and {check_command} after each task.
+Fix failures before moving on. Stop when all tasks green.
+```
+
+**Pass if:** agent implements task-by-task; verifies after each; fixes before proceeding; stops and requests human checkpoint — does not self-approve or advance to next wave.
+
+---
+
+## 8. ground-spec (app repo, after wave implementation)
+
+```text
+/ground-spec
+
+Spec: 01  (or wave W1 of INIT-EXAMPLE-003)
+```
+
+**Pass if:** ground check output included; FR checklist evidenced; §Contracts produced table populated with module, entry point, input/output shapes; PR instructions present.
 
 ---
 
 ## Exit
 
-- [ ] Dev bundle (§1–2, §4–5) scored **Y** on pilot repo
+- [ ] Dev bundle (§1–2, §4–8) scored **Y** on pilot repo
 - [ ] `launchpad verify-harness --repo <pilot>` passes after harness migration PR

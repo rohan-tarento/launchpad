@@ -39,9 +39,9 @@ Run while PRD or specs may still change. Devs review without locking `develop`.
 
 ```text
 PM: meta PR → develop          (playbook + work manifest) — open, NOT merged
-PM: spec handoff PR per repo   (INIT + 02 + 03) — open, NOT merged
+PM: prd-handoff PR per repo   (PRD link + plain-English scope; no spec files from PM) — open, NOT merged
 Dev: read meta PR branch or PR diff for PRD (develop PRD is stale until Phase 2)
-Dev: review spec PRs — `/spec-feasibility-review`, comments, co-edit on PR branches
+Dev: read PRD from PR branch → run `/spec-draft` → write spec slice → run `/initiative-feasibility`
 PM + dev: push fixes to same PRs until aligned
 ```
 
@@ -67,9 +67,9 @@ PM merges meta **first** (or same session) so `develop` PRD is the baseline for 
 **After both meta and spec PRs are merged** — not before:
 
 ```text
-PM: generate-work-manifest → work/INIT-*.yaml (PR review)
-PM: seed-work --dry-run → --apply → epic + issues on Project (cite merged paths on develop)
-Dev: feature/INIT-* from develop → implement → PR → develop
+Dev: /spec-implementation-plan → §WorkManifest YAML
+Dev: gh issue create (single repo) OR launchpad seed-work (multi-repo) → epic + issues on Project
+Dev: feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug} from develop → implement → PR → develop
 ```
 
 Epic/tasks reference **merged** `prd/INIT-*.md` and repo `INIT-*.md` on `develop`, not draft PR branches.
@@ -144,36 +144,57 @@ New work uses **`INIT-<scope>-<nnn>`** only ([pm-workflow.md](pm-workflow.md)).
 - [ ] PR title: `[spec] handoff — INIT-… — <repo>`
 - [ ] Link meta PRD path in PR description
 
-### Dev — spec PR review
+### Dev — on prd-handoff PR branch (Phase 1)
 
-- [ ] Confirm spec links **Meta PRD** + **Validation report** (PM-owned `/validate-requirements` output)
-- [ ] **Wave parity:** spec `delivery_model` and wave IDs match PRD §4.0 / §4.5 ([delivery-model.md](delivery-model.md))
-- [ ] Run `/spec-feasibility-review` — save report under `docs/specification/reports/` ([skills-audition §4](skills-audition.md))
-- [ ] Resolve PM questions on PR; approve + **merge** (PM cannot merge app `develop`)
+- [ ] Read PRD from meta PR branch; confirm scope for this repo with PM
+- [ ] Run `/spec-draft` — generate spec slice into `docs/specification/product/`
+- [ ] Review + edit spec slice; confirm it matches prd-handoff PR scope
+- [ ] Run `/initiative-feasibility` — save report under `docs/specification/reports/`
+  ([skills-audition §4](skills-audition.md))
+- [ ] Post PM questions as PR comments on prd-handoff PR (plain English)
+- [ ] **Wave parity:** spec `delivery_model` and wave IDs match PRD §4.0
+  ([delivery-model.md](delivery-model.md))
 
-### Dev — after spec merge (before or with seed)
+### Dev — after Phase 2 merge (spec + PRD on develop)
 
-- [ ] Run `/spec-implementation-plan` — wave-level plan in `docs/specification/reports/` ([skills-audition §5](skills-audition.md))
+- [ ] Run `/spec-technical-review` when feasibility has PE-lane (NEW-ADR) findings —
+  TDD + draft ADRs; PE approves
+- [ ] Run `/spec-implementation-plan` — wave-level plan + §WorkManifest YAML
+- [ ] Seed board: `gh issue create` (single repo) or `launchpad seed-work` (multi-repo)
 
 ### PM — Phase 2 merge
 
-- [ ] All spec PRs approved / conformance clean
+- [ ] All PM questions on prd-handoff PRs answered / resolved
 - [ ] **Merge meta PR first** → `<client>-meta/develop`
-- [ ] Confirm dev merges spec PRs (PM does not merge app repos)
+- [ ] Confirm dev merges prd-handoff PRs (PM does not merge app repos)
 
-### PM — Phase 3 (after all merges)
+### Dev — implementation (per wave)
 
-- [ ] Cross-service pass on meta ([skills-audition §7d](skills-audition.md#7-spec-conformance-gate-per-repo))
-- [ ] `generate-work-manifest` (prayog-skills) → `work/INIT-*.yaml` PR merged — wave IDs match PRD/spec when `delivery_model: waves`
-- [ ] `seed-work` / epic + issues on Project ([github-project.md](github-project.md))
-- [ ] Issues cite **merged** `prd/INIT-*.md` + repo `INIT-*.md` + verify command
-- [ ] Reinstall prayog-skills after upstream manifest skill updates ([skills-matrix](skills-matrix.md))
-
-### Dev — implementation
-
-- [ ] `feature/INIT-*` from `develop`
-- [ ] Update `as-built` in same PR as code
+- [ ] Open `feature/{sc}-w{N}-{slug}` from `develop` (see [branching-policy.md](branching-policy.md) for `{sc}` short-code rule)
+- [ ] `/pre-implement` — gate check: prior wave `human_approved`; confirm contracts from prior ground report
+- [ ] Implement → `/loop-spec` until green
+- [ ] `/ground-spec` — commit Ground Report as last commit on same branch; update `as-built` to `grounded`
+- [ ] Open PR — ground report is part of the PR (not a separate PR)
+- [ ] Required reviewer (`@dev-leads` via CODEOWNERS) approves → merge → `as-built` = `human_approved`
 - [ ] PR traceability block ([sdd-workflow.md](sdd-workflow.md))
+
+---
+
+## Sign-off workflow (GitHub-first)
+
+Every skill gate is a merged PR with required reviewer approval.
+Approval by silence is forbidden — reviewer must give explicit GitHub Approve or Request Changes.
+If no response by deadline: escalate — do not proceed and do not assume approval.
+
+| Artifact | Branch | PR title | Required reviewer | Deadline |
+|----------|--------|----------|-------------------|----------|
+| Feasibility report | `chore/{sc}-feasibility` | `[{sc}] Feasibility — {N} blocking items` | PM + Domain SME | 3 business days |
+| Technical Design Doc | `chore/{sc}-technical-review` | `[{sc}] TDD — PE review required` | `@pe-team` (CODEOWNERS) | 5 business days |
+| Implementation plan | `chore/{sc}-plan` | `[{sc}] Implementation plan — team review` | `@dev-leads` | 3 business days |
+| Wave W{N} + ground report | `feature/{sc}-w{N}-{slug}` | `[{sc} W{N}] {slug}` | `@dev-leads` (CODEOWNERS) | 2 business days |
+
+CODEOWNERS template: ``launchpad/templates/CODEOWNERS.backend` (or profile variant)` — copy to each repo on bootstrap.
+Branch protection required: **"Require review from Code Owners"** on `develop`.
 
 ---
 

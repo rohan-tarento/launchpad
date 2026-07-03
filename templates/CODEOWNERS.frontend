@@ -1,6 +1,37 @@
-# Frontend / BFF profile — copy to app repo root as CODEOWNERS
+# Frontend / BFF profile — copy to .github/CODEOWNERS in each app repo
+# Replace @example-org/... with actual GitHub org/team names.
+#
+# Branch protection required:
+#   Settings → Branches → develop → "Require review from Code Owners" ON
+#
+# Sign-off workflow: launchpad/playbook/pm-dev-handoff.md § Sign-off workflow
 
-/app/ @example-org/frontend-devs
-/lib/ @example-org/frontend-devs
-/docs/specification/ @example-org/frontend-devs
-* @example-org/frontend-devs
+# ── Spec pipeline reports (skill gates) ──────────────────────────────────────
+
+# TDD requires PE sign-off before /spec-implementation-plan runs
+/docs/specification/reports/Technical-Review-*       @example-org/pe-team
+
+# Implementation plan requires dev lead review before seed-work runs
+/docs/specification/reports/Implementation-Plan-*    @example-org/frontend-devs
+
+# Ground reports gate the next wave — tech lead must approve
+/docs/specification/reports/Ground-Report-*          @example-org/frontend-devs
+
+# Feasibility reports — PM answers product questions on the PR
+/docs/specification/reports/Feasibility-Report-*     @example-org/pm-team @example-org/frontend-devs
+
+# ── Product specs ─────────────────────────────────────────────────────────────
+
+/docs/specification/product/                         @example-org/pm-team @example-org/frontend-devs
+/docs/specification/adr/                             @example-org/pe-team
+/docs/specification/as-built/                        @example-org/frontend-devs
+
+# ── Source ────────────────────────────────────────────────────────────────────
+
+/app/                                                @example-org/frontend-devs
+/lib/                                                @example-org/frontend-devs
+/src/                                                @example-org/frontend-devs
+
+# ── Default ───────────────────────────────────────────────────────────────────
+
+*                                                    @example-org/frontend-devs

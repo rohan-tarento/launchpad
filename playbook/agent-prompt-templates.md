@@ -10,8 +10,8 @@ Copy-paste starters for Cursor Agent. **Use the section for your role** — work
 
 | Role | Open in Cursor | Skills | Typical work |
 |------|----------------|--------|--------------|
-| **Product owner / PM** | `<client>-meta` | `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/generate-work-manifest` | PRD, spec handoff PRs, work manifests, `seed-work` |
-| **Developer** | App repo (e.g. `example-api`) | `/spec-feasibility-review`, `/spec-implementation-plan`, `/pre-implement`, `/verify` | Spec review, plan, implementation PRs, tests, as-built |
+| **Product owner / PM** | `<client>-meta` | `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/prd-impact-map`, `/generate-work-manifest` | PRD writing, impact mapping, prd-handoff PRs (PRD link only — no spec files) |
+| **Developer** | App repo (e.g. `example-api`) | `/spec-draft`, `/initiative-feasibility`, `/spec-technical-review`, `/spec-implementation-plan`, `/pre-implement`, `/loop-spec`, `/ground-spec`, `/verify` | Writes spec, reviews buildability, PE lane, plan, board seed, implementation, wave grounding |
 
 **Board:** cite **GitHub issue #** and **full title** — not manifest ids (`Q1`, `T2`) in conversation.
 
@@ -120,7 +120,7 @@ Update docs/specification/product/ only:
 No src/. No tests/.
 Link meta PRD: prd/INIT-EXAMPLE-002.md (meta PR branch or develop after Phase 2 merge).
 
-Then run /validate-requirements on this branch against that PRD.
+# Note: /validate-requirements is PM-only (meta workspace). Dev opens PR; PM runs validation in meta.
 ```
 
 ---
@@ -139,7 +139,7 @@ Check: repo spec slice matches PRD.
 Report only — list gaps; do not merge spec PR until clean.
 ```
 
-**Dev spec PR review:** `/spec-feasibility-review` only — spec links Validation report; no `/validate-requirements` in app repo.
+**Dev on prd-handoff PR:** runs `/spec-draft` → `/initiative-feasibility` → PE `/spec-technical-review` → `/spec-implementation-plan`. PM does **not** write spec files. Dev does **not** run `/validate-requirements` (PM-only in meta).
 
 ---
 
@@ -195,7 +195,7 @@ PR title: [spec] handoff — INIT-EXAMPLE-001 — example-api
 Label: spec
 ```
 
-**PRD:** [prd/INIT-EXAMPLE-001.md](../prd/INIT-EXAMPLE-001.md)
+**PRD:** `prd/INIT-EXAMPLE-001.md` (in `<client>-meta/prd/`)
 
 ---
 
@@ -233,7 +233,7 @@ Execute one slice:
 3. Update as-built/implementation-status.md in same PR
 4. Run board Verify command
 
-Branch: feature/INIT-EXAMPLE-002-<slug>
+Branch: feature/INIT-EXMPL-002-w{N}-{slug}  ← see branching-policy.md
 Verify: (paste from board — e.g. make check && poetry run python -m tests.verify.verify_all)
 
 Do not edit .cursor/rules/ submodule.
@@ -279,50 +279,65 @@ Do not edit .cursor/rules/ submodule. No new product features unless scoped.
 
 ---
 
-## D3 — Spec PR review (dev merges PM handoff)
+## D3 — prd-handoff PR (dev writes spec, reviews, plans)
 
-**When:** PM opened `[spec] handoff` PR; dev reviews before merge.  
-**Workspace:** app repo, checkout spec PR branch.
+**When:** PM opened prd-handoff PR with PRD link + plain-English scope. Dev writes spec, checks buildability, gets PE technical review, then produces plan.  
+**Workspace:** app repo, checkout the prd-handoff PR branch.
 
-### D3a — Feasibility (required)
+### D3a — Write spec slice (first)
 
 ```text
-/spec-feasibility-review
+/spec-draft
 
 Initiative: INIT-EXAMPLE-003
-Spec PR branch: chore/INIT-EXAMPLE-003-spec-handoff-example-registry
-Spec: docs/specification/product/INIT-EXAMPLE-003.md
-PRD (optional): <client>-meta prd/INIT-EXAMPLE-003.md
+PRD: <client>-meta/prd/INIT-EXAMPLE-003.md  (linked in prd-handoff PR body)
+Scope: (paste PM's plain-English scope from prd-handoff PR body)
+Repo: example-registry (this workspace)
 
-Output: docs/specification/reports/Feasibility-Report-INIT-EXAMPLE-003.md
-End with PM questions (blocking vs defer). No src/ in spec PR.
+Output: docs/specification/product/INIT-EXAMPLE-003.md
+Review and edit before committing — this is a draft.
 ```
 
-### D3b — PRD traceability (required, no extra skill)
+### D3b — Review buildability (after committing spec draft)
 
-Confirm spec header links **Meta PRD** + **Validation report** (`prd/reports/Validation-Report-*.md`). PM owns `/validate-requirements`; dev does not re-run it in the app repo.
+```text
+/initiative-feasibility
 
-### D3c — Implementation plan (after feasibility sign-off, post-merge or before seed)
+Initiative: INIT-EXAMPLE-003
+Spec: docs/specification/product/INIT-EXAMPLE-003.md
+PRD: <client>-meta/prd/INIT-EXAMPLE-003.md
+
+Output: docs/specification/reports/Initiative-Feasibility-Report-INIT-EXAMPLE-003.md
+Post PM questions as PR comments on prd-handoff PR (plain English, no jargon).
+Route PE questions to /spec-technical-review. Auto-fix naming drift.
+```
+
+### D3c — PE technical review (when feasibility has PE questions / NEW-ADR)
+
+```text
+/spec-technical-review
+
+Initiative: INIT-EXAMPLE-003
+Feasibility report: docs/specification/reports/Initiative-Feasibility-Report-INIT-EXAMPLE-003.md
+Spec: docs/specification/product/INIT-EXAMPLE-003.md
+
+Output: docs/specification/reports/Technical-Review-INIT-EXAMPLE-003.md
+Resolves engineering decisions, drafts ADRs.
+PE opens a separate PR for this — PE approves it.
+```
+
+### D3d — Implementation plan (after PE approves TDD)
 
 ```text
 /spec-implementation-plan
 
 Initiative: INIT-EXAMPLE-003
-Feasibility: docs/specification/reports/Feasibility-Report-INIT-EXAMPLE-003.md
+Technical review: docs/specification/reports/Technical-Review-INIT-EXAMPLE-003.md
+Feasibility report: docs/specification/reports/Initiative-Feasibility-Report-INIT-EXAMPLE-003.md
 Spec: docs/specification/product/INIT-EXAMPLE-003.md
 
 Output: docs/specification/reports/Implementation-Plan-INIT-EXAMPLE-003.md
-```
-
-For INIT retro handoff:
-
-```text
-Review spec PR chore/INIT-EXAMPLE-001-spec-handoff-example-api:
-
-Read docs/specification/product/INIT-EXAMPLE-001.md
-Check: retro narrative, as-delivered waves, QUALITY doc removed,
-       dev read order clear, no src/ changes.
-Approve if ready to merge to develop.
+Includes §WorkManifest YAML — dev runs gh issue create to seed board.
 ```
 
 ---
@@ -373,7 +388,38 @@ Confirm example-api changes do not break EMQX auth, device validation, or Kafka 
 
 ---
 
-## D6 — Harness / platform chore (bootstrap — reference)
+## D6 — Wave implementation (implement → verify → ground)
+
+**When:** Board wave issue is In Progress; pre-implement checklist is done.  
+**One wave = one PR.** Ground report is the last commit before PR is marked ready.
+
+```text
+Initiative: INIT-EXAMPLE-002
+Issue: #42 — [INIT-EXMPL-002 W1] extraction engine
+Repo: example-api (this workspace)
+Branch: feature/INIT-EXMPL-002-w1-extraction (already open from /pre-implement)
+
+/loop-spec
+
+Implement W1 tasks in order from plan.
+Run {check_command} and {test_command} after each task.
+Fix failures before moving on. Stop when all tasks green.
+Do not implement W2 scope.
+```
+
+When loop exits green:
+
+```text
+/ground-spec
+
+Spec: 01  (or wave W1 of INIT-EXAMPLE-002)
+Commit ground report as last commit on feature/INIT-EXMPL-002-w1-extraction.
+Open PR: "[INIT-EXMPL-002 W1] extraction engine — implementation + ground report"
+```
+
+---
+
+## D7 — Harness / platform chore (bootstrap — reference)
 
 **When:** BOOTSTRAP-001-style harness work in app repo (historical).
 
@@ -384,7 +430,7 @@ Task: Harness only — no product features.
 
 /pre-implement
 
-Deliverables: AGENTS.md links to <client>-meta playbook; .cursor/skills; PR template; as-built columns.
+Deliverables: AGENTS.md links to <client>-meta playbook; .agents/skills; PR template; as-built columns.
 Verify: make check
 ```
 

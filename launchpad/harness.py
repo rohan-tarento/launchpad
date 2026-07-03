@@ -433,7 +433,7 @@ def sync_harness(
     print(f"[harness] sync {repo_name} profile={entry['profile_name']} dry_run={dry_run}")
 
     pin_tpl_name = str(profile.get("pin_template", "templates/harness-pin.yaml"))
-    agents_tpl_name = str(profile.get("agents_template", "templates/AGENTS.python.md"))
+    agents_tpl_name = str(profile.get("agents_template", "templates/AGENTS.md"))
     try:
         pin_tpl = resolve_template(pin_tpl_name)
         agents_tpl = resolve_template(agents_tpl_name)
@@ -441,15 +441,28 @@ def sync_harness(
         raise HarnessError(str(exc)) from exc
 
     skill_names = [str(s) for s in (agent_skills.get("skills") or [])]
+
+    # Profile-level command variables — readable in AGENTS.md template.
+    # Each profile declares check_command, test_command, setup_notes.
+    # setup_notes may contain {{CONDA_ENV}} which is resolved here, not in the template.
+    conda_env = entry.get("conda_env", "")
+    setup_notes_tpl = str(profile.get("setup_notes", ""))
+    setup_notes = setup_notes_tpl.replace("{{CONDA_ENV}}", conda_env) if conda_env else setup_notes_tpl
+
     values = {
         "REPO": repo_name,
         "RULES_REF": rules_ref,
         "RULES_PIN": rules_ref,
         "AGENT_SKILLS_REF": agent_ref,
         "AGENT_SKILLS_LIST": _skills_list_yaml(skill_names),
+        "AGENT_SKILLS_SLASH_LIST": ", ".join(f"`/{s}`" for s in skill_names),
         "SERVICE_NAME": entry["service_name"],
-        "CONDA_ENV": entry["conda_env"],
-        "VERIFY_SMOKE": entry["verify_smoke"],
+        "CONDA_ENV": conda_env,
+        "VERIFY_SMOKE": entry.get("verify_smoke", "see tests/README.md"),
+        "CHECK_COMMAND": str(profile.get("check_command", "make check")),
+        "TEST_COMMAND": str(profile.get("test_command", "make test")),
+        "SETUP_NOTES": setup_notes,
+        "PROFILE": entry.get("profile_name", ""),
     }
 
     _write_pin(repo_path, pin_tpl, values, dry_run=dry_run)
