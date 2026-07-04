@@ -5,7 +5,7 @@
 Clone the foundation locally (lab layout):
 
 ```bash
-git clone git@github.com:drivestream-lab/tenant-meta-foundation.git \
+git clone https://github.com/drivestream-lab/tenant-meta-foundation.git \
   ~/Workspace/handson/drivestream-lab/tenant-meta-foundation
 ```
 
