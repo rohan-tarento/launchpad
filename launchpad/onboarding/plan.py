@@ -125,6 +125,7 @@ def build_plan(spec: dict, *, spec_path: Path) -> OnboardingPlan:
 
     plan.next_commands = [
         f"launchpad onboard apply --spec {spec_path}",
+        f"launchpad --client {client_id} scaffold-meta --apply --force",
         f"launchpad --client {client_id} doctor",
         f"launchpad --client {client_id} setup-platform --config config/platform-{org}.yaml --dry-run",
     ]

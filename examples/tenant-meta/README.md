@@ -1,6 +1,6 @@
 # Example tenant meta (smoke fixture)
 
-**Greenfield:** use `launchpad onboard apply` — it cookiecutters from [drivestream-lab/tenant-meta-foundation](https://github.com/drivestream-lab/tenant-meta-foundation) and renders `config/*.yaml` from your onboarding spec.
+**Greenfield:** `launchpad onboard apply` renders `config/*.yaml` and `templates/` only. Layout stubs (`prd/`, `work/`, …) come from **`launchpad scaffold-meta --apply --force`** ([tenant-meta-foundation](https://github.com/drivestream-lab/tenant-meta-foundation)).
 
 Clone the foundation locally (lab layout):
 
