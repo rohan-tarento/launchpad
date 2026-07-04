@@ -22,7 +22,6 @@ class ScaffoldPlan:
     output_dir: Path
     target_dir: Path
     context: dict[str, str]
-    with_harness: bool
     with_gitflow: bool
     dry_run: bool
     force: bool = False
@@ -128,7 +127,6 @@ def build_plan(
     workspace: Path | None = None,
     template: str = "",
     options: dict[str, str] | None = None,
-    with_harness: bool = False,
     with_gitflow: bool = False,
     dry_run: bool = True,
     force: bool = False,
@@ -161,7 +159,6 @@ def build_plan(
         output_dir=output_dir,
         target_dir=target_dir,
         context=context,
-        with_harness=with_harness,
         with_gitflow=with_gitflow,
         dry_run=dry_run,
         force=force,
@@ -177,8 +174,6 @@ def format_plan(plan: ScaffoldPlan) -> str:
     ]
     for key in sorted(plan.context):
         lines.append(f"    {key}: {plan.context[key]}")
-    if plan.with_harness:
-        lines.append(f"  post: sync-harness --repo {plan.repo}")
     if plan.with_gitflow:
         lines.append(f"  post: setup-gitflow --repo {plan.repo}")
     if plan.force and plan.target_dir.exists():
@@ -259,18 +254,6 @@ def _run_post_steps(plan: ScaffoldPlan, *, config_path: str | Path) -> None:
         with GitHubClient(dry_run=False) as client:
             run_gitflow(client, org=org, config_path=gitflow_path, filter_repo=plan.repo)
 
-    if plan.with_harness:
-        print(f"[scaffold] post: sync-harness --repo {plan.repo}")
-        from launchpad import harness
-
-        harness.run_sync(
-            config_path=config_path,
-            repo_name=plan.repo,
-            workspace=plan.output_dir,
-            dry_run=False,
-        )
-
-
 def run_scaffold(
     *,
     config_path: str | Path,
@@ -279,7 +262,6 @@ def run_scaffold(
     workspace: Path | None = None,
     template: str = "",
     options: dict[str, str] | None = None,
-    with_harness: bool = False,
     with_gitflow: bool = False,
     dry_run: bool = True,
     force: bool = False,
@@ -291,7 +273,6 @@ def run_scaffold(
         workspace=workspace,
         template=template,
         options=options,
-        with_harness=with_harness,
         with_gitflow=with_gitflow,
         dry_run=dry_run,
         force=force,

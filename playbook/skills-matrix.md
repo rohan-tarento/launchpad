@@ -7,7 +7,7 @@ Agent skills and factory commands for Example engineering. **PM pipeline skills*
 
 Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`** (global).
 
-**Dev + PM skills SSOT:** [drivestream-lab/prayog-skills](https://github.com/drivestream-lab/prayog-skills). App repos: seeded by [`sync-harness`](harness-pins.md) — `.harness-pin.yaml` + `.agents/skills/` (gitignored).
+**Dev + PM skills SSOT:** [drivestream-lab/prayog-skills](https://github.com/drivestream-lab/prayog-skills). App repos: seeded by [`sync-harness-app`](harness-pins.md) — `.harness-pin.yaml` + `.agents/skills/` (gitignored).
 
 ---
 
@@ -15,7 +15,7 @@ Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`*
 
 | Who | Open in Cursor | Skills |
 |-----|----------------|--------|
-| **PM / PO** | `<client>-meta` | `prd` + **prayog-skills** (install below) |
+| **PM / PO** | `<client>-meta` | `prd` + **prayog-skills** PM bundle via `sync-harness-meta` |
 | **Developer** | app repo (e.g. `example-api`) | prayog-skills dev bundle via harness — `/spec-draft`, `/initiative-feasibility`, `/spec-technical-review`, `/spec-implementation-plan`, `/pre-implement`, `/loop-spec`, `/ground-spec`, `/verify` |
 
 ---
@@ -38,14 +38,17 @@ Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`*
 ### Install (from `<client>-meta` root)
 
 ```bash
-# Community PRD drafter (sole drafter — remove to-prd if present)
+launchpad sync-harness-meta --apply
+launchpad verify-harness-meta
+```
+
+This installs community `prd` (awesome-copilot) + prayog PM skills into `.agents/skills/` (gitignored). Commit `.harness-pin.yaml`, `skills-lock.json`, `AGENTS.md`.
+
+Manual reinstall (debug only):
+
+```bash
 npx skills add github/awesome-copilot --skill prd -a cursor -y
-
-# Lab-owned requirements + backlog skills (all at once)
-npx skills add drivestream-lab/prayog-skills --skill '*' -a cursor -y
-
-# Optional: discover other workflows
-npx skills add vercel-labs/skills --skill find-skills -a cursor -g -y
+npx skills add drivestream-lab/prayog-skills --skill validate-requirements --skill review-findings --skill update-documents --skill generate-work-manifest -a cursor -y
 ```
 
 Verify: `npx skills list`
@@ -92,7 +95,7 @@ prd-handoff PR → /spec-draft → /initiative-feasibility → /spec-technical-r
 board issue → /pre-implement → /loop-spec → /ground-spec → /verify → PR → develop
 ```
 
-Harness: `launchpad sync-harness --repo <name> --apply` — see [harness-pins.md](harness-pins.md).
+Harness: `launchpad sync-harness-app --repo <name> --apply` — see [harness-pins.md](harness-pins.md).
 
 Retro closure epics (e.g. **INIT-EXAMPLE-001**): optional `seed-work` from `work/INIT-*.yaml` → dev skills only.
 

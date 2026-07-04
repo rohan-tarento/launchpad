@@ -202,7 +202,7 @@ Label: spec
 # Developer prompts
 
 **Workspace:** app repo root (e.g. **`example-api`**), branch `develop` (or feature branch from develop).  
-**Skills:** prayog-skills dev bundle in `.agents/skills/` (seeded by `sync-harness`).  
+**Skills:** prayog-skills dev bundle in `.agents/skills/` (seeded by `sync-harness-app`).  
 **Do not** edit `.cursor/rules/` submodule — propose upstream in service-rules. Skill changes → [prayog-skills](https://github.com/drivestream-lab/prayog-skills).
 
 **Read first:** `AGENTS.md` → board issue **Spec path** → `docs/specification/as-built/`.

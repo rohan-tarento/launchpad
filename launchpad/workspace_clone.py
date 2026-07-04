@@ -1,4 +1,4 @@
-"""Clone gitflow repos locally so scaffold, sync-harness, and gitflow templates can run immediately."""
+"""Clone gitflow repos locally so scaffold-app, sync-harness-*, and gitflow templates can run immediately."""
 
 from __future__ import annotations
 
@@ -231,4 +231,4 @@ def run(
     if dry_run:
         print("Re-run with --apply to clone/link local checkouts.")
     else:
-        print("Local clones ready — scaffold, sync-harness, and gitflow templates can run offline.")
+        print("Local clones ready — scaffold-app, sync-harness-meta/app, and gitflow templates can run offline.")

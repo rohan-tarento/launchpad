@@ -16,8 +16,8 @@ Use when closing the **first factory bootstrap** epic for a new tenant (repos, t
 
 ## Pilot app harness (`example-api` or first app repo)
 
-- [ ] `launchpad sync-harness --apply` merged
-- [ ] `launchpad verify-harness` passes
+- [ ] `launchpad sync-harness-app --apply` merged
+- [ ] `launchpad verify-harness-app` passes
 - [ ] Rules submodule + prayog-skills pin documented in harness config
 - [ ] `/pre-implement` and `/verify` audition pass — [skills-audition.md](skills-audition.md)
 
