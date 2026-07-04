@@ -35,11 +35,11 @@ Read this before starting any new initiative.
 
 | Step | Skill | Output |
 |------|-------|--------|
-| 7 | `/spec-draft` | `docs/specification/product/INIT-*.md` — spec slice for this repo |
-| 8 | `/initiative-feasibility` | Feasibility report + 4-lane triage (PM questions → prd-handoff PR comment) |
-| 9 | `/spec-technical-review` | TDD + draft ADRs — PE opens PR, PE approves |
-| 10 | `/spec-implementation-plan` | Wave plan + §9 WorkManifest YAML |
-| 11 | *(Dev seeds board)* | `gh issue create` — one issue per wave (`W0`, `W1`, …); optional `launchpad seed-work` for multi-repo |
+| 7 | `/spec-draft` | `docs/specification/product/INIT-*.md` + `02-api-contract.md` — spec slice only; does **not** touch `as-built` |
+| 8 | `/initiative-feasibility` | Feasibility report saved to `docs/specification/reports/` on prd-handoff branch; 4-lane triage (PM questions → prd-handoff PR comment) |
+| 9 | `/spec-technical-review` | TDD + draft ADRs — **conditional**: run only when feasibility has NEW-ADR findings; PE opens `chore/INIT-{COMPONENT}-{NUMBER}-technical-review` PR, PE approves |
+| 10 | `/spec-implementation-plan` | Wave plan + §9 WorkManifest YAML; dev opens `chore/INIT-{COMPONENT}-{NUMBER}-plan` PR; `@dev-leads` approves |
+| 11 | *(Dev seeds board — after plan PR merged)* | `gh issue create` — one issue per wave (`W0`, `W1`, …) from §9 YAML; optional `launchpad seed-work` for multi-repo |
 
 ### Wave loop (per wave W0 → Wn)
 

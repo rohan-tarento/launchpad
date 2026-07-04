@@ -40,14 +40,15 @@ jobs:
           fi
 
           # Strict mode: feature branches must follow initiative branch convention
-          # Pattern: feature/INIT-{COMPONENT}-{NUMBER}-{slug}
-          #   COMPONENT = repo/service abbreviation 2-7 uppercase chars
-          #   NUMBER    = initiative sequence number 1-7 digits
-          #   slug      = lowercase description (include wave info here)
+          # Pattern: feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug}
+          #   COMPONENT = service branch_code from service-catalog.yaml (2-7 uppercase chars)
+          #   NUMBER    = initiative sequence number (1-7 digits, e.g. 001, 0012)
+          #   w{N}      = wave number, e.g. w0, w1, w2 — expected by convention (advisory; not enforced by regex)
+          #   slug      = lowercase kebab description (e.g. ingestion-pipeline, jwt-login)
           # Examples:
           #   feature/INIT-KAVACH-001-w2-jwt-login
           #   feature/INIT-MNTHAN-001-w1-flink-core
-          #   feature/INIT-MOBBT-0001-wave-extraction-cli
+          #   feature/INIT-MOBBOT-001-w1-extraction-pipeline
           if [[ "$NAMING_MODE" == "strict" ]]; then
             case "$HEAD" in
               feature/*)

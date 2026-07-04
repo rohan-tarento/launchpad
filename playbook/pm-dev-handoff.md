@@ -41,6 +41,8 @@ Run while PRD or specs may still change. Devs review without locking `develop`.
 
 ```text
 PM: meta PR → develop          (playbook + work manifest) — open, NOT merged
+PM: /prd-impact-map            → impact map comment on meta PR (affected repos, merge order)
+Tech lead: explicit LGTM on impact map comment   ← required human gate; no prd-handoff PRs open before this
 PM: prd-handoff PR per repo   (PRD link + plain-English scope; no spec files from PM) — open, NOT merged
 Dev: read meta PR branch or PR diff for PRD (develop PRD is stale until Phase 2)
 Dev: read PRD from PR branch → run `/spec-draft` → write spec slice → run `/initiative-feasibility`
@@ -141,6 +143,7 @@ New work uses **`INIT-<scope>-<nnn>`** only ([pm-workflow.md](pm-workflow.md)).
 ### PM — before spec handoff PR
 
 - [ ] PRD validation clean ([skills-matrix](skills-matrix.md) PRD loop)
+- [ ] `/prd-impact-map` run; tech lead explicit LGTM received on meta PR
 - [ ] Branch from latest `develop`
 - [ ] One PR per app repo (+ meta PRD PR)
 - [ ] PR title: `[spec] handoff — INIT-… — <repo>`
@@ -149,9 +152,9 @@ New work uses **`INIT-<scope>-<nnn>`** only ([pm-workflow.md](pm-workflow.md)).
 ### Dev — on prd-handoff PR branch (Phase 1)
 
 - [ ] Read PRD from meta PR branch; confirm scope for this repo with PM
-- [ ] Run `/spec-draft` — generate spec slice into `docs/specification/product/`
+- [ ] Run `/spec-draft` — generate spec slice (`INIT-*.md` + `02-api-contract.md`) into `docs/specification/product/`
 - [ ] Review + edit spec slice; confirm it matches prd-handoff PR scope
-- [ ] Run `/initiative-feasibility` — save report under `docs/specification/reports/`
+- [ ] Run `/initiative-feasibility` — report saved to `docs/specification/reports/` on prd-handoff branch
   ([skills-audition §4](skills-audition.md))
 - [ ] Post PM questions as PR comments on prd-handoff PR (plain English)
 - [ ] **Wave parity:** spec `delivery_model` and wave IDs match PRD §4.0
@@ -159,20 +162,26 @@ New work uses **`INIT-<scope>-<nnn>`** only ([pm-workflow.md](pm-workflow.md)).
 
 ### Dev — after Phase 2 merge (spec + PRD on develop)
 
-- [ ] Run `/spec-technical-review` when feasibility has PE-lane (NEW-ADR) findings —
-  TDD + draft ADRs; PE approves
-- [ ] Run `/spec-implementation-plan` — wave-level plan + §WorkManifest YAML
-- [ ] Seed board: `gh issue create` (single repo) or `launchpad seed-work` (multi-repo)
+- [ ] **If** `/initiative-feasibility` has NEW-ADR findings → run `/spec-technical-review` →
+  open `chore/INIT-{COMPONENT}-{NUMBER}-technical-review` PR →
+  `@pe-team` approves (5 business days) → merge before proceeding  
+  **If no NEW-ADR findings** → skip directly to `/spec-implementation-plan`
+- [ ] Run `/spec-implementation-plan` — wave-level plan + §9 WorkManifest YAML
+- [ ] Open `chore/INIT-{COMPONENT}-{NUMBER}-plan` PR; title `[INIT-…] Implementation plan — team review`;
+  required reviewer `@dev-leads` (3 business days) → merge
+- [ ] Seed board **after plan PR merged**: `gh issue create` per wave from §9 YAML (single repo)
+  or copy §9 to `work/INIT-*.yaml` and run `launchpad seed-work` (multi-repo)
 
 ### PM — Phase 2 merge
 
 - [ ] All PM questions on prd-handoff PRs answered / resolved
+- [ ] `/validate-requirements` clean (PM re-runs in meta workspace if spec drafts changed)
 - [ ] **Merge meta PR first** → `<client>-meta/develop`
 - [ ] Confirm dev merges prd-handoff PRs (PM does not merge app repos)
 
 ### Dev — implementation (per wave)
 
-- [ ] Open `feature/{sc}-w{N}-{slug}` from `develop` (see [branching-policy.md](branching-policy.md) for `{sc}` short-code rule)
+- [ ] Open `feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug}` from `develop` (see [branching-policy.md](branching-policy.md) for naming convention)
 - [ ] `/pre-implement` — gate check: prior wave `human_approved`; confirm contracts from prior ground report
 - [ ] Implement → `/loop-spec` until green
 - [ ] `/ground-spec` — commit Ground Report as last commit on same branch; update `as-built` to `grounded`
@@ -190,10 +199,11 @@ If no response by deadline: escalate — do not proceed and do not assume approv
 
 | Artifact | Branch | PR title | Required reviewer | Deadline |
 |----------|--------|----------|-------------------|----------|
-| Feasibility report | `chore/{sc}-feasibility` | `[{sc}] Feasibility — {N} blocking items` | PM + Domain SME | 3 business days |
-| Technical Design Doc | `chore/{sc}-technical-review` | `[{sc}] TDD — PE review required` | `@pe-team` (CODEOWNERS) | 5 business days |
-| Implementation plan | `chore/{sc}-plan` | `[{sc}] Implementation plan — team review` | `@dev-leads` | 3 business days |
-| Wave W{N} + ground report | `feature/{sc}-w{N}-{slug}` | `[{sc} W{N}] {slug}` | `@dev-leads` (CODEOWNERS) | 2 business days |
+| Technical Design Doc | `chore/INIT-{COMPONENT}-{NUMBER}-technical-review` | `[INIT-…] TDD — PE review required` | `@pe-team` (CODEOWNERS) | 5 business days |
+| Implementation plan | `chore/INIT-{COMPONENT}-{NUMBER}-plan` | `[INIT-…] Implementation plan — team review` | `@dev-leads` | 3 business days |
+| Wave W{N} + ground report | `feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug}` | `[INIT-… W{N}] {slug}` | `@dev-leads` (CODEOWNERS) | 2 business days |
+
+Note: feasibility report lives on the **prd-handoff branch** alongside the spec slice — no separate sign-off PR. PM + Domain SME review via comments on the prd-handoff PR.
 
 CODEOWNERS template: ``launchpad/templates/CODEOWNERS.backend` (or profile variant)` — copy to each repo on bootstrap.
 Branch protection required: **"Require review from Code Owners"** on `develop`.

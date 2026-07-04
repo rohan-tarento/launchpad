@@ -51,15 +51,17 @@ repos:
 
 # Automation switches (all policy — edit here, not on the CLI)
 options:
-  require_ci: false
-  branch_naming: false
+  require_ci: false       # set true after ci + policy workflow PRs are merged
+  branch_naming: false    # set true to enforce branch-naming-standard ruleset; pair with mode: strict for product INITs
   with_templates: false
   seed_empty: true
   workspace: ..   # parent directory of local repo clones (for with_templates)
 
 # Branch naming (ruleset + policy-branch-name workflow when options.branch_naming is true)
+# Set mode: strict for product INIT delivery orgs — enforces feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug} pattern.
+# Set options.branch_naming: true after CI workflow PRs are merged (setup-gitflow --apply re-runs idempotently).
 branch_naming:
-  mode: standard          # standard | strict
+  mode: standard          # standard | strict — use strict for product INIT delivery
   allowed_prefixes:
     - feature
     - fix
