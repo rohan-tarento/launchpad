@@ -2,11 +2,11 @@ profile: python-backend
 
 rules:
   repo: your-org/service-rules
-  ref: "{{RULES_REF}}"
+  ref: {{RULES_REF}}
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: "{{AGENT_SKILLS_REF}}"
+  ref: {{AGENT_SKILLS_REF}}
   profile: python-backend
   skills:
 {{AGENT_SKILLS_LIST}}
