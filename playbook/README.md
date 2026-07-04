@@ -6,6 +6,7 @@ Process SSOT for tenant engineering. **Product content** (PRDs, planning, wiki p
 
 | Topic | Document |
 |-------|----------|
+| **How we ship (start here)** | [delivery-workflow.md](delivery-workflow.md) |
 | Spec layout | [spec-layout.md](spec-layout.md) |
 | Delivery model (waves) | [delivery-model.md](delivery-model.md) |
 | Branching policy | [branching-policy.md](branching-policy.md) |

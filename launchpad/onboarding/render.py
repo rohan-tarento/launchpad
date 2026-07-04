@@ -430,10 +430,11 @@ def render_playbook_readme(ctx: OnboardingContext) -> str:
 
 | Topic | Document |
 |-------|----------|
+| **How we ship (start here)** | [launchpad/delivery-workflow.md]({lp}/delivery-workflow.md) |
+| PM ↔ dev handoff | [launchpad/pm-dev-handoff.md]({lp}/pm-dev-handoff.md) |
 | SDD workflow | [launchpad/sdd-workflow.md]({lp}/sdd-workflow.md) |
 | Spec layout | [launchpad/spec-layout.md]({lp}/spec-layout.md) |
 | Harness pins | [launchpad/harness-pins.md]({lp}/harness-pins.md) |
-| PM workflow | [launchpad/pm-workflow.md]({lp}/pm-workflow.md) |
 | Factory CLI | [launchpad/python-automation.md]({lp}/python-automation.md) |
 | Wiki publish | [launchpad/wiki-setup.md]({lp}/wiki-setup.md) |
 
@@ -442,6 +443,9 @@ def render_playbook_readme(ctx: OnboardingContext) -> str:
 ## {name} deltas (this repo)
 
 Add `{org.lower()}-*.md` files here when process differs from launchpad — not before.
+
+Common delta: `delivery-workflow-{org.lower()}.md` — document your current automation phase
+(which Phase A/B/C steps you have switched on, your team names in the gates table).
 """
 
 
