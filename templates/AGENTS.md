@@ -60,6 +60,8 @@ Active work: board issue **Spec path** → product initiative spec (from PRD han
 
 ## Before changing behavior
 
+**Delivery workflow:** [launchpad playbook/delivery-workflow.md](https://github.com/drivestream-lab/launchpad/blob/main/playbook/delivery-workflow.md) — full skill chain, roles, automation phases.
+
 1. Read `AGENTS.md` and relevant **product** spec (and **ADR** if architecture changes).
 2. Read **as-built** — do not assume a feature exists without checking.
 3. `/pre-implement` before coding — gate check + pre-flight.

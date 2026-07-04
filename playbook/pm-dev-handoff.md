@@ -2,6 +2,8 @@
 
 How product intent moves from **<client>-meta** into service repos before implementation. Enforced by **teams + branch protection** — see [teams-and-rbac.md](teams-and-rbac.md) and [github-enforcement.md](github-enforcement.md).
 
+**Full delivery workflow** (skill chain, automation phases, ship criteria): [delivery-workflow.md](delivery-workflow.md)
+
 **Skills:** PRD pipeline and conformance gate — [skills-matrix.md](skills-matrix.md).
 
 ---
