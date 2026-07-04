@@ -132,5 +132,7 @@ def run(
     print("Local clones ready — scaffold app repos, then:")
     print(f"Curate config/service-catalog-{org}.yaml (owns, depends_on), then:")
     print("Push real content via PRs to develop, then:")
-    print("  launchpad sync-harness --repo <app> --apply")
+    print("  launchpad sync-harness-meta --apply")
+    print("  launchpad scaffold-app --repo <app> --apply --force")
+    print("  launchpad sync-harness-app --repo <app> --apply")
     print("  launchpad seed-work --config <work-manifest.yaml> --apply")

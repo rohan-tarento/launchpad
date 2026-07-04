@@ -1,0 +1,46 @@
+apiVersion: launchpad/v1
+kind: HarnessConfig
+
+org: example-org
+default_workspace: ..
+
+meta:
+  profile: meta-pm
+
+profiles:
+  meta-pm:
+    agent_skills:
+      repo: drivestream-lab/prayog-skills
+      url: https://github.com/drivestream-lab/prayog-skills.git
+      ref: v0.3.0
+      skills:
+        - validate-requirements
+        - generate-work-manifest
+      install_path: .agents/skills
+      lock_file: skills-lock.json
+    community_skills:
+      - source: github/awesome-copilot
+        skill: prd
+    agents_template: templates/AGENTS.meta.md
+    pin_template: templates/harness-pin.meta.yaml
+
+  python-backend:
+    rules:
+      repo: example-org/service-rules
+      url: https://github.com/example-org/service-rules.git
+      ref: v0.1.0
+      path: .cursor/rules
+    agent_skills:
+      repo: drivestream-lab/prayog-skills
+      url: https://github.com/drivestream-lab/prayog-skills.git
+      ref: v0.3.0
+      skills:
+        - verify
+      install_path: .agents/skills
+      lock_file: skills-lock.json
+    agents_template: templates/AGENTS.md
+    pin_template: templates/harness-pin.yaml
+
+repos:
+  example-api:
+    profile: python-backend

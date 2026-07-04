@@ -1,0 +1,7 @@
+{
+  "meta_repo": "example-meta",
+  "client_id": "example",
+  "display_name": "Example",
+  "org": "example-org",
+  "forge_type": "github"
+}

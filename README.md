@@ -27,7 +27,7 @@ Most teams bolt AI on top of ad-hoc repos. Launchpad inverts that:
 | Pillar | What it means | Where it lives |
 |--------|---------------|----------------|
 | **SDD** | **What** to build (`product/`), **what is live** (`as-built/`), **why** (`adr/`) — read before code changes | App repos + `<client>-meta` PRDs |
-| **Harness engineering** | Frozen agent surface: rules submodule, `AGENTS.md`, prayog-skills bundle, verify discipline | `.harness-pin.yaml` + `sync-harness` |
+| **Harness engineering** | Frozen agent surface: rules submodule (apps), PM skills (meta), `AGENTS.md`, prayog bundle | `.harness-pin.yaml` + `sync-harness-app` / `sync-harness-meta` |
 | **Factory** | GitHub/GitLab bootstrap, gitflow policy, project board, work manifests → issues | `launchpad` CLI + tenant `config/*.yaml` |
 
 ```text
@@ -37,7 +37,7 @@ prd/ INIT PRDs                   docs/specification/product/
 work/ manifests                  docs/specification/as-built/
 planning/ (pre-build archive)    docs/specification/adr/
         │                                │
-        │  seed-work                     │  sync-harness
+        │  seed-work                     │  sync-harness-meta / sync-harness-app
         ▼                                ▼
    GitHub/GitLab board              rules + skills + AGENTS.md
         │                                │
@@ -70,7 +70,7 @@ Every PR ties back to an **INIT**, issue #, **spec paths touched**, and **verify
 The **harness** is the frozen agent + verify surface for each app repo:
 
 ```yaml
-# .harness-pin.yaml (generated/managed by launchpad sync-harness)
+# .harness-pin.yaml (generated/managed by launchpad sync-harness-app or sync-harness-meta)
 profile: python-backend
 
 rules:
@@ -87,7 +87,7 @@ agent_skills:
     - verify
 ```
 
-`sync-harness` writes the pin, `AGENTS.md`, rules submodule, and seeds prayog-skills into `.agents/skills/`. `verify-harness` checks the repo matches tenant harness config.
+`sync-harness-app` writes the pin, `AGENTS.md`, rules submodule, and seeds dev prayog skills into `.agents/skills/`. `sync-harness-meta` does the same for PM skills in tenant meta (no rules submodule). `verify-harness-app` / `verify-harness-meta` check repos match tenant harness config.
 
 **PM pipeline skills** (`validate-requirements`, `generate-work-manifest`, …) run in **`<client>-meta` only**. **Dev skills** run in **app repos** after harness sync.
 
@@ -161,8 +161,9 @@ Creates GitHub repos, seeds `develop`, **clones locally** (greenfield meta keeps
 |------|------|---------|
 | 6 | Curate service catalog | edit `config/service-catalog-<org>.yaml` (`owns`, `depends_on`, `branch_code`) |
 | 7 | Push meta to GitHub | commit meta → PR to `<client>-meta/develop` |
-| 8 | Scaffold each app | `launchpad scaffold --repo <app> --apply --force` (into existing clone) |
-| 9 | Harness each app | `launchpad sync-harness --repo <app> --apply` |
+| 7 | Harness meta | `launchpad sync-harness-meta --apply` |
+| 8 | Scaffold each app | `launchpad scaffold-app --repo <app> --apply --force` (into existing clone) |
+| 9 | Harness each app | `launchpad sync-harness-app --repo <app> --apply` |
 | 10 | Backlog | PRD → `work/INIT-*.yaml` → `launchpad seed-work --apply` |
 
 Wizard details: [docs/onboarding-wizard.md](docs/onboarding-wizard.md) · App repo deep dive: [playbook/greenfield-app-repo.md](playbook/greenfield-app-repo.md)
@@ -189,9 +190,9 @@ launchpad sync-catalog --apply                    # merge into service-catalog (
 Curate the new entry in `config/service-catalog-<org>.yaml`, then scaffold:
 
 ```bash
-launchpad scaffold --repo <new-app> --apply --force
-launchpad sync-harness --repo <new-app> --apply
-launchpad verify-harness --repo <new-app>
+launchpad scaffold-app --repo <new-app> --apply --force
+launchpad sync-harness-app --repo <new-app> --apply
+launchpad verify-harness-app --repo <new-app>
 ```
 
 **Meta YAML is SSOT** — launchpad does not auto-edit org/gitflow/harness when you scaffold. Add the repo to config first, then run the commands above.
@@ -242,13 +243,15 @@ launchpad clients                   # list configured clients
 launchpad doctor                    # uses default client
 launchpad --client drivestream doctor
 
-# Harness (local app clones — scaffold / sync-harness need these)
+# Harness (local clones — scaffold-app / sync-harness-* need these)
 launchpad clone-repos --dry-run
 launchpad clone-repos --apply
-launchpad scaffold --repo example-api --dry-run
-launchpad scaffold --repo example-api --option has_kafka=yes --apply --force
-launchpad sync-harness --repo example-api --apply
-launchpad verify-harness --repo example-api
+launchpad sync-harness-meta --apply
+launchpad verify-harness-meta
+launchpad scaffold-app --repo example-api --dry-run
+launchpad scaffold-app --repo example-api --option has_kafka=yes --apply --force
+launchpad sync-harness-app --repo example-api --apply
+launchpad verify-harness-app --repo example-api
 launchpad publish-wiki --apply
 
 # Factory (GitHub v1 — needs GITHUB_TOKEN)

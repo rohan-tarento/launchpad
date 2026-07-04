@@ -11,7 +11,7 @@ kind: <KindName>
 |------|---------|
 | `OrgConfig` | Repos, labels, teams |
 | `GitflowConfig` | Branch/merge/PR policy, teams, repo profiles |
-| `HarnessConfig` | Rules submodule + prayog-skills pins; optional per-repo `scaffold` cookiecutter overrides |
+| `HarnessConfig` | Rules submodule + prayog-skills pins; `meta:` block for PM harness; optional per-repo `scaffold` cookiecutter overrides |
 | `PlatformManifest` | Ordered `setup-platform` steps |
 | `VerifyManifest` | Post-bootstrap checks |
 | `ProjectConfig` | GitHub Project board + fields |
@@ -44,14 +44,31 @@ Example: [`examples/onboarding-kola.yaml`](../examples/onboarding-kola.yaml) · 
 
 One wave ID → one board issue → one feature PR → one merge.
 
-## Scaffold profiles (`launchpad scaffold`)
+## Scaffold profiles (`launchpad scaffold-app` / `scaffold-meta`)
 
-Generates app repos from cookiecutter templates. Profiles are registered in launchpad (`python-backend` today; `frontend` / `nextjs-bff` planned).
+Generates app repos from cookiecutter templates. Meta layout uses `tenant-meta-foundation` ([drivestream-lab/tenant-meta-foundation](https://github.com/drivestream-lab/tenant-meta-foundation)).
 
 | Profile | Template (default) | Harness `repos.<name>.profile` |
 |---------|-------------------|--------------------------------|
 | `python-backend` | `gh:autrio10x/python-fastapi-foundation` or local sibling | `python-backend` |
+| `tenant-meta` | `gh:drivestream-lab/tenant-meta-foundation` or `LAUNCHPAD_META_FOUNDATION` | (meta harness uses `meta.profile: meta-pm`) |
 | `frontend` | planned `nextjs-bff-foundation` | `frontend` |
+
+### HarnessConfig `meta` block
+
+```yaml
+meta:
+  profile: meta-pm
+
+profiles:
+  meta-pm:
+    agent_skills: { ... PM skills @ prayog-skills ref ... }
+    community_skills:
+      - source: github/awesome-copilot
+        skill: prd
+    agents_template: templates/AGENTS.meta.md
+    pin_template: templates/harness-pin.meta.yaml
+```
 
 Optional per-repo overrides in `HarnessConfig`:
 

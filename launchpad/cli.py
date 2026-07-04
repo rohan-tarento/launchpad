@@ -18,7 +18,11 @@ from launchpad.verify.runner import VerifyError, run as run_verify
 from launchpad.wiki import WikiError
 from launchpad.onboarding.cli import add_onboard_parser
 from launchpad.onboarding.errors import OnboardingError
-from launchpad.scaffold.cli import add_scaffold_parser, parse_scaffold_options
+from launchpad.scaffold.cli import (
+    add_scaffold_app_parser,
+    add_scaffold_meta_parser,
+    parse_scaffold_options,
+)
 from launchpad.scaffold.errors import ScaffoldError
 from launchpad.scaffold.run import run_scaffold
 
@@ -187,9 +191,9 @@ def cmd_sync_catalog(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_sync_harness(args: argparse.Namespace) -> int:
+def cmd_sync_harness_app(args: argparse.Namespace) -> int:
     config = _config_path(args, "harness")
-    harness.run_sync(
+    harness.run_sync_app(
         config_path=config,
         repo_name=args.repo,
         workspace=args.workspace,
@@ -199,13 +203,29 @@ def cmd_sync_harness(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_verify_harness(args: argparse.Namespace) -> int:
+def cmd_sync_harness_meta(args: argparse.Namespace) -> int:
     config = _config_path(args, "harness")
-    harness.run_verify(
+    harness.run_sync_meta(
+        config_path=config,
+        dry_run=_dry_run_from_args(args),
+        skip_agents=args.skip_agents,
+    )
+    return 0
+
+
+def cmd_verify_harness_app(args: argparse.Namespace) -> int:
+    config = _config_path(args, "harness")
+    harness.run_verify_app(
         config_path=config,
         repo_name=args.repo or "",
         workspace=args.workspace,
     )
+    return 0
+
+
+def cmd_verify_harness_meta(args: argparse.Namespace) -> int:
+    config = _config_path(args, "harness")
+    harness.run_verify_meta(config_path=config)
     return 0
 
 
@@ -228,7 +248,7 @@ def cmd_clients(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_scaffold(args: argparse.Namespace) -> int:
+def cmd_scaffold_app(args: argparse.Namespace) -> int:
     config = _config_path(args, "harness")
     run_scaffold(
         config_path=config,
@@ -237,8 +257,20 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
         workspace=args.workspace,
         template=args.template or "",
         options=parse_scaffold_options(args),
-        with_harness=args.with_harness,
-        with_gitflow=args.with_gitflow,
+        dry_run=_dry_run_from_args(args),
+        force=args.force,
+    )
+    return 0
+
+
+def cmd_scaffold_meta(args: argparse.Namespace) -> int:
+    from launchpad.scaffold.meta_run import run_scaffold_meta
+
+    run_scaffold_meta(
+        meta_repo=args.meta_repo or "",
+        target_dir=args.target,
+        template=args.template or "",
+        options=parse_scaffold_options(args),
         dry_run=_dry_run_from_args(args),
         force=args.force,
     )
@@ -380,24 +412,40 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_sync_catalog)
 
     p = sub.add_parser(
-        "sync-harness",
-        help="Pin rules submodule, seed prayog-skills bundle, .harness-pin.yaml, AGENTS.md",
+        "sync-harness-app",
+        help="Pin rules submodule, seed prayog dev bundle, .harness-pin.yaml, AGENTS.md (app repos)",
     )
     p.add_argument("--repo", required=True, help="App repo name (e.g. example-api)")
     p.add_argument("--config", default="")
     p.add_argument("--workspace", type=Path, default=None, help="Parent of app clones (default: meta parent)")
     p.add_argument("--skip-agents", action="store_true", help="Do not overwrite AGENTS.md")
     _add_apply_flags(p)
-    p.set_defaults(func=cmd_sync_harness)
+    p.set_defaults(func=cmd_sync_harness_app)
 
     p = sub.add_parser(
-        "verify-harness",
+        "sync-harness-meta",
+        help="Seed PM prayog bundle + community prd skill, .harness-pin.yaml, AGENTS.md (tenant meta)",
+    )
+    p.add_argument("--config", default="")
+    p.add_argument("--skip-agents", action="store_true", help="Do not overwrite AGENTS.md")
+    _add_apply_flags(p)
+    p.set_defaults(func=cmd_sync_harness_meta)
+
+    p = sub.add_parser(
+        "verify-harness-app",
         help="Check harness pins and submodules in local app clones",
     )
     p.add_argument("--repo", default="", help="Single repo (default: all in HarnessConfig)")
     p.add_argument("--config", default="")
     p.add_argument("--workspace", type=Path, default=None)
-    p.set_defaults(func=cmd_verify_harness)
+    p.set_defaults(func=cmd_verify_harness_app)
+
+    p = sub.add_parser(
+        "verify-harness-meta",
+        help="Check harness pins and PM skills in tenant meta",
+    )
+    p.add_argument("--config", default="")
+    p.set_defaults(func=cmd_verify_harness_meta)
 
     p = sub.add_parser(
         "publish-wiki",
@@ -408,8 +456,8 @@ def build_parser() -> argparse.ArgumentParser:
     _add_apply_flags(p)
     p.set_defaults(func=cmd_publish_wiki)
 
-    p_scaffold = add_scaffold_parser(sub)
-    p_scaffold.set_defaults(func=cmd_scaffold)
+    add_scaffold_app_parser(sub).set_defaults(func=cmd_scaffold_app)
+    add_scaffold_meta_parser(sub).set_defaults(func=cmd_scaffold_meta)
 
     add_onboard_parser(sub)
 
