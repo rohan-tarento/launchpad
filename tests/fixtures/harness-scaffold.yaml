@@ -16,10 +16,8 @@ profiles:
       repo: drivestream-lab/prayog-skills
       url: https://github.com/drivestream-lab/prayog-skills.git
       ref: v0.3.0
-      skills:
-        - verify
-      skill_paths:
-        verify: skills/development/verify/SKILL.md
+      profile: python-backend
+      local_path: tests/fixtures/prayog-v030
       install_path: .agents/skills
       lock_file: skills-lock.json
     check_command: "make check"
@@ -38,10 +36,8 @@ profiles:
       repo: drivestream-lab/prayog-skills
       url: https://github.com/drivestream-lab/prayog-skills.git
       ref: v0.3.0
-      skills:
-        - verify
-      skill_paths:
-        verify: skills/development/verify/SKILL.md
+      profile: python-backend
+      local_path: tests/fixtures/prayog-v030
       install_path: .agents/skills
       lock_file: skills-lock.json
     check_command: "npm run lint && npm run typecheck"

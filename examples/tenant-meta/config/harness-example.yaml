@@ -18,16 +18,7 @@ profiles:
       repo: drivestream-lab/prayog-skills
       url: https://github.com/drivestream-lab/prayog-skills.git
       ref: v0.3.0
-      skills:
-        - validate-requirements
-        - review-findings
-        - update-documents
-        - generate-work-manifest
-      skill_paths:
-        validate-requirements: skills/pm/validate-requirements/SKILL.md
-        review-findings: skills/pm/review-findings/SKILL.md
-        update-documents: skills/pm/update-documents/SKILL.md
-        generate-work-manifest: skills/pm/generate-work-manifest/SKILL.md
+      profile: meta-pm
       install_path: .agents/skills
       lock_file: skills-lock.json
     community_skills:
@@ -46,22 +37,7 @@ profiles:
       repo: drivestream-lab/prayog-skills
       url: https://github.com/drivestream-lab/prayog-skills.git
       ref: v0.3.0
-      skills:
-        - spec-feasibility-review
-        - spec-technical-review
-        - spec-implementation-plan
-        - pre-implement
-        - loop-spec
-        - ground-spec
-        - verify
-      skill_paths:
-        spec-feasibility-review: skills/development/spec-feasibility-review/SKILL.md
-        spec-technical-review: skills/development/spec-technical-review/SKILL.md
-        spec-implementation-plan: skills/development/spec-implementation-plan/SKILL.md
-        pre-implement: skills/development/pre-implement/SKILL.md
-        loop-spec: skills/development/loop-spec/SKILL.md
-        ground-spec: skills/development/ground-spec/SKILL.md
-        verify: skills/development/verify/SKILL.md
+      profile: python-backend
       install_path: .agents/skills
       lock_file: skills-lock.json
     check_command: "make check"

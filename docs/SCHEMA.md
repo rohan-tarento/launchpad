@@ -62,7 +62,11 @@ meta:
 
 profiles:
   meta-pm:
-    agent_skills: { ... PM skills @ prayog-skills ref ... }
+    agent_skills:
+      repo: drivestream-lab/prayog-skills
+      url: https://github.com/drivestream-lab/prayog-skills.git
+      ref: v0.3.0
+      profile: meta-pm
     community_skills:
       - source: github/awesome-copilot
         skill: prd

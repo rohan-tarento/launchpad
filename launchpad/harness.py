@@ -12,6 +12,7 @@ from typing import Any
 
 from launchpad.config import load_harness_config, resolve_workspace_parent, tenant_root
 from launchpad.paths import resolve_template
+from launchpad.prayog_profile import PrayogProfileError, resolve_agent_skills
 
 
 class HarnessError(RuntimeError):
@@ -191,15 +192,43 @@ def _meta_profile_entry(cfg: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _agent_skills_spec(profile: dict[str, Any]) -> dict[str, Any]:
+def _agent_skills_base(profile: dict[str, Any]) -> dict[str, Any]:
     spec = profile.get("agent_skills") or {}
     if not spec:
         raise HarnessError("profile missing agent_skills block")
     ref = str(spec.get("ref", ""))
-    skills = spec.get("skills") or []
-    if not ref or not skills:
-        raise HarnessError("agent_skills requires ref and skills list")
+    if not ref:
+        raise HarnessError("agent_skills requires ref")
+    if not spec.get("url") and not spec.get("repo"):
+        raise HarnessError("agent_skills requires url or repo")
     return spec
+
+
+def _resolve_profile_agent_skills(
+    ws: Path,
+    profile: dict[str, Any],
+    harness_profile_name: str,
+    *,
+    dry_run: bool,
+) -> tuple[dict[str, Any], Path, bool]:
+    """Materialize prayog @ ref and resolve skills + paths (SSOT)."""
+    base = _agent_skills_base(profile)
+    prayog_root = _materialize_prayog_source(ws, base, dry_run=dry_run)
+    must_cleanup = prayog_root.name.startswith("prayog-skills-")
+    try:
+        resolved = resolve_agent_skills(
+            base,
+            harness_profile_name=harness_profile_name,
+            prayog_root=prayog_root,
+        )
+    except PrayogProfileError as exc:
+        raise HarnessError(str(exc)) from exc
+    return resolved, prayog_root, must_cleanup
+
+
+def _cleanup_prayog_root(prayog_root: Path, must_cleanup: bool, *, dry_run: bool) -> None:
+    if must_cleanup and not dry_run:
+        shutil.rmtree(prayog_root, ignore_errors=True)
 
 
 def _skills_list_yaml(skills: list[str]) -> str:
@@ -325,8 +354,6 @@ def _materialize_prayog_source(
     url = _require_github_https_url(url)
     tmp = Path(tempfile.mkdtemp(prefix="prayog-skills-"))
     print(f"[agent_skills] clone {url} @ {ref} → {tmp}")
-    if dry_run:
-        return tmp
     subprocess.run(
         ["git", "clone", "--depth", "1", "--branch", ref, url, str(tmp)],
         check=True,
@@ -474,8 +501,13 @@ def sync_harness_app(
         raise HarnessError(f"no git repo at {repo_path} (use --workspace)")
 
     rules = profile.get("rules") or {}
-    agent_skills = _agent_skills_spec(profile)
     rules_ref = str(rules.get("ref", ""))
+    agent_skills, prayog_source, must_cleanup = _resolve_profile_agent_skills(
+        ws,
+        profile,
+        entry["profile_name"],
+        dry_run=dry_run,
+    )
     agent_ref = str(agent_skills.get("ref", ""))
     if not rules_ref:
         raise HarnessError(f"profile {entry['profile_name']!r} missing rules ref")
@@ -530,14 +562,12 @@ def sync_harness_app(
     legacy = str(profile.get("legacy_skills_submodule_path", _LEGACY_SKILLS_DEFAULT))
     _remove_legacy_skills_submodule(repo_path, legacy, dry_run=dry_run)
 
-    prayog_source = _materialize_prayog_source(ws, agent_skills, dry_run=dry_run)
     try:
         _remove_obsolete_harness_dir(repo_path, dry_run=dry_run)
         _ensure_gitignore_entries(repo_path, dry_run=dry_run)
         _install_agent_skills(repo_path, prayog_source, agent_skills, dry_run=dry_run)
     finally:
-        if prayog_source.name.startswith("prayog-skills-") and not dry_run:
-            shutil.rmtree(prayog_source, ignore_errors=True)
+        _cleanup_prayog_root(prayog_source, must_cleanup, dry_run=dry_run)
 
     if dry_run:
         print(f"[done] dry-run — re-run with --apply to write {repo_path}")
@@ -564,7 +594,13 @@ def sync_harness_meta(
             f"no git repo at {repo_path} — link or clone meta first (setup-platform / clone-repos)"
         )
 
-    agent_skills = _agent_skills_spec(profile)
+    ws = repo_path.parent
+    agent_skills, prayog_source, must_cleanup = _resolve_profile_agent_skills(
+        ws,
+        profile,
+        entry["profile_name"],
+        dry_run=dry_run,
+    )
     community_skills = list(profile.get("community_skills") or [])
     agent_ref = str(agent_skills.get("ref", ""))
 
@@ -605,8 +641,6 @@ def sync_harness_meta(
     if not skip_agents:
         _write_agents(repo_path, agents_tpl, values, dry_run=dry_run)
 
-    ws = repo_path.parent
-    prayog_source = _materialize_prayog_source(ws, agent_skills, dry_run=dry_run)
     try:
         _remove_obsolete_harness_dir(repo_path, dry_run=dry_run)
         _ensure_gitignore_entries(repo_path, dry_run=dry_run)
@@ -618,8 +652,7 @@ def sync_harness_meta(
             community_skills=community_skills,
         )
     finally:
-        if prayog_source.name.startswith("prayog-skills-") and not dry_run:
-            shutil.rmtree(prayog_source, ignore_errors=True)
+        _cleanup_prayog_root(prayog_source, must_cleanup, dry_run=dry_run)
 
     if dry_run:
         print(f"[done] dry-run — re-run with --apply to write {repo_path}")
@@ -669,11 +702,21 @@ def verify_harness_app(
             errors.append(f"{prefix} no clone at {repo_path}")
             continue
 
+        prayog_root: Path | None = None
+        must_cleanup = False
         try:
-            agent_skills = _agent_skills_spec(profile)
+            agent_skills, prayog_root, must_cleanup = _resolve_profile_agent_skills(
+                ws,
+                profile,
+                entry["profile_name"],
+                dry_run=False,
+            )
         except HarnessError as exc:
             errors.append(f"{prefix} {exc}")
             continue
+        finally:
+            if prayog_root is not None:
+                _cleanup_prayog_root(prayog_root, must_cleanup, dry_run=False)
 
         agent_ref = str(agent_skills.get("ref", ""))
         skill_names = [str(s) for s in (agent_skills.get("skills") or [])]
@@ -735,9 +778,9 @@ def verify_harness_app(
                 errors.append(f"{prefix} AGENTS.md missing rules pin {rules_ref}")
             if agent_ref and agent_ref not in agents:
                 errors.append(f"{prefix} AGENTS.md missing agent_skills ref {agent_ref}")
-            for cmd in ("/pre-implement", "/verify"):
-                if cmd not in agents:
-                    errors.append(f"{prefix} AGENTS.md missing {cmd}")
+            for sk in skill_names:
+                if f"/{sk}" not in agents:
+                    errors.append(f"{prefix} AGENTS.md missing /{sk}")
             if "python-services-skills" in agents:
                 errors.append(f"{prefix} AGENTS.md still references deprecated python-services-skills")
             if "testing-and-verification.md" in agents:
@@ -775,11 +818,21 @@ def verify_harness_meta(
         errors.append(f"{prefix} no git checkout at {repo_path}")
         return errors
 
+    prayog_root: Path | None = None
+    must_cleanup = False
     try:
-        agent_skills = _agent_skills_spec(profile)
+        agent_skills, prayog_root, must_cleanup = _resolve_profile_agent_skills(
+            repo_path.parent,
+            profile,
+            entry["profile_name"],
+            dry_run=False,
+        )
     except HarnessError as exc:
         errors.append(f"{prefix} {exc}")
         return errors
+    finally:
+        if prayog_root is not None:
+            _cleanup_prayog_root(prayog_root, must_cleanup, dry_run=False)
 
     community_skills = list(profile.get("community_skills") or [])
     agent_ref = str(agent_skills.get("ref", ""))
@@ -822,9 +875,9 @@ def verify_harness_meta(
         agents = agents_path.read_text(encoding="utf-8")
         if agent_ref and agent_ref not in agents:
             errors.append(f"{prefix} AGENTS.md missing agent_skills ref {agent_ref}")
-        for cmd in ("/prd", "/validate-requirements", "/generate-work-manifest"):
-            if cmd not in agents:
-                errors.append(f"{prefix} AGENTS.md missing {cmd}")
+        for sk in all_skills:
+            if f"/{sk}" not in agents:
+                errors.append(f"{prefix} AGENTS.md missing /{sk}")
 
     gitignore = repo_path / ".gitignore"
     if gitignore.is_file():

@@ -9,42 +9,6 @@ import yaml
 from launchpad.onboarding.context import OnboardingContext
 from launchpad.service_catalog import entries_from_onboarding_spec, render_service_catalog
 
-_PRAYOG_SKILLS = [
-    "spec-draft",
-    "initiative-feasibility",
-    "spec-technical-review",
-    "spec-implementation-plan",
-    "pre-implement",
-    "loop-spec",
-    "ground-spec",
-    "verify",
-]
-
-_PM_PRAYOG_SKILLS = [
-    "validate-requirements",
-    "review-findings",
-    "update-documents",
-    "generate-work-manifest",
-]
-
-_SKILL_PATHS = {
-    "spec-draft": "skills/development/spec-draft/SKILL.md",
-    "initiative-feasibility": "skills/development/initiative-feasibility/SKILL.md",
-    "spec-technical-review": "skills/development/spec-technical-review/SKILL.md",
-    "spec-implementation-plan": "skills/development/spec-implementation-plan/SKILL.md",
-    "pre-implement": "skills/development/pre-implement/SKILL.md",
-    "loop-spec": "skills/development/loop-spec/SKILL.md",
-    "ground-spec": "skills/development/ground-spec/SKILL.md",
-    "verify": "skills/development/verify/SKILL.md",
-}
-
-_PM_SKILL_PATHS = {
-    "validate-requirements": "skills/pm/validate-requirements/SKILL.md",
-    "review-findings": "skills/pm/review-findings/SKILL.md",
-    "update-documents": "skills/pm/update-documents/SKILL.md",
-    "generate-work-manifest": "skills/pm/generate-work-manifest/SKILL.md",
-}
-
 _DEFAULT_COMMUNITY_SKILLS = [
     {"source": "github/awesome-copilot", "skill": "prd"},
 ]
@@ -67,7 +31,7 @@ def _dump(data: dict[str, Any]) -> str:
     return yaml.safe_dump(data, sort_keys=False, default_flow_style=False)
 
 
-def _agent_skills_block(ctx: OnboardingContext) -> dict[str, Any]:
+def _agent_skills_block(ctx: OnboardingContext, profile: str) -> dict[str, Any]:
     ref = ctx.spec["agent_skills"]["ref"]
     repo = ctx.spec["agent_skills"]["repo"]
     host = "github.com" if ctx.forge_type == "github" else "gitlab.com"
@@ -76,28 +40,18 @@ def _agent_skills_block(ctx: OnboardingContext) -> dict[str, Any]:
         "repo": repo,
         "url": url,
         "ref": ref,
-        "skills": list(_PRAYOG_SKILLS),
-        "skill_paths": dict(_SKILL_PATHS),
+        "profile": profile,
         "install_path": ".agents/skills",
         "lock_file": "skills-lock.json",
     }
 
 
 def _pm_agent_skills_block(ctx: OnboardingContext) -> dict[str, Any]:
-    ref = ctx.spec["agent_skills"]["ref"]
-    repo = ctx.spec["agent_skills"]["repo"]
-    host = "github.com" if ctx.forge_type == "github" else "gitlab.com"
-    url = f"https://{host}/{repo}.git" if ctx.forge_type == "github" else f"{ctx.forge_host}/{repo}.git"
-    pm_skills = list(ctx.spec.get("pm_skills") or _PM_PRAYOG_SKILLS)
-    return {
-        "repo": repo,
-        "url": url,
-        "ref": ref,
-        "skills": pm_skills,
-        "skill_paths": dict(_PM_SKILL_PATHS),
-        "install_path": ".agents/skills",
-        "lock_file": "skills-lock.json",
-    }
+    block = _agent_skills_block(ctx, "meta-pm")
+    pm_skills = ctx.spec.get("pm_skills")
+    if pm_skills:
+        block["skills"] = list(pm_skills)
+    return block
 
 
 def _meta_pm_profile(ctx: OnboardingContext) -> dict[str, Any]:
@@ -280,7 +234,7 @@ def _harness_profile(
             "ref": rules_spec["initial_ref"],
             "path": ".cursor/rules",
         },
-        "agent_skills": _agent_skills_block(ctx),
+        "agent_skills": _agent_skills_block(ctx, profile_key),
         **commands,
         "legacy_skills_submodule_path": ".cursor/skills",
         "agents_template": "templates/AGENTS.md",

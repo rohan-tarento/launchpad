@@ -7,3 +7,6 @@ rules:
 agent_skills:
   repo: drivestream-lab/prayog-skills
   ref: "{{AGENT_SKILLS_REF}}"
+  profile: data-platform
+  skills:
+{{AGENT_SKILLS_LIST}}
