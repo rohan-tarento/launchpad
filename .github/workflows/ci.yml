@@ -22,3 +22,13 @@ jobs:
           launchpad doctor || true
       - name: Import package
         run: python -c "from launchpad import __version__; print(__version__)"
+      - name: Version matches pyproject.toml
+        run: |
+          python -c "
+          import tomllib
+          from pathlib import Path
+          from launchpad import __version__
+          expected = tomllib.loads(Path('pyproject.toml').read_text())['project']['version']
+          assert __version__ == expected, f'__version__={__version__!r} != pyproject {expected!r}'
+          print(f'version OK: {__version__}')
+          "
