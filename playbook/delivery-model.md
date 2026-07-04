@@ -51,7 +51,7 @@ Manifest task `id` **must equal** PRD/spec wave id (`W0`, `W1`, `PRE1`, …).
 | **W1–Wn** | Domain — unit tests + verify alignment per wave table |
 | **PRE*** | Optional plan/doc gate before a wave (e.g. unit test case matrix before W1) |
 
-**Branch:** `feature/INIT-{COMPONENT}-{NUMBER}-{slug}` (e.g. `feature/INIT-KAVACH-001-w1-auth-login`)  
+**Branch:** `feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug}` (e.g. `feature/INIT-KAVACH-001-w1-auth-login`)  
 **Issue title:** `[W<N>] <short summary>` or `[PRE1] <gate name>`
 
 Do **not** use legacy labels (`4a`, `Phase 4b`) in new INITs — use **W0–Wn** only.
@@ -99,9 +99,9 @@ After spec merge, **dev** runs `/spec-implementation-plan`. Plan §9 emits WorkM
 | Path | When |
 |------|------|
 | `gh issue create` | Default — single-repo initiatives |
-| `launchpad seed-work` | Optional — multi-repo bulk from `work/INIT-*.yaml` copied from §9 |
+| `launchpad seed-work` | Optional — multi-repo bulk; copy §9 YAML to `work/INIT-*.yaml` in meta first |
 
-Do not hand-write wave manifests when the plan skill can derive them from merged spec + feasibility.
+Do not hand-write wave manifests — dev generates them via `/spec-implementation-plan` §9 after Phase 2 merge. PM does not author `work/INIT-*.yaml` before Phase 2.
 
 ---
 

@@ -91,9 +91,15 @@ Production sources: merged `docs/specification/product/` and `04-cross-service-c
 | SDD | `.cursor/rules/*.mdc` + [sdd-workflow.md](sdd-workflow.md) | rules submodule |
 
 ```text
-prd-handoff PR → /spec-draft → /initiative-feasibility → /spec-technical-review (PE) → merge spec
-       → /spec-implementation-plan → gh issue create (one issue per wave W0, W1, …)
-board issue → /pre-implement → /loop-spec → /ground-spec → /verify → PR → develop
+prd-handoff PR (chore/INIT-{COMPONENT}-{NUMBER}-prd-handoff)
+  → /spec-draft → /initiative-feasibility
+  → /spec-technical-review (PE) [conditional — only if NEW-ADR findings]
+      branch: chore/INIT-{COMPONENT}-{NUMBER}-technical-review
+  → merge spec (prd-handoff PR)
+  → /spec-implementation-plan → chore/INIT-{COMPONENT}-{NUMBER}-plan PR → @dev-leads approves → merge
+  → gh issue create (one issue per wave W0, W1, …) from §9 YAML
+board issue → /pre-implement → /loop-spec → /ground-spec → /verify
+  → feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug} PR → develop
 ```
 
 Harness: `launchpad sync-harness-app --repo <name> --apply` — see [harness-pins.md](harness-pins.md).
@@ -106,9 +112,11 @@ Retro closure epics (e.g. **INIT-EXAMPLE-001**): optional `seed-work` from `work
 
 ```text
 PRD loop (meta, prayog-skills)
-    → spec handoff PRs per repo (Phase 1 open, Phase 2 merge)
-    → dev: /spec-implementation-plan → gh issue create (or launchpad seed-work for multi-repo)
-    → dev: /pre-implement → /loop-spec → /ground-spec → /verify → feature PRs
+    → /prd-impact-map → tech lead LGTM → spec handoff PRs per repo (Phase 1 open, Phase 2 merge)
+    → dev: /spec-implementation-plan → chore/INIT-{COMPONENT}-{NUMBER}-plan PR → merge
+    → gh issue create per wave (or launchpad seed-work for multi-repo)
+    → dev: /pre-implement → /loop-spec → /ground-spec → /verify
+    → feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug} PR → develop
 ```
 
 Detail: [pm-workflow.md](pm-workflow.md) · [pm-dev-handoff.md](pm-dev-handoff.md)

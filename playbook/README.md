@@ -35,7 +35,7 @@ Process SSOT for tenant engineering. **Product content** (PRDs, planning, wiki p
 
 Install from **[prayog-skills](https://github.com/drivestream-lab/prayog-skills)** — not duplicated in this repo.
 
-**Dev bundle (v0.3.1):** `spec-draft`, `initiative-feasibility`, `spec-technical-review`, `spec-implementation-plan`, `pre-implement`, `loop-spec`, `ground-spec`, `verify`
+**Dev bundle (v0.3.2):** `spec-draft`, `initiative-feasibility`, `spec-technical-review`, `spec-implementation-plan`, `pre-implement`, `loop-spec`, `ground-spec`, `verify`
 
 ## Tenant overrides
 
