@@ -6,7 +6,7 @@ profile: meta-pm
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: "{{AGENT_SKILLS_REF}}"
+  ref: {{AGENT_SKILLS_REF}}
   profile: meta-pm
   skills:
 {{AGENT_SKILLS_LIST}}

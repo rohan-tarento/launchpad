@@ -10,6 +10,8 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from launchpad.config import load_harness_config, resolve_workspace_parent, tenant_root
 from launchpad.paths import resolve_template
 from launchpad.prayog_profile import PrayogProfileError, resolve_agent_skills
@@ -661,6 +663,26 @@ def sync_harness_meta(
         print("  → commit .harness-pin.yaml, skills-lock.json, AGENTS.md — not .agents/skills/")
 
 
+def _load_harness_pin(repo_path: Path) -> dict[str, Any]:
+    path = repo_path / ".harness-pin.yaml"
+    if not path.is_file():
+        return {}
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _harness_pin_ref(pin: dict[str, Any], *keys: str) -> str:
+    node: Any = pin
+    for key in keys:
+        if not isinstance(node, dict):
+            return ""
+        node = node.get(key)
+    return str(node).strip() if node is not None else ""
+
+
 def _read_skills_lock(repo_path: Path, lock_name: str) -> dict[str, Any]:
     path = repo_path / lock_name
     if not path.is_file():
@@ -726,11 +748,14 @@ def verify_harness_app(
         if not pin_path.is_file():
             errors.append(f"{prefix} missing .harness-pin.yaml")
         else:
+            pin = _load_harness_pin(repo_path)
             pin_text = pin_path.read_text(encoding="utf-8")
             rules_ref = str((profile.get("rules") or {}).get("ref", ""))
-            if rules_ref and f"ref: {rules_ref}" not in pin_text:
+            pin_rules_ref = _harness_pin_ref(pin, "rules", "ref")
+            if rules_ref and pin_rules_ref != rules_ref:
                 errors.append(f"{prefix} .harness-pin.yaml rules ref != {rules_ref}")
-            if agent_ref and f"ref: {agent_ref}" not in pin_text:
+            pin_agent_ref = _harness_pin_ref(pin, "agent_skills", "ref")
+            if agent_ref and pin_agent_ref != agent_ref:
                 errors.append(f"{prefix} .harness-pin.yaml agent_skills ref != {agent_ref}")
             for sk in skill_names:
                 if sk not in pin_text:
@@ -846,8 +871,10 @@ def verify_harness_meta(
     if not pin_path.is_file():
         errors.append(f"{prefix} missing .harness-pin.yaml")
     else:
+        pin = _load_harness_pin(repo_path)
         pin_text = pin_path.read_text(encoding="utf-8")
-        if agent_ref and f"ref: {agent_ref}" not in pin_text:
+        pin_agent_ref = _harness_pin_ref(pin, "agent_skills", "ref")
+        if agent_ref and pin_agent_ref != agent_ref:
             errors.append(f"{prefix} .harness-pin.yaml agent_skills ref != {agent_ref}")
         for sk in all_skills:
             if sk not in pin_text:
