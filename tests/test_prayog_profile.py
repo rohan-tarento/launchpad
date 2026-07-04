@@ -37,8 +37,8 @@ class PrayogProfileTests(unittest.TestCase):
         names = meta_pm_skill_names_from_tree(PRAYOG)
         self.assertIn("prd-impact-map", names)
         self.assertIn("validate-requirements", names)
-        self.assertIn("generate-work-manifest", names)
-        self.assertEqual(len(names), 5)
+        self.assertNotIn("generate-work-manifest", names)
+        self.assertEqual(len(names), 4)
 
     def test_discover_skill_paths(self) -> None:
         paths = discover_skill_paths(PRAYOG)

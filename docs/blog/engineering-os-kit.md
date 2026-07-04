@@ -98,7 +98,7 @@ rules:
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: v0.3.0
+  ref: v0.3.1
   skills:
     - spec-feasibility-review
     - spec-implementation-plan
@@ -114,7 +114,7 @@ agent_skills:
 
 | Where | Skills | Examples |
 |-------|--------|----------|
-| **`<client>-meta`** | PM pipeline | `/prd`, `/validate-requirements`, `/generate-work-manifest` |
+| **`<client>-meta`** | PM pipeline | `/prd`, `/validate-requirements`, `/prd-impact-map` |
 | **App repos** | Dev bundle | `/spec-feasibility-review`, `/pre-implement`, `/verify` |
 
 PM skills install in the meta workspace. Dev skills arrive via harness sync. Collapsing those lanes is how you get PM validation running against the wrong tree.

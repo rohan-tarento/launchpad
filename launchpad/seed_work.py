@@ -533,7 +533,7 @@ def run(
     root = tenant_root()
     if not manifest_path:
         raise SystemExit(
-            "seed-work requires manifest_path (e.g. work/INIT-<id>.yaml from generate-work-manifest)"
+            "seed-work requires manifest_path (e.g. work/INIT-<id>.yaml from spec-implementation-plan §9)"
         )
     mpath = manifest_path
     manifest = load_work_manifest(mpath)

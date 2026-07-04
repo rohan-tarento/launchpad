@@ -6,6 +6,7 @@ Process SSOT for tenant engineering. **Product content** (PRDs, planning, wiki p
 
 | Topic | Document |
 |-------|----------|
+| **How we ship (start here)** | [delivery-workflow.md](delivery-workflow.md) |
 | Spec layout | [spec-layout.md](spec-layout.md) |
 | Delivery model (waves) | [delivery-model.md](delivery-model.md) |
 | Branching policy | [branching-policy.md](branching-policy.md) |
@@ -34,7 +35,7 @@ Process SSOT for tenant engineering. **Product content** (PRDs, planning, wiki p
 
 Install from **[prayog-skills](https://github.com/drivestream-lab/prayog-skills)** — not duplicated in this repo.
 
-**Dev bundle (v0.3.0):** `spec-feasibility-review`, `spec-technical-review`, `spec-implementation-plan`, `pre-implement`, `loop-spec`, `ground-spec`, `verify`
+**Dev bundle (v0.3.1):** `spec-draft`, `initiative-feasibility`, `spec-technical-review`, `spec-implementation-plan`, `pre-implement`, `loop-spec`, `ground-spec`, `verify`
 
 ## Tenant overrides
 
