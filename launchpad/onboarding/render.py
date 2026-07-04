@@ -20,6 +20,13 @@ _PRAYOG_SKILLS = [
     "verify",
 ]
 
+_PM_PRAYOG_SKILLS = [
+    "validate-requirements",
+    "review-findings",
+    "update-documents",
+    "generate-work-manifest",
+]
+
 _SKILL_PATHS = {
     "spec-draft": "skills/development/spec-draft/SKILL.md",
     "initiative-feasibility": "skills/development/initiative-feasibility/SKILL.md",
@@ -30,6 +37,17 @@ _SKILL_PATHS = {
     "ground-spec": "skills/development/ground-spec/SKILL.md",
     "verify": "skills/development/verify/SKILL.md",
 }
+
+_PM_SKILL_PATHS = {
+    "validate-requirements": "skills/pm/validate-requirements/SKILL.md",
+    "review-findings": "skills/pm/review-findings/SKILL.md",
+    "update-documents": "skills/pm/update-documents/SKILL.md",
+    "generate-work-manifest": "skills/pm/generate-work-manifest/SKILL.md",
+}
+
+_DEFAULT_COMMUNITY_SKILLS = [
+    {"source": "github/awesome-copilot", "skill": "prd"},
+]
 
 _HARNESS_PROFILE_MAP = {
     "backend": "python-backend",
@@ -62,6 +80,33 @@ def _agent_skills_block(ctx: OnboardingContext) -> dict[str, Any]:
         "skill_paths": dict(_SKILL_PATHS),
         "install_path": ".agents/skills",
         "lock_file": "skills-lock.json",
+    }
+
+
+def _pm_agent_skills_block(ctx: OnboardingContext) -> dict[str, Any]:
+    ref = ctx.spec["agent_skills"]["ref"]
+    repo = ctx.spec["agent_skills"]["repo"]
+    host = "github.com" if ctx.forge_type == "github" else "gitlab.com"
+    url = f"https://{host}/{repo}.git" if ctx.forge_type == "github" else f"{ctx.forge_host}/{repo}.git"
+    pm_skills = list(ctx.spec.get("pm_skills") or _PM_PRAYOG_SKILLS)
+    return {
+        "repo": repo,
+        "url": url,
+        "ref": ref,
+        "skills": pm_skills,
+        "skill_paths": dict(_PM_SKILL_PATHS),
+        "install_path": ".agents/skills",
+        "lock_file": "skills-lock.json",
+    }
+
+
+def _meta_pm_profile(ctx: OnboardingContext) -> dict[str, Any]:
+    community = list(ctx.spec.get("community_skills") or _DEFAULT_COMMUNITY_SKILLS)
+    return {
+        "agent_skills": _pm_agent_skills_block(ctx),
+        "community_skills": community,
+        "agents_template": "templates/AGENTS.meta.md",
+        "pin_template": "templates/harness-pin.meta.yaml",
     }
 
 
@@ -249,6 +294,7 @@ def _harness_profile(
 
 def render_harness_config(ctx: OnboardingContext) -> str:
     profiles: dict[str, Any] = {
+        "meta-pm": _meta_pm_profile(ctx),
         "python-backend": _harness_profile(
             ctx,
             "python-backend",
@@ -291,6 +337,7 @@ def render_harness_config(ctx: OnboardingContext) -> str:
         "kind": "HarnessConfig",
         "org": ctx.org,
         "default_workspace": "..",
+        "meta": {"profile": "meta-pm"},
         "profiles": profiles,
         "repos": harness_repos,
     }

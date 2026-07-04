@@ -29,7 +29,7 @@ Three layers — do not skip or reorder:
 
 **Harness config in meta** is not the same as **sync-harness on the app repo**:
 
-| | Harness YAML in meta | `sync-harness` on app repo |
+| | Harness YAML in meta | `sync-harness-app` on app repo |
 |--|---------------------|----------------------------|
 | When | Before or during planning | After local app folder exists |
 | What | Declares profile, scaffold options, pin templates | Writes submodules, `.harness-pin.yaml`, `AGENTS.md` |
@@ -166,13 +166,13 @@ If meta was scaffolded locally by `onboard apply` (files but no `.git`), `clone-
 Preview:
 
 ```bash
-launchpad scaffold --repo example-api --dry-run
+launchpad scaffold-app --repo example-api --dry-run
 ```
 
 Generate into an empty path:
 
 ```bash
-launchpad scaffold --repo example-api --apply
+launchpad scaffold-app --repo example-api --apply
 ```
 
 Then continue with **Step 4** (`git init`, first push).
@@ -188,8 +188,8 @@ cd ~/Workspace/<client>   # default_workspace parent
 git clone -b develop https://github.com/example-org/example-api.git
 
 cd <client>-meta
-launchpad scaffold --repo example-api --dry-run --force
-launchpad scaffold --repo example-api --apply --force
+launchpad scaffold-app --repo example-api --dry-run --force
+launchpad scaffold-app --repo example-api --apply --force
 ```
 
 **`--force` does not delete the folder.** It generates the cookiecutter output in a temp directory and **merges** foundation files into the existing repo:
@@ -212,7 +212,7 @@ git push
 **One-shot** (generate + gitflow + harness) — Path A only, or after Path B overlay:
 
 ```bash
-launchpad scaffold --repo example-api --apply --with-gitflow --with-harness
+launchpad scaffold-app --repo example-api --apply --apply --force
 ```
 
 CLI overrides (one-off): `--option has_kafka=yes` (repeatable).
@@ -259,8 +259,8 @@ Applies branch protection, merge policy, PR/issue templates, CI workflow stubs f
 ## Step 6 — Harness sync and verify
 
 ```bash
-launchpad sync-harness --repo example-api --apply
-launchpad verify-harness --repo example-api
+launchpad sync-harness-app --repo example-api --apply
+launchpad verify-harness-app --repo example-api
 ```
 
 Commit harness artifacts in the app repo:
@@ -306,7 +306,7 @@ Replace `example-api`, `autrio10x`, and client id for each new repo.
 
 ```bash
 cd ~/Workspace/<client>/<client>-meta
-launchpad scaffold --repo example-api --apply
+launchpad scaffold-app --repo example-api --apply
 
 cd ../example-api
 git init && git checkout -b develop
@@ -322,7 +322,7 @@ cd ~/Workspace/<client>
 git clone -b develop https://github.com/example-org/example-api.git
 
 cd <client>-meta
-launchpad scaffold --repo example-api --apply --force
+launchpad scaffold-app --repo example-api --apply --force
 
 cd ../example-api
 git add -A && git commit -m "chore: overlay python-fastapi-foundation"
@@ -334,8 +334,8 @@ git push
 ```bash
 cd ~/Workspace/<client>/<client>-meta
 launchpad setup-gitflow --repo example-api --apply
-launchpad sync-harness --repo example-api --apply
-launchpad verify-harness --repo example-api
+launchpad sync-harness-app --repo example-api --apply
+launchpad verify-harness-app --repo example-api
 
 # App repo — harness commit + dev setup
 cd ../example-api
@@ -350,12 +350,12 @@ cp .env.example .env && make setup && make check && make test
 ```markdown
 - [ ] Repo in org YAML + harness YAML (+ gitflow YAML)
 - [ ] harness `scaffold:` block reviewed for cookiecutter options
-- [ ] `launchpad scaffold --repo <name> --dry-run` reviewed
-- [ ] Path A: `launchpad scaffold --repo <name> --apply` **or** Path B: `git clone -b develop` then `--apply --force`
+- [ ] `launchpad scaffold-app --repo <name> --dry-run` reviewed
+- [ ] Path A: `launchpad scaffold-app --repo <name> --apply` **or** Path B: `git clone -b develop` then `--apply --force`
 - [ ] `git push` to `https://github.com/<org>/<repo>.git` (develop)
 - [ ] `launchpad setup-gitflow --repo <name> --apply` (issue templates + QA access via `defaults.grant_push`)
-- [ ] `launchpad sync-harness --repo <name> --apply`
-- [ ] `launchpad verify-harness --repo <name>`
+- [ ] `launchpad sync-harness-app --repo <name> --apply`
+- [ ] `launchpad verify-harness-app --repo <name>`
 - [ ] Harness commit pushed on app repo
 - [ ] `make setup && make check && make test` green
 - [ ] Spec handoff PR merged
@@ -371,7 +371,7 @@ cp .env.example .env && make setup && make check && make test
 | `python-backend` | `python-fastapi-foundation` | Implemented |
 | `frontend` (`nextjs-bff` alias) | `nextjs-bff-foundation` (planned) | Stub |
 
-Same command shape when frontend lands: `launchpad scaffold --repo example-ops` with `profile: frontend` in harness.
+Same command shape when frontend lands: `launchpad scaffold-app --repo example-ops` with `profile: frontend` in harness.
 
 ---
 

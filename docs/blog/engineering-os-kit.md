@@ -108,7 +108,7 @@ agent_skills:
 
 **Rules** stay private per customer — they're your constitution, not ours to ship. **Skills** come from public [prayog-skills](https://github.com/drivestream-lab/prayog-skills) — the dev workflow bundle (`/pre-implement`, `/verify`, etc.).
 
-`sync-harness` writes the pin, `AGENTS.md`, the rules submodule, and seeds skills into `.agents/skills/` (gitignored; reproducible from the pin). `verify-harness` checks the repo still matches tenant config.
+`sync-harness-app` writes the pin, `AGENTS.md`, the rules submodule, and seeds skills into `.agents/skills/` (gitignored; reproducible from the pin). `verify-harness-app` checks the repo still matches tenant config.
 
 ### PM skills vs dev skills (don't mix lanes)
 
@@ -183,7 +183,7 @@ The **kit** (`launchpad` repo) never contains customer PRDs or private rules. Th
 |---|------------|------------|
 | **Fit** | Strong — you're installing the OS | Partial — you're retrofitting rails |
 | **Meta** | Copy skeleton, rename org | Often exists; add factory YAML + playbook |
-| **App repos** | `bootstrap-org` creates them | Already exist; `sync-harness` + spec layout graft |
+| **App repos** | `bootstrap-org` creates them | Already exist; `sync-harness-app` + spec layout graft |
 | **Git policy** | `setup-gitflow --apply` | Same, but team habits lag enforcement |
 | **Spec debt** | Low if you start with SDD | High — as-built backfill is manual |
 
@@ -214,7 +214,7 @@ If this post is useful, here's the compressed runbook:
 3. **Edit `config/*.yaml`** — org, repos, gitflow, harness, project
 4. **Push meta** — factory doesn't create your meta repo
 5. **`launchpad setup-platform --apply`** — repos, teams, gitflow, board
-6. **Clone app repos as siblings** → **`launchpad sync-harness --repo <app> --apply`**
+6. **Clone app repos as siblings** → **`launchpad sync-harness-app --repo <app> --apply`**
 7. **First INIT** — PRD in `prd/`, manifest in `work/`, `seed-work --apply`
 8. **Dev** — spec handoff PRs, then `feature/INIT-*` implementation PRs with verify
 

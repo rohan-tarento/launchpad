@@ -118,7 +118,13 @@ class OnboardingApplyTests(unittest.TestCase):
             save_onboarding_spec(spec_path, spec)
             spec = load_onboarding_spec(spec_path)
 
-            with mock.patch.dict(os.environ, {"HOME": tmp}):
+            with mock.patch.dict(
+                os.environ,
+                {
+                    "HOME": tmp,
+                    "LAUNCHPAD_META_FOUNDATION": str(ROOT / "tests" / "fixtures" / "scaffold-meta-minimal"),
+                },
+            ):
                 run_apply(
                     spec,
                     spec_path=spec_path,
@@ -131,7 +137,10 @@ class OnboardingApplyTests(unittest.TestCase):
             self.assertTrue((meta / "config/harness-kola-lab.yaml").is_file())
             self.assertTrue((meta / "templates/AGENTS.md").is_file())
             self.assertTrue((meta / "playbook/README.md").is_file())
-            self.assertIn("kola-lab", (meta / "config/org-kola-lab.yaml").read_text())
+            harness_text = (meta / "config/harness-kola-lab.yaml").read_text()
+            self.assertIn("meta:", harness_text)
+            self.assertIn("meta-pm:", harness_text)
+            self.assertIn("community_skills", harness_text)
             org_text = (meta / "config/org-kola-lab.yaml").read_text()
             self.assertIn("qa-team", org_text)
             self.assertIn("pe-team", org_text)

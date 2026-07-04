@@ -167,6 +167,23 @@ def _repo_entry(cfg: dict[str, Any], repo_name: str) -> dict[str, Any]:
     }
 
 
+def _meta_profile_entry(cfg: dict[str, Any]) -> dict[str, Any]:
+    meta = cfg.get("meta") or {}
+    if not isinstance(meta, dict) or not meta:
+        raise HarnessError("harness config missing meta: block")
+    profile_name = str(meta.get("profile", ""))
+    profiles = cfg.get("profiles") or {}
+    if profile_name not in profiles:
+        raise HarnessError(f"profile {profile_name!r} missing for meta harness")
+    profile = profiles[profile_name]
+    if not isinstance(profile, dict):
+        raise HarnessError(f"invalid profile {profile_name!r}")
+    return {
+        "profile_name": profile_name,
+        "profile": profile,
+    }
+
+
 def _agent_skills_spec(profile: dict[str, Any]) -> dict[str, Any]:
     spec = profile.get("agent_skills") or {}
     if not spec:
@@ -357,14 +374,17 @@ def _normalize_skills_lock(
     agent_skills: dict[str, Any],
     *,
     dry_run: bool,
+    community_skills: list[dict[str, Any]] | None = None,
 ) -> None:
-    """Keep only the harness bundle in skills-lock.json with canonical github source."""
+    """Keep harness bundle + community skills in skills-lock.json with canonical sources."""
     lock_name = str(agent_skills.get("lock_file", "skills-lock.json"))
     path = repo_path / lock_name
     allowed = [str(s) for s in (agent_skills.get("skills") or [])]
     paths_map = agent_skills.get("skill_paths") or {}
     repo_slug = str(agent_skills.get("repo", "drivestream-lab/prayog-skills"))
-    print(f"[agent_skills] normalize {lock_name} → {allowed}")
+    community = community_skills or []
+    community_names = [str(item.get("skill", "")) for item in community if item.get("skill")]
+    print(f"[agent_skills] normalize {lock_name} → {allowed + community_names}")
     if dry_run:
         return
     prior = _read_skills_lock(repo_path, lock_name)
@@ -381,6 +401,15 @@ def _normalize_skills_lock(
         if name in prior_skills and prior_skills[name].get("computedHash"):
             entry["computedHash"] = prior_skills[name]["computedHash"]
         out_skills[name] = entry
+    for item in community:
+        name = str(item.get("skill", ""))
+        source = str(item.get("source", ""))
+        if not name or not source:
+            continue
+        entry = {"source": source, "sourceType": "github"}
+        if name in prior_skills and prior_skills[name].get("computedHash"):
+            entry["computedHash"] = prior_skills[name]["computedHash"]
+        out_skills[name] = entry
     payload = {"version": prior.get("version", 1), "skills": out_skills}
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
@@ -391,19 +420,35 @@ def _install_agent_skills(
     agent_skills: dict[str, Any],
     *,
     dry_run: bool,
+    community_skills: list[dict[str, Any]] | None = None,
 ) -> None:
     skills = [str(s) for s in (agent_skills.get("skills") or [])]
+    community = community_skills or []
+    community_names = [str(item.get("skill", "")) for item in community if item.get("skill")]
     install_rel = str(agent_skills.get("install_path", ".agents/skills"))
-    _prune_agent_skills(repo_path, install_rel, set(skills), dry_run=dry_run)
+    _prune_agent_skills(repo_path, install_rel, set(skills + community_names), dry_run=dry_run)
     cmd = [*_SKILLS_CLI, "add", str(source_root), "-a", "cursor", "-y"]
     for name in skills:
         cmd.extend(["-s", name])
     print(f"[agent_skills] install {skills}")
     _run_cmd(cmd, cwd=repo_path, dry_run=dry_run)
-    _normalize_skills_lock(repo_path, agent_skills, dry_run=dry_run)
+    for item in community:
+        source = str(item.get("source", ""))
+        skill = str(item.get("skill", ""))
+        if not source or not skill:
+            continue
+        comm_cmd = [*_SKILLS_CLI, "add", source, "--skill", skill, "-a", "cursor", "-y"]
+        print(f"[community_skills] install {skill} from {source}")
+        _run_cmd(comm_cmd, cwd=repo_path, dry_run=dry_run)
+    _normalize_skills_lock(
+        repo_path,
+        agent_skills,
+        dry_run=dry_run,
+        community_skills=community,
+    )
 
 
-def sync_harness(
+def sync_harness_app(
     *,
     config_path: Path | str,
     repo_name: str,
@@ -428,7 +473,7 @@ def sync_harness(
     if not rules_ref:
         raise HarnessError(f"profile {entry['profile_name']!r} missing rules ref")
 
-    print(f"[harness] sync {repo_name} profile={entry['profile_name']} dry_run={dry_run}")
+    print(f"[harness] sync-app {repo_name} profile={entry['profile_name']} dry_run={dry_run}")
 
     pin_tpl_name = str(profile.get("pin_template", "templates/harness-pin.yaml"))
     agents_tpl_name = str(profile.get("agents_template", "templates/AGENTS.md"))
@@ -490,10 +535,90 @@ def sync_harness(
     if dry_run:
         print(f"[done] dry-run — re-run with --apply to write {repo_path}")
     else:
-        print(f"[done] synced harness at {repo_path}")
+        print(f"[done] synced app harness at {repo_path}")
         print("  → local: .agents/skills/ ready for Cursor slash commands")
         print("  → optional git PR (chore/sync-harness-pins): .harness-pin.yaml, AGENTS.md,")
         print("    skills-lock.json — skip when INIT/spec PR only")
+
+
+def sync_harness_meta(
+    *,
+    config_path: Path | str,
+    dry_run: bool = True,
+    skip_agents: bool = False,
+) -> None:
+    cfg = load_harness_config(config_path)
+    entry = _meta_profile_entry(cfg)
+    profile = entry["profile"]
+    repo_path = tenant_root()
+
+    if not (repo_path / ".git").is_dir():
+        raise HarnessError(
+            f"no git repo at {repo_path} — link or clone meta first (setup-platform / clone-repos)"
+        )
+
+    agent_skills = _agent_skills_spec(profile)
+    community_skills = list(profile.get("community_skills") or [])
+    agent_ref = str(agent_skills.get("ref", ""))
+
+    print(f"[harness] sync-meta profile={entry['profile_name']} dry_run={dry_run}")
+
+    pin_tpl_name = str(profile.get("pin_template", "templates/harness-pin.meta.yaml"))
+    agents_tpl_name = str(profile.get("agents_template", "templates/AGENTS.meta.md"))
+    try:
+        pin_tpl = resolve_template(pin_tpl_name)
+        agents_tpl = resolve_template(agents_tpl_name)
+    except FileNotFoundError as exc:
+        raise HarnessError(str(exc)) from exc
+
+    skill_names = [str(s) for s in (agent_skills.get("skills") or [])]
+    community_names = [str(item.get("skill", "")) for item in community_skills if item.get("skill")]
+    all_slash = skill_names + community_names
+
+    values = {
+        "REPO": repo_path.name,
+        "META_REPO": repo_path.name,
+        "ORG": str(cfg.get("org", "")),
+        "DISPLAY_NAME": str(cfg.get("org", "")),
+        "RULES_REF": "",
+        "RULES_PIN": "",
+        "AGENT_SKILLS_REF": agent_ref,
+        "AGENT_SKILLS_LIST": _skills_list_yaml(skill_names),
+        "AGENT_SKILLS_SLASH_LIST": ", ".join(f"`/{s}`" for s in all_slash),
+        "SERVICE_NAME": repo_path.name,
+        "CONDA_ENV": "",
+        "VERIFY_SMOKE": "N/A",
+        "CHECK_COMMAND": "",
+        "TEST_COMMAND": "",
+        "SETUP_NOTES": "",
+        "PROFILE": entry["profile_name"],
+    }
+
+    _write_pin(repo_path, pin_tpl, values, dry_run=dry_run)
+    if not skip_agents:
+        _write_agents(repo_path, agents_tpl, values, dry_run=dry_run)
+
+    ws = repo_path.parent
+    prayog_source = _materialize_prayog_source(ws, agent_skills, dry_run=dry_run)
+    try:
+        _remove_obsolete_harness_dir(repo_path, dry_run=dry_run)
+        _ensure_gitignore_entries(repo_path, dry_run=dry_run)
+        _install_agent_skills(
+            repo_path,
+            prayog_source,
+            agent_skills,
+            dry_run=dry_run,
+            community_skills=community_skills,
+        )
+    finally:
+        if prayog_source.name.startswith("prayog-skills-") and not dry_run:
+            shutil.rmtree(prayog_source, ignore_errors=True)
+
+    if dry_run:
+        print(f"[done] dry-run — re-run with --apply to write {repo_path}")
+    else:
+        print(f"[done] synced meta harness at {repo_path}")
+        print("  → commit .harness-pin.yaml, skills-lock.json, AGENTS.md — not .agents/skills/")
 
 
 def _read_skills_lock(repo_path: Path, lock_name: str) -> dict[str, Any]:
@@ -506,13 +631,13 @@ def _read_skills_lock(repo_path: Path, lock_name: str) -> dict[str, Any]:
         return {}
 
 
-def verify_harness(
+def verify_harness_app(
     *,
     config_path: Path | str,
     repo_name: str = "",
     workspace: Path | None = None,
 ) -> list[str]:
-    """Return list of error messages (empty = pass)."""
+    """Return list of error messages for app repos (empty = pass)."""
     cfg = load_harness_config(config_path)
     ws = _resolve_workspace(cfg, workspace)
     repos_cfg = cfg.get("repos") or {}
@@ -581,7 +706,7 @@ def verify_harness(
         legacy = str(profile.get("legacy_skills_submodule_path", _LEGACY_SKILLS_DEFAULT))
         if legacy and _is_submodule(repo_path, legacy):
             errors.append(
-                f"{prefix} legacy skills submodule {legacy} still present — run sync-harness --apply"
+                f"{prefix} legacy skills submodule {legacy} still present — run sync-harness-app --apply"
             )
 
         lock = _read_skills_lock(repo_path, lock_name)
@@ -623,6 +748,146 @@ def verify_harness(
     return errors
 
 
+def verify_harness_meta(
+    *,
+    config_path: Path | str,
+) -> list[str]:
+    """Return list of error messages for tenant meta (empty = pass)."""
+    cfg = load_harness_config(config_path)
+    try:
+        entry = _meta_profile_entry(cfg)
+    except HarnessError as exc:
+        return [str(exc)]
+
+    profile = entry["profile"]
+    repo_path = tenant_root()
+    prefix = f"{repo_path.name}:"
+    errors: list[str] = []
+
+    if not (repo_path / ".git").is_dir():
+        errors.append(f"{prefix} no git checkout at {repo_path}")
+        return errors
+
+    try:
+        agent_skills = _agent_skills_spec(profile)
+    except HarnessError as exc:
+        errors.append(f"{prefix} {exc}")
+        return errors
+
+    community_skills = list(profile.get("community_skills") or [])
+    agent_ref = str(agent_skills.get("ref", ""))
+    skill_names = [str(s) for s in (agent_skills.get("skills") or [])]
+    community_names = [str(item.get("skill", "")) for item in community_skills if item.get("skill")]
+    all_skills = skill_names + community_names
+    lock_name = str(agent_skills.get("lock_file", "skills-lock.json"))
+    install_rel = str(agent_skills.get("install_path", ".agents/skills"))
+
+    pin_path = repo_path / ".harness-pin.yaml"
+    if not pin_path.is_file():
+        errors.append(f"{prefix} missing .harness-pin.yaml")
+    else:
+        pin_text = pin_path.read_text(encoding="utf-8")
+        if agent_ref and f"ref: {agent_ref}" not in pin_text:
+            errors.append(f"{prefix} .harness-pin.yaml agent_skills ref != {agent_ref}")
+        for sk in all_skills:
+            if sk not in pin_text:
+                errors.append(f"{prefix} .harness-pin.yaml missing skill {sk!r}")
+
+    lock = _read_skills_lock(repo_path, lock_name)
+    locked = lock.get("skills") if isinstance(lock.get("skills"), dict) else {}
+    if not locked:
+        errors.append(f"{prefix} missing or empty {lock_name}")
+    else:
+        for sk in all_skills:
+            if sk not in locked:
+                errors.append(f"{prefix} {lock_name} missing skill {sk!r}")
+            skill_md = repo_path / install_rel / sk / "SKILL.md"
+            if not skill_md.is_file():
+                errors.append(
+                    f"{prefix} missing installed skill {install_rel}/{sk}/SKILL.md "
+                    f"(run sync-harness-meta --apply)"
+                )
+
+    agents_path = repo_path / "AGENTS.md"
+    if not agents_path.is_file():
+        errors.append(f"{prefix} missing AGENTS.md")
+    else:
+        agents = agents_path.read_text(encoding="utf-8")
+        if agent_ref and agent_ref not in agents:
+            errors.append(f"{prefix} AGENTS.md missing agent_skills ref {agent_ref}")
+        for cmd in ("/prd", "/validate-requirements", "/generate-work-manifest"):
+            if cmd not in agents:
+                errors.append(f"{prefix} AGENTS.md missing {cmd}")
+
+    gitignore = repo_path / ".gitignore"
+    if gitignore.is_file():
+        if ".agents/skills/" not in gitignore.read_text(encoding="utf-8"):
+            errors.append(f"{prefix} .gitignore missing .agents/skills/ entry")
+    else:
+        errors.append(f"{prefix} missing .gitignore with .agents/skills/")
+
+    return errors
+
+
+def run_sync_app(
+    *,
+    config_path: Path | str,
+    repo_name: str,
+    workspace: Path | None = None,
+    dry_run: bool = True,
+    skip_agents: bool = False,
+) -> None:
+    sync_harness_app(
+        config_path=config_path,
+        repo_name=repo_name,
+        workspace=workspace,
+        dry_run=dry_run,
+        skip_agents=skip_agents,
+    )
+
+
+def run_sync_meta(
+    *,
+    config_path: Path | str,
+    dry_run: bool = True,
+    skip_agents: bool = False,
+) -> None:
+    sync_harness_meta(
+        config_path=config_path,
+        dry_run=dry_run,
+        skip_agents=skip_agents,
+    )
+
+
+def run_verify_app(
+    *,
+    config_path: Path | str,
+    repo_name: str = "",
+    workspace: Path | None = None,
+) -> None:
+    errors = verify_harness_app(config_path=config_path, repo_name=repo_name, workspace=workspace)
+    if not errors:
+        scope = repo_name or "all repos"
+        print(f"[ok] harness-app verify passed ({scope})")
+        return
+    for msg in errors:
+        print(f"FAIL: {msg}")
+    raise HarnessError(f"harness-app verify failed ({len(errors)} issue(s))")
+
+
+def run_verify_meta(
+    *,
+    config_path: Path | str,
+) -> None:
+    errors = verify_harness_meta(config_path=config_path)
+    if not errors:
+        print("[ok] harness-meta verify passed")
+        return
+    for msg in errors:
+        print(f"FAIL: {msg}")
+    raise HarnessError(f"harness-meta verify failed ({len(errors)} issue(s))")
+
+
 def run_sync(
     *,
     config_path: Path | str,
@@ -631,7 +896,7 @@ def run_sync(
     dry_run: bool = True,
     skip_agents: bool = False,
 ) -> None:
-    sync_harness(
+    run_sync_app(
         config_path=config_path,
         repo_name=repo_name,
         workspace=workspace,
@@ -646,11 +911,8 @@ def run_verify(
     repo_name: str = "",
     workspace: Path | None = None,
 ) -> None:
-    errors = verify_harness(config_path=config_path, repo_name=repo_name, workspace=workspace)
-    if not errors:
-        scope = repo_name or "all repos"
-        print(f"[ok] harness verify passed ({scope})")
-        return
-    for msg in errors:
-        print(f"FAIL: {msg}")
-    raise HarnessError(f"harness verify failed ({len(errors)} issue(s))")
+    run_verify_app(
+        config_path=config_path,
+        repo_name=repo_name,
+        workspace=workspace,
+    )

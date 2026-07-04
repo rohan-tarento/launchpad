@@ -427,6 +427,7 @@ def load_harness_config(path: Path | str) -> dict[str, Any]:
         "default_workspace": cfg.get("default_workspace", ".."),
         "profiles": profiles,
         "repos": repos,
+        "meta": dict(cfg.get("meta") or {}) if isinstance(cfg.get("meta"), dict) else {},
         "approved_pairs": list(cfg.get("approved_pairs") or []),
         "path": str(path),
     }

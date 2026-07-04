@@ -130,8 +130,8 @@ Gitflow policy is **only** in `gitflow-<org>.yaml` — no CLI policy flags.
 Clone app repos as siblings of meta, then:
 
 ```bash
-launchpad sync-harness --repo diet_coke-api --apply
-launchpad verify-harness --repo diet_coke-api
+launchpad sync-harness-app --repo diet_coke-api --apply
+launchpad verify-harness-app --repo diet_coke-api
 ```
 
 See [playbook/harness-pins.md](../playbook/harness-pins.md) and [playbook/sdd-workflow.md](../playbook/sdd-workflow.md).
@@ -157,7 +157,7 @@ In **`<client>-meta`** (PM lane):
 | Create app repos | ✓ `bootstrap-org` | |
 | Teams, gitflow, board | ✓ `setup-platform` | Add people in UI |
 | Issues | ✓ `seed-work` | PRD + manifest |
-| Harness | ✓ `sync-harness` | Clone repos first |
+| Harness | ✓ `sync-harness-app` | Clone repos first |
 
 ---
 

@@ -12,7 +12,7 @@ Checklist. Full walkthrough: **[setup-guide.md](setup-guide.md)**. Wizard (recom
 6. **`launchpad setup-platform --config config/platform-<org>.yaml --apply`** — creates **all** gitflow repos (meta + apps), seeds `main`/`develop`, sets default branch `develop`
 7. **`launchpad verify-platform`**
 8. **PM:** PR local meta content → `<client>-meta/develop` · **Dev:** scaffold app repos → PR to `develop`
-9. **`launchpad sync-harness --repo <app> --apply`**
+9. **`launchpad sync-harness-app --repo <app> --apply`**
 10. PRD → `work/INIT-*.yaml` → **`launchpad seed-work --apply`**
 
 ## Workspace layout

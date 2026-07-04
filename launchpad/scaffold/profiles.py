@@ -95,6 +95,34 @@ _register(
     )
 )
 
+_TENANT_META_KEYS = frozenset(
+    {
+        "meta_repo",
+        "client_id",
+        "display_name",
+        "org",
+        "forge_type",
+    }
+)
+
+_TENANT_META_DEFAULTS: dict[str, str] = {
+    "client_id": "example",
+    "display_name": "Example",
+    "org": "example-org",
+    "forge_type": "github",
+}
+
+_register(
+    ScaffoldProfile(
+        name="tenant-meta",
+        engine="cookiecutter",
+        template_env="LAUNCHPAD_META_FOUNDATION",
+        template_default="gh:drivestream-lab/tenant-meta-foundation",
+        cookiecutter_keys=_TENANT_META_KEYS,
+        defaults=_TENANT_META_DEFAULTS,
+    )
+)
+
 
 def list_profiles(*, implemented_only: bool = False) -> list[str]:
     names = sorted(_PROFILES.keys())

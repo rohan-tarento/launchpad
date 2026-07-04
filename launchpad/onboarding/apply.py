@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import shutil
 from pathlib import Path
 
 import launchpad
@@ -16,18 +15,26 @@ from launchpad.onboarding.plan import build_plan, format_plan
 from launchpad.onboarding.registry import patch_clients_registry, write_secrets_stub
 from launchpad.onboarding.render import all_config_renders, render_playbook_readme
 from launchpad.onboarding.templates_gen import all_template_renders
-from launchpad.paths import kit_root
 from launchpad import platform
 
 
-def _copy_skeleton(meta_path: Path) -> None:
-    skeleton = kit_root() / "examples" / "tenant-meta"
-    if not skeleton.is_dir():
-        raise OnboardingError(f"kit skeleton not found: {skeleton}")
-    meta_path.parent.mkdir(parents=True, exist_ok=True)
-    if meta_path.is_dir():
+def _scaffold_meta_skeleton(ctx: OnboardingContext, meta_path: Path) -> None:
+    if meta_path.is_dir() and any(meta_path.iterdir()):
         return
-    shutil.copytree(skeleton, meta_path)
+    from launchpad.scaffold.meta_run import run_scaffold_meta
+
+    run_scaffold_meta(
+        meta_repo=ctx.meta_repo,
+        target_dir=meta_path,
+        options={
+            "client_id": ctx.client_id,
+            "display_name": ctx.display_name,
+            "org": ctx.org,
+            "forge_type": ctx.forge_type,
+        },
+        dry_run=False,
+        force=False,
+    )
 
 
 def _write_files(meta_path: Path, files: dict[str, str]) -> list[str]:
@@ -73,7 +80,7 @@ def run_apply(
         print(f"WARN: {w}")
     print("")
 
-    _copy_skeleton(meta_path)
+    _scaffold_meta_skeleton(ctx, meta_path)
     _remove_example_configs(meta_path, org)
 
     files: dict[str, str] = {}
@@ -127,5 +134,6 @@ def run_apply(
     print("Manual next steps:")
     print(f"  1. Edit {ENV_D_DIR / (client_id + '.env')} — paste forge token")
     print(f"  2. launchpad --client {client_id} setup-platform --config config/platform-{org}.yaml --apply")
-    print(f"  3. PM: PR local meta content → {ctx.meta_repo}/develop")
-    print(f"  4. Dev: scaffold app repos → PR to develop; launchpad sync-harness --apply")
+    print(f"  3. launchpad --client {client_id} sync-harness-meta --apply")
+    print(f"  4. PM: PR local meta content → {ctx.meta_repo}/develop")
+    print(f"  5. Dev: launchpad scaffold-app --repo <app> --apply --force; sync-harness-app --apply")

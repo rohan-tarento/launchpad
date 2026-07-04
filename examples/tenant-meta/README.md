@@ -1,26 +1,17 @@
-# Example tenant meta
+# Example tenant meta (smoke fixture)
 
-**Single tenant skeleton** for Launchpad — copy once per client, then rename org/repos in `config/`.
+**Greenfield:** use `launchpad onboard apply` — it cookiecutters from [drivestream-lab/tenant-meta-foundation](https://github.com/drivestream-lab/tenant-meta-foundation) and renders `config/*.yaml` from your onboarding spec.
 
-```bash
-cp -r examples/tenant-meta ~/Workspace/handson/<client>/<client>-meta
-cd ~/Workspace/handson/<client>/<client>-meta
-```
-
-1. Replace `example-org` with your forge org in all `config/*.yaml`
-2. Rename config files to match your org slug (e.g. `org-kd_diet_coke.yaml`, `platform-kd_diet_coke.yaml`)
-3. Set harness pins to **your private** `*-rules` repo + [prayog-skills](https://github.com/drivestream-lab/prayog-skills)
-4. Register the tenant on your machine — [multi-laptop.md](../../docs/multi-laptop.md):
+Clone the foundation locally (lab layout):
 
 ```bash
-# ~/.config/launchpad/clients.yaml — add path to this repo
-# ~/.config/launchpad/env.d/<client-id>.env — GITHUB_TOKEN
-launchpad doctor
+git clone git@github.com:drivestream-lab/tenant-meta-foundation.git \
+  ~/Workspace/handson/drivestream-lab/tenant-meta-foundation
 ```
 
-5. `launchpad setup-platform --config config/platform-<org>.yaml --dry-run` then `--apply`
+Or set `LAUNCHPAD_META_FOUNDATION` to your clone path.
 
-**Local smoke** (no PAT): from launchpad repo root, `./scripts/smoke-local.sh` uses this tree via `LAUNCHPAD_TENANT_ROOT`.
+This tree remains for **local smoke** (`LAUNCHPAD_TENANT_ROOT=examples/tenant-meta`, `./scripts/smoke-local.sh`).
 
 Full walkthrough: [docs/setup-guide.md](../../docs/setup-guide.md) · checklist: [docs/new-client.md](../../docs/new-client.md).
 

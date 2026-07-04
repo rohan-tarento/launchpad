@@ -114,7 +114,7 @@ def build_plan(spec: dict, *, spec_path: Path) -> OnboardingPlan:
 
     plan.manual_steps = [
         f"Create forge org/group `{org}` (admin access)",
-        "Create private *-rules repos and tag initial refs before verify-harness",
+        "Create private *-rules repos and tag initial refs before verify-harness-app",
         f"Paste forge token in {ENV_D_DIR / f'{client_id}.env'} (never commit)",
         f"Create remote `{org}/{spec['meta_repo']}` and push after apply",
     ]
@@ -132,9 +132,12 @@ def build_plan(spec: dict, *, spec_path: Path) -> OnboardingPlan:
         plan.next_commands.append(
             f"launchpad --client {client_id} setup-platform --config config/platform-{org}.yaml --apply"
         )
+    plan.next_commands.append(
+        f"launchpad --client {client_id} sync-harness-meta --dry-run"
+    )
     for repo in spec["repos"][:2]:
         plan.next_commands.append(
-            f"launchpad --client {client_id} sync-harness --repo {repo['name']} --dry-run"
+            f"launchpad --client {client_id} sync-harness-app --repo {repo['name']} --dry-run"
         )
 
     if meta_path.is_dir():

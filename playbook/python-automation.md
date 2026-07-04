@@ -135,9 +135,9 @@ All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub.
 | `bootstrap-project` | Board + fields + issue types (`project-*.yaml`) |
 | `seed-work` | Backlog from `WorkManifest` (`work/*.yaml`) |
 | `seed-issues` | Alias for `seed-work` |
-| `sync-harness` | Pin rules submodule, seed prayog-skills dev bundle, `.harness-pin.yaml`, `AGENTS.md` |
+| `sync-harness-app` | Pin rules submodule, seed prayog-skills dev bundle, `.harness-pin.yaml`, `AGENTS.md` |
 | `scaffold` | Generate app repo from profile cookiecutter (`python-backend`, …) — [greenfield-app-repo.md](greenfield-app-repo.md) |
-| `verify-harness` | Check harness pins and submodules in app repos |
+| `verify-harness-app` | Check harness pins and submodules in app repos |
 | `publish-wiki` | Publish `wiki/*.md` to GitHub Wiki (`WikiConfig` YAML) |
 | `clients` | List configured clients from `~/.config/launchpad/clients.yaml` |
 
@@ -176,16 +176,16 @@ launchpad bootstrap-project --config config/project-example.yaml --apply
 | `project-{org}.yaml` | `ProjectConfig` | `bootstrap-project`, `seed-work` (fields) |
 | `platform-{org}.yaml` | `PlatformManifest` | `setup-platform` |
 | `verify-platform-{org}.yaml` | `VerifyManifest` | `verify-platform` |
-| `harness-{org}.yaml` | `HarnessConfig` | `sync-harness`, `verify-harness` |
+| `harness-{org}.yaml` | `HarnessConfig` | `sync-harness-app`, `verify-harness-app` |
 
 Backlog: `work/*.yaml` with `kind: WorkManifest` — **not** in platform YAML.
 
 Harness (no GitHub API — works without PAT):
 
 ```bash
-launchpad sync-harness --repo example-api --dry-run
-launchpad sync-harness --repo example-api --apply
-launchpad verify-harness --repo example-api
+launchpad sync-harness-app --repo example-api --dry-run
+launchpad sync-harness-app --repo example-api --apply
+launchpad verify-harness-app --repo example-api
 ```
 
 See [harness-pins.md](harness-pins.md).

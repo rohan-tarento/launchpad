@@ -9,7 +9,33 @@ org: example-org
 
 default_workspace: ..
 
+meta:
+  profile: meta-pm
+
 profiles:
+  meta-pm:
+    agent_skills:
+      repo: drivestream-lab/prayog-skills
+      url: https://github.com/drivestream-lab/prayog-skills.git
+      ref: v0.3.0
+      skills:
+        - validate-requirements
+        - review-findings
+        - update-documents
+        - generate-work-manifest
+      skill_paths:
+        validate-requirements: skills/pm/validate-requirements/SKILL.md
+        review-findings: skills/pm/review-findings/SKILL.md
+        update-documents: skills/pm/update-documents/SKILL.md
+        generate-work-manifest: skills/pm/generate-work-manifest/SKILL.md
+      install_path: .agents/skills
+      lock_file: skills-lock.json
+    community_skills:
+      - source: github/awesome-copilot
+        skill: prd
+    agents_template: templates/AGENTS.meta.md
+    pin_template: templates/harness-pin.meta.yaml
+
   python-backend:
     rules:
       repo: your-org/service-rules
