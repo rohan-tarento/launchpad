@@ -27,8 +27,10 @@ rules:
 agent_skills:
   repo: drivestream-lab/prayog-skills
   ref: v0.3.0
+  profile: python-backend
   skills:
-    - spec-feasibility-review
+    - spec-draft
+    - initiative-feasibility
     - spec-technical-review
     - spec-implementation-plan
     - pre-implement
@@ -37,7 +39,7 @@ agent_skills:
     - verify
 ```
 
-Bump via harness PR after platform publishes a new approved rules + skills pair.
+`skills` in the pin file are **resolved at sync** from prayog @ `ref` (SSOT: `profiles/python-backend.yaml` or meta-pm tree convention). Tenant harness config only pins `repo`, `url`, `ref`, and `profile`.
 
 ---
 
@@ -47,8 +49,10 @@ Document your org's approved `rules` + `agent_skills` ref pairs in tenant `confi
 
 | rules | agent_skills | Notes |
 |-------|--------------|-------|
-| v1.0.0 | v0.3.0 | Current — 7-skill dev bundle (spec-feasibility, spec-technical, spec-implementation-plan, pre-implement, loop-spec, ground-spec, verify) |
+| v1.0.0 | v0.3.0 | Current — 8-skill dev bundle (`development_skills` in prayog `profiles/python-backend.yaml`) |
 | v1.0.0 | v0.2.0 | Superseded — 4-skill dev bundle |
+
+Bump via harness PR after platform publishes a new approved rules + skills pair.
 
 ---
 
