@@ -23,7 +23,7 @@ Random branch names (`my-test`, `john-fix`, `tmp`) are **not** allowed.
 
 | Prefix | Target PR | Example |
 |--------|-----------|---------|
-| `feature/` | `develop` | `feature/INIT-EXAMPLE-002-example-api-jwt` |
+| `feature/` | `develop` | `feature/INIT-EXAMPLE-002-w1-jwt-login` |
 | `fix/` | `develop` (or `main` for prod fix flow) | `fix/registry-404-mapping` |
 | `hotfix/` | `main` (then backport to `develop`) | `hotfix/compose-image-pin` |
 | `release/` | `main` (optional) | `release/2026.06.0` |
@@ -38,30 +38,26 @@ Random branch names (`my-test`, `john-fix`, `tmp`) are **not** allowed.
 - **Letters, digits**, `.`, `_`, `-` only (initiative ids use standard casing: `BOOTSTRAP-001`, `INIT-…`)  
 - Must be at least one character after `/`  
 - Use **kebab-case** after the initiative segment where possible
-- **Max readable length:** keep branch names under ~50 characters — see short-code rule below
 
-### Short-code rule
+### Initiative segment
 
-Initiative IDs longer than **12 characters** must register a `short_code` in the
-WorkManifest before the first branch is created. Use the short-code in all branch
-names — never the full initiative ID.
+All product INIT branches use `INIT-{COMPONENT}-{NUMBER}` as the canonical identity segment:
 
-| Full initiative ID | Short-code | Example branch |
-|-------------------|------------|----------------|
-| `INIT-MANTHAN-PLATFORM-T1-001` | `MNT-T1-001` | `feature/MNT-T1-001-w1-extraction` |
-| `INIT-KOLA-REGISTRY-002` | `KOL-002` | `feature/KOL-002-w2-storage` |
-| `PRD-001` | `PRD-001` (already short) | `feature/PRD-001-w1-extraction` |
+| Placeholder | Meaning | Example |
+|-------------|---------|---------|
+| `COMPONENT` | Service `branch_code` from `service-catalog.yaml` — 2–7 uppercase chars | `MOBBOT`, `KAVACH`, `MNTHAN` |
+| `NUMBER` | Initiative sequence number — 1–7 digits | `001`, `0012` |
 
-**Format:** `{AREA-ABBREV}-{NNN}` — 3–4 letter area prefix + initiative number.
-**Uniqueness:** short-codes must be unique per org.
-**Registration:** declare in WorkManifest `short_code:` field — set once, never change after first branch is created.
+This segment is set once when the PRD is created and never changed. It is used verbatim in every branch — no abbreviation or short-code registration required.
 
 ### Strict vs standard
 
 | Mode | When | `feature/*` rule |
 |------|------|------------------|
 | **standard** | Bootstrap / chore-heavy work | `feature/<any-valid-slug>` |
-| **strict** | Product INIT (recommended) | `feature/{sc}-w{N}-{slug}` where `{sc}` = short-code |
+| **strict** | Product INIT (recommended) | `feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug}` |
+
+Switch to `strict` in `gitflow-{org}.yaml` when the org begins product INIT delivery.
 
 ### Spec pipeline branches (chore/)
 
@@ -70,9 +66,10 @@ These use `chore/` — no product code, safe to merge without QA phase.
 
 | Artifact | Branch |
 |----------|--------|
-| Feasibility report | `chore/{sc}-feasibility` |
-| Technical Design Document | `chore/{sc}-technical-review` |
-| Implementation plan | `chore/{sc}-plan` |
+| Technical Design Document | `chore/INIT-{COMPONENT}-{NUMBER}-technical-review` |
+| Implementation plan | `chore/INIT-{COMPONENT}-{NUMBER}-plan` |
+
+Note: the feasibility report lives on the **prd-handoff branch** alongside the spec slice — no separate chore branch.
 
 ### Wave pipeline branches (feature/)
 
@@ -82,9 +79,9 @@ branch — committed before the PR is marked ready for review.
 
 | Wave | Branch | Contains |
 |------|--------|----------|
-| W0 | `feature/{sc}-w0-{slug}` | W0 code + ground report + as-built |
-| W1 | `feature/{sc}-w1-{slug}` | W1 code + ground report + as-built |
-| W{N} | `feature/{sc}-w{N}-{slug}` | W{N} code + ground report + as-built |
+| W0 | `feature/INIT-{COMPONENT}-{NUMBER}-w0-{slug}` | W0 code + ground report + as-built |
+| W1 | `feature/INIT-{COMPONENT}-{NUMBER}-w1-{slug}` | W1 code + ground report + as-built |
+| W{N} | `feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug}` | W{N} code + ground report + as-built |
 
 ### What we block
 
