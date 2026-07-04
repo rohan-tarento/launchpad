@@ -40,20 +40,27 @@ def _run_git(args: list[str], *, cwd: Path, dry_run: bool) -> subprocess.Complet
     return proc
 
 
-def _github_https_url(url: str) -> str:
-    """Normalize GitHub remote URLs to HTTPS (factory SSOT; avoids SSH auth failures)."""
+def _require_github_https_url(url: str) -> str:
+    """Require HTTPS GitHub remote URLs (factory SSOT)."""
     url = url.strip()
-    if url.startswith("git@github.com:"):
-        return f"https://github.com/{url.removeprefix('git@github.com:')}"
-    if url.startswith("ssh://git@github.com/"):
-        return f"https://github.com/{url.removeprefix('ssh://git@github.com/')}"
-    return url
+    if url.startswith("git@github.com:") or url.startswith("ssh://git@github.com/"):
+        raise HarnessError(
+            f"harness config URL must use HTTPS, not SSH: {url!r} "
+            f"(use https://github.com/<org>/<repo>.git in rules.url / agent_skills.url)"
+        )
+    if url.startswith("https://github.com/"):
+        return url
+    if url.startswith("http://github.com/"):
+        raise HarnessError(f"harness config URL must use HTTPS, not HTTP: {url!r}")
+    raise HarnessError(
+        f"harness config URL must be https://github.com/<org>/<repo>.git, got: {url!r}"
+    )
 
 
 def _sync_submodule_url(repo_path: Path, rel_path: str, url: str, *, dry_run: bool) -> None:
     if not url:
         return
-    https_url = _github_https_url(url)
+    https_url = _require_github_https_url(url)
     print(f"  [submodule] url → {https_url}")
     _run_git(
         ["config", "-f", ".gitmodules", f"submodule.{rel_path}.url", https_url],
@@ -233,7 +240,7 @@ def _ensure_submodule(
     dry_run: bool,
 ) -> None:
     dest = repo_path / rel_path
-    url = _github_https_url(url)
+    url = _require_github_https_url(url)
     print(f"[submodule] {rel_path} → {url} @ {ref}")
 
     if _is_submodule(repo_path, rel_path):
@@ -315,7 +322,7 @@ def _materialize_prayog_source(
     if not url:
         raise HarnessError("agent_skills.url required when local prayog-skills not found")
 
-    url = _github_https_url(url)
+    url = _require_github_https_url(url)
     tmp = Path(tempfile.mkdtemp(prefix="prayog-skills-"))
     print(f"[agent_skills] clone {url} @ {ref} → {tmp}")
     if dry_run:
