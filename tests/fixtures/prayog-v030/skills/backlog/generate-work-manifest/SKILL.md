@@ -1,3 +1,0 @@
----
-name: generate-work-manifest
----

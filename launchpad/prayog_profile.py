@@ -48,16 +48,13 @@ def discover_skill_paths(prayog_root: Path) -> dict[str, str]:
 
 
 def meta_pm_skill_names_from_tree(prayog_root: Path) -> list[str]:
-    """meta-pm @ prayog v0.3.0: all skills/requirements/* + generate-work-manifest."""
+    """meta-pm @ prayog v0.3.1+: all skills/requirements/* (no backlog manifest skill)."""
     names: list[str] = []
     requirements = prayog_root / "skills" / "requirements"
     if requirements.is_dir():
         for child in sorted(requirements.iterdir()):
             if child.is_dir() and (child / "SKILL.md").is_file():
                 names.append(child.name)
-    manifest = prayog_root / "skills" / "backlog" / "generate-work-manifest" / "SKILL.md"
-    if manifest.is_file() and "generate-work-manifest" not in names:
-        names.append("generate-work-manifest")
     return names
 
 

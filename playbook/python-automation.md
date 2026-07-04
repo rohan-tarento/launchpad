@@ -155,7 +155,7 @@ launchpad setup-platform \
 launchpad verify-platform \
   --config config/verify-platform-example.yaml
 
-# Backlog (WorkManifest per initiative — generate via /generate-work-manifest)
+# Backlog (WorkManifest per initiative — copy from /spec-implementation-plan §9; optional seed-work)
 launchpad seed-work --config work/INIT-<id>.yaml --dry-run
 launchpad seed-work --config work/INIT-<id>.yaml --apply
 

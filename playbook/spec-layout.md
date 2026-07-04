@@ -56,7 +56,7 @@ Process: [pm-workflow.md](pm-workflow.md) · [pm-dev-handoff.md](pm-dev-handoff.
 1. PRD in **<client>-meta** `prd/INIT-*.md` — declares `delivery_model` + wave table when `waves`
 2. Spec PR per repo: `product/INIT-*.md` + contract deltas + cross-service docs — **no `src/`**
 3. Phase 2 merge to **`develop`**
-4. `generate-work-manifest` → `seed-work` (board issues mirror PRD/spec wave IDs)
+4. Dev `/spec-implementation-plan` → `gh issue create` per wave (optional `seed-work` multi-repo)
 5. Dev implements from **product** + **as-built** — not from meta PRD alone
 
 ### INIT spec handoff (`product/INIT-*.md`) — mandatory sections

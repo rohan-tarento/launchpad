@@ -37,15 +37,8 @@ Playbook SSOT: **launchpad** `playbook/` (from tenant meta or pip install).
 | Audit | `/validate-requirements` | `prd/reports/Validation-Report-*.md` |
 | Decide | `/review-findings` | `prd/reports/Resolution-*.md` |
 | Apply | `/update-documents` | PRD + cross-repo spec drafts |
-| Backlog | `/generate-work-manifest` | `work/INIT-*.yaml` |
-| Board | `launchpad seed-work` | Issues on Project |
+| Impact | `/prd-impact-map` | Impact map PR comment — affected repos, merge order |
 
-Work manifests: `work/INIT-<id>.yaml` → `launchpad seed-work --config work/INIT-<id>.yaml --apply`
-
----
-
-## Dev handoff
-
-PM opens **prd-handoff** PRs in app repos (PRD link only). Devs run dev harness skills in app repos — not here.
+Dev handoff: PM opens **prd-handoff** PRs in app repos (PRD link only). Devs run dev harness skills in app repos — not here.
 
 See launchpad `playbook/pm-dev-handoff.md`.

@@ -65,7 +65,7 @@ profiles:
     agent_skills:
       repo: drivestream-lab/prayog-skills
       url: https://github.com/drivestream-lab/prayog-skills.git
-      ref: v0.3.0
+      ref: v0.3.1
       profile: meta-pm
     community_skills:
       - source: github/awesome-copilot

@@ -118,7 +118,7 @@ def cmd_seed_work(args: argparse.Namespace) -> int:
     if not args.config:
         print(
             "seed-work requires --config work/<initiative>.yaml "
-            "(generate via /generate-work-manifest)",
+            "(from /spec-implementation-plan §9, or hand-authored work/INIT-*.yaml)",
             file=sys.stderr,
         )
         return 1

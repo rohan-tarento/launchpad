@@ -38,8 +38,8 @@ Read this before starting any new initiative.
 | 7 | `/spec-draft` | `docs/specification/product/INIT-*.md` — spec slice for this repo |
 | 8 | `/initiative-feasibility` | Feasibility report + 4-lane triage (PM questions → prd-handoff PR comment) |
 | 9 | `/spec-technical-review` | TDD + draft ADRs — PE opens PR, PE approves |
-| 10 | `/spec-implementation-plan` | Wave plan + §WorkManifest YAML |
-| 11 | *(Dev seeds board)* | `gh issue create` (single repo) or `launchpad seed-work` (multi-repo) |
+| 10 | `/spec-implementation-plan` | Wave plan + §9 WorkManifest YAML |
+| 11 | *(Dev seeds board)* | `gh issue create` — one issue per wave (`W0`, `W1`, …); optional `launchpad seed-work` for multi-repo |
 
 ### Wave loop (per wave W0 → Wn)
 
@@ -65,7 +65,7 @@ Read this before starting any new initiative.
 | Domain questions answered | Domain SME | Slack / GitHub issue | **Yes** — business data |
 | TDD (PE review) | PE | `chore/INIT-*-technical-review` PR, PE approves | **Yes** — architectural sign-off |
 | Implementation plan | Dev | `chore/INIT-*-plan` PR | Can automate (Phase B — PE Approve trigger) |
-| Board seeded | Dev | `gh issue create` / `launchpad seed-work` | Can automate (Phase B — plan merged trigger) |
+| Board seeded | Dev | `gh issue create` per wave (`W0`, `W1`, …); optional `launchpad seed-work` | Can automate (Phase B — plan merged trigger) |
 | Wave pre-flight | Dev/Agent | Wave issue comment | Can automate (Phase A — issue labeled) |
 | Wave implementation | Dev/Agent | Wave branch | Can automate (Phase C — with guardrails) |
 | Wave PR reviewed | Tech lead | Wave PR | **Yes** — code + contract quality |

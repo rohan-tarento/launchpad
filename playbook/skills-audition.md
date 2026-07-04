@@ -16,7 +16,7 @@ Score skills before marking harness or PM pipeline ready. Lab sample prompts: [l
 | validate-requirements | | | prayog-skills |
 | review-findings | | | prayog-skills |
 | update-documents | | | prayog-skills |
-| generate-work-manifest | | | prayog-skills |
+| generate-work-manifest | removed v0.3.1 | — | was prayog-skills backlog skill; superseded by spec-implementation-plan §9 |
 | spec-feasibility-review | | | prayog-skills dev |
 | spec-technical-review | | | prayog-skills dev (PE lane) |
 | spec-implementation-plan | | | prayog-skills dev |
