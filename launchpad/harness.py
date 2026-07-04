@@ -60,6 +60,58 @@ def _require_github_https_url(url: str) -> str:
     )
 
 
+def _gitmodules_mentions_path(repo: Path, rel_path: str) -> bool:
+    gitmodules = repo / ".gitmodules"
+    if not gitmodules.is_file():
+        return False
+    text = gitmodules.read_text(encoding="utf-8")
+    return f"path = {rel_path}" in text or f'path = {rel_path}' in text
+
+
+def _submodule_in_index(repo: Path, rel_path: str) -> bool:
+    """True when rel_path is a gitlink (mode 160000) in the index."""
+    proc = subprocess.run(
+        ["git", "ls-files", "-s", "--", rel_path],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+    )
+    line = proc.stdout.strip()
+    return bool(line) and line.startswith("160000 ")
+
+
+def _is_submodule(repo: Path, rel_path: str) -> bool:
+    """True only when .gitmodules and the git index both register the submodule."""
+    return _gitmodules_mentions_path(repo, rel_path) and _submodule_in_index(repo, rel_path)
+
+
+def _remove_orphan_gitmodules_entry(repo_path: Path, rel_path: str, *, dry_run: bool) -> None:
+    """Drop .gitmodules stanzas left by a failed sync (file on disk, not in git index)."""
+    if not _gitmodules_mentions_path(repo_path, rel_path) or _submodule_in_index(repo_path, rel_path):
+        return
+    print(
+        f"  [submodule] remove orphan .gitmodules entry for {rel_path} "
+        f"(not registered in git index)"
+    )
+    if dry_run:
+        return
+    section = f"submodule.{rel_path}"
+    proc = subprocess.run(
+        ["git", "config", "-f", ".gitmodules", "--remove-section", section],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        raise HarnessError(
+            f"failed to remove orphan .gitmodules entry for {rel_path}: "
+            f"{(proc.stderr or proc.stdout or '').strip()}"
+        )
+    gitmodules = repo_path / ".gitmodules"
+    if gitmodules.is_file() and not gitmodules.read_text(encoding="utf-8").strip():
+        gitmodules.unlink()
+
+
 def _sync_submodule_url(repo_path: Path, rel_path: str, url: str, *, dry_run: bool) -> None:
     if not url:
         return
@@ -91,14 +143,6 @@ def _run_cmd(cmd: list[str], *, cwd: Path, dry_run: bool) -> None:
     if dry_run:
         return
     subprocess.run(cmd, cwd=cwd, check=True)
-
-
-def _is_submodule(repo: Path, rel_path: str) -> bool:
-    gitmodules = repo / ".gitmodules"
-    if not gitmodules.is_file():
-        return False
-    text = gitmodules.read_text(encoding="utf-8")
-    return f'path = {rel_path}' in text or f"path = {rel_path}" in text
 
 
 def _submodule_head(repo: Path, rel_path: str) -> str | None:
@@ -273,6 +317,8 @@ def _ensure_submodule(
     dest = repo_path / rel_path
     url = _require_github_https_url(url)
     print(f"[submodule] {rel_path} → {url} @ {ref}")
+
+    _remove_orphan_gitmodules_entry(repo_path, rel_path, dry_run=dry_run)
 
     if _is_submodule(repo_path, rel_path):
         _sync_submodule_url(repo_path, rel_path, url, dry_run=dry_run)
