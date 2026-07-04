@@ -118,13 +118,7 @@ class OnboardingApplyTests(unittest.TestCase):
             save_onboarding_spec(spec_path, spec)
             spec = load_onboarding_spec(spec_path)
 
-            with mock.patch.dict(
-                os.environ,
-                {
-                    "HOME": tmp,
-                    "LAUNCHPAD_META_FOUNDATION": str(ROOT / "tests" / "fixtures" / "scaffold-meta-minimal"),
-                },
-            ):
+            with mock.patch.dict(os.environ, {"HOME": tmp}):
                 run_apply(
                     spec,
                     spec_path=spec_path,
@@ -148,6 +142,8 @@ class OnboardingApplyTests(unittest.TestCase):
             self.assertIn("qa: qa-team", gitflow_text)
             self.assertIn("pe: pe-team", gitflow_text)
             self.assertIn("grant_push:", gitflow_text)
+            self.assertFalse((meta / "prd" / "README.md").is_file())
+            self.assertFalse((meta / "work" / "INIT-EXAMPLE-001.yaml").is_file())
 
     def test_registry_patch(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

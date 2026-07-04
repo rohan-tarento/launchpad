@@ -1,4 +1,4 @@
-"""Apply OnboardingSpec — scaffold tenant meta + registry."""
+"""Apply OnboardingSpec — render factory YAML + templates into tenant meta."""
 
 from __future__ import annotations
 
@@ -17,24 +17,16 @@ from launchpad.onboarding.render import all_config_renders, render_playbook_read
 from launchpad.onboarding.templates_gen import all_template_renders
 from launchpad import platform
 
+_META_GITIGNORE = """\
+# Installed agent skills — reproducible from .harness-pin.yaml via sync-harness-meta
+.agents/skills/
+.cursor/skills/
+"""
 
-def _scaffold_meta_skeleton(ctx: OnboardingContext, meta_path: Path) -> None:
-    if meta_path.is_dir() and any(meta_path.iterdir()):
-        return
-    from launchpad.scaffold.meta_run import run_scaffold_meta
 
-    run_scaffold_meta(
-        meta_repo=ctx.meta_repo,
-        target_dir=meta_path,
-        options={
-            "client_id": ctx.client_id,
-            "display_name": ctx.display_name,
-            "org": ctx.org,
-            "forge_type": ctx.forge_type,
-        },
-        dry_run=False,
-        force=False,
-    )
+def _ensure_meta_dir(meta_path: Path) -> None:
+    meta_path.parent.mkdir(parents=True, exist_ok=True)
+    meta_path.mkdir(parents=True, exist_ok=True)
 
 
 def _write_files(meta_path: Path, files: dict[str, str]) -> list[str]:
@@ -80,7 +72,7 @@ def run_apply(
         print(f"WARN: {w}")
     print("")
 
-    _scaffold_meta_skeleton(ctx, meta_path)
+    _ensure_meta_dir(meta_path)
     _remove_example_configs(meta_path, org)
 
     files: dict[str, str] = {}
@@ -88,14 +80,17 @@ def run_apply(
     if ctx.spec["overrides"]["generate_playbook_hub"]:
         files["playbook/README.md"] = render_playbook_readme(ctx)
     files.update(all_template_renders(ctx))
+    if not (meta_path / ".gitignore").is_file():
+        files[".gitignore"] = _META_GITIGNORE
 
     written = _write_files(meta_path, files)
     version_path = meta_path / ".launchpad-version"
     version_path.write_text(f"{launchpad.__version__}\n", encoding="utf-8")
     written.append(str(version_path))
 
-    print(f"Scaffolded: {meta_path}")
+    print(f"Rendered factory files: {meta_path}")
     print(f"Wrote {len(written)} generated file(s)")
+    print("Layout (prd/, work/, wiki/ stubs): run launchpad scaffold-meta --apply --force")
 
     if not skip_registry and spec["registry"]["register_client"]:
         patch_clients_registry(
@@ -133,7 +128,8 @@ def run_apply(
     print("")
     print("Manual next steps:")
     print(f"  1. Edit {ENV_D_DIR / (client_id + '.env')} — paste forge token")
-    print(f"  2. launchpad --client {client_id} setup-platform --config config/platform-{org}.yaml --apply")
-    print(f"  3. launchpad --client {client_id} sync-harness-meta --apply")
-    print(f"  4. PM: PR local meta content → {ctx.meta_repo}/develop")
-    print(f"  5. Dev: launchpad scaffold-app --repo <app> --apply --force; sync-harness-app --apply")
+    print(f"  2. launchpad --client {client_id} scaffold-meta --apply --force")
+    print(f"  3. launchpad --client {client_id} setup-platform --config config/platform-{org}.yaml --apply")
+    print(f"  4. launchpad --client {client_id} sync-harness-meta --apply")
+    print(f"  5. PM: PR local meta content → {ctx.meta_repo}/develop")
+    print(f"  6. Dev: launchpad scaffold-app --repo <app> --apply --force; sync-harness-app --apply")

@@ -145,9 +145,10 @@ First-time bootstrap: onboarding spec → local meta → GitHub factory → loca
 |------|------|---------|
 | 1 | Install kit + registry | `pipx install -e .` · see [multi-laptop.md](docs/multi-laptop.md) |
 | 2 | Plan tenant | `launchpad onboard plan --spec ~/Workspace/handson/<client>/onboarding.yaml` |
-| 3 | Scaffold meta locally | `launchpad onboard apply --spec …/onboarding.yaml` |
-| 4 | Paste forge token | edit `~/.config/launchpad/env.d/<client>.env` |
-| 5 | Platform baseline | `launchpad --client <client> setup-platform --config config/platform-<org>.yaml --apply` |
+| 3 | Render factory YAML | `launchpad onboard apply --spec …/onboarding.yaml` (config + templates only) |
+| 4 | Meta layout stubs | `launchpad --client <client> scaffold-meta --apply --force` (prd/, work/, wiki/ — preserves config/) |
+| 5 | Paste forge token | edit `~/.config/launchpad/env.d/<client>.env` |
+| 6 | Platform baseline | `launchpad --client <client> setup-platform --config config/platform-<org>.yaml --apply` |
 
 `setup-platform --apply` runs in order:
 
@@ -159,12 +160,12 @@ Creates GitHub repos, seeds `develop`, **clones locally** (greenfield meta keeps
 
 | Step | What | Command |
 |------|------|---------|
-| 6 | Curate service catalog | edit `config/service-catalog-<org>.yaml` (`owns`, `depends_on`, `branch_code`) |
-| 7 | Push meta to GitHub | commit meta → PR to `<client>-meta/develop` |
-| 7 | Harness meta | `launchpad sync-harness-meta --apply` |
-| 8 | Scaffold each app | `launchpad scaffold-app --repo <app> --apply --force` (into existing clone) |
-| 9 | Harness each app | `launchpad sync-harness-app --repo <app> --apply` |
-| 10 | Backlog | PRD → `work/INIT-*.yaml` → `launchpad seed-work --apply` |
+| 7 | Curate service catalog | edit `config/service-catalog-<org>.yaml` (`owns`, `depends_on`, `branch_code`) |
+| 8 | Push meta to GitHub | commit meta → PR to `<client>-meta/develop` |
+| 9 | Harness meta | `launchpad sync-harness-meta --apply` |
+| 10 | Scaffold each app | `launchpad scaffold-app --repo <app> --apply --force` (into existing clone) |
+| 11 | Harness each app | `launchpad sync-harness-app --repo <app> --apply` |
+| 12 | Backlog | PRD → `work/INIT-*.yaml` → `launchpad seed-work --apply` |
 
 Wizard details: [docs/onboarding-wizard.md](docs/onboarding-wizard.md) · App repo deep dive: [playbook/greenfield-app-repo.md](playbook/greenfield-app-repo.md)
 
