@@ -10,7 +10,7 @@ from launchpad.config import tenant_root
 
 
 def kit_root() -> Path:
-    """Launchpad install / source tree (contains `launchpad/` package and `templates/`)."""
+    """Launchpad install / source tree (contains `templates/`, `playbook/`, `examples/`)."""
     explicit = os.environ.get("LAUNCHPAD_KIT_ROOT", "").strip()
     if explicit:
         root = Path(explicit).expanduser().resolve()
@@ -18,7 +18,12 @@ def kit_root() -> Path:
             raise FileNotFoundError(f"LAUNCHPAD_KIT_ROOT is not a directory: {root}")
         return root
 
-    root = Path(launchpad.__file__).resolve().parent.parent
+    pkg_dir = Path(launchpad.__file__).resolve().parent
+    bundled = pkg_dir / "_kit"
+    if (bundled / "templates").is_dir():
+        return bundled
+
+    root = pkg_dir.parent
     if (root / "templates").is_dir():
         return root
     raise FileNotFoundError(
