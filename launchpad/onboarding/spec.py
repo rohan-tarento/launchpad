@@ -141,7 +141,7 @@ def normalize_spec(raw: dict[str, Any]) -> dict[str, Any]:
     agent_skills_raw = _require_mapping(raw, "agent_skills") if "agent_skills" in raw else {}
     agent_skills = {
         "repo": str(agent_skills_raw.get("repo") or "drivestream-lab/prayog-skills").strip(),
-        "ref": str(agent_skills_raw.get("ref") or "v0.3.0").strip(),
+        "ref": str(agent_skills_raw.get("ref") or "v0.3.1").strip(),
     }
 
     teams_raw = raw.get("teams")

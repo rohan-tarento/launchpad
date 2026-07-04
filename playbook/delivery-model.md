@@ -85,24 +85,23 @@ After **all** wave issues are Done:
 | Step | PM | Dev |
 |------|-----|-----|
 | Declare `delivery_model` + waves in PRD | ✓ | review |
-| Draft spec from [templates/INIT-spec-handoff.md](../templates/INIT-spec-handoff.md) | ✓ draft | ✓ merge |
-| `generate-work-manifest` (prayog-skills) | ✓ | — |
-| `seed-work` | ✓ | — |
+| Draft spec from [templates/INIT-spec-handoff.md](../templates/INIT-spec-handoff.md) | — | ✓ |
+| `/spec-implementation-plan` §9 board seed | — | ✓ (`gh issue create` per wave; optional `seed-work` multi-repo) |
 | Implement wave PRs | — | ✓ |
 | Close epic | ✓ | verify S-criteria |
 
 ---
 
-## Manifest skill behavior
+## Board seed behavior
 
-`/generate-work-manifest` (prayog-skills) reads PRD `delivery_model`:
+After spec merge, **dev** runs `/spec-implementation-plan`. Plan §9 emits WorkManifest YAML with **one `work:` item per wave** (`id: W0`, `W1`, …).
 
-| PRD | Manifest |
-|-----|----------|
-| `waves` | Epic + one `work[]` item per wave (+ PRE* from merged spec) |
-| `repo-slice` | Epic + one task per repo ([v1-granularity](https://github.com/drivestream-lab/prayog-skills)) |
+| Path | When |
+|------|------|
+| `gh issue create` | Default — single-repo initiatives |
+| `launchpad seed-work` | Optional — multi-repo bulk from `work/INIT-*.yaml` copied from §9 |
 
-Do not hand-write wave manifests when the skill can read merged PRD + spec on `develop`.
+Do not hand-write wave manifests when the plan skill can derive them from merged spec + feasibility.
 
 ---
 

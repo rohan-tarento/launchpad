@@ -30,8 +30,9 @@ Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`*
 | Apply | `update-documents` | **prayog-skills** | Yes — PRD + spec drafts |
 | Re-audit | `validate-requirements` | **prayog-skills** | No — incremental |
 | Spec vs PRD (PM) | `validate-requirements` | **prayog-skills** | No — PM on PRD / spec drafts in meta workspace |
-| Backlog | `generate-work-manifest` | **prayog-skills** | `work/INIT-*.yaml` — reads PRD `delivery_model` ([delivery-model.md](delivery-model.md)) |
-| Board | `launchpad seed-work` | Factory CLI | Issues on Project |
+| Impact map | `prd-impact-map` | **prayog-skills** | No — PR comment on meta PR |
+
+**Board seeding is dev-owned** — after `/spec-implementation-plan`, dev creates one GitHub Issue per wave (`W0`, `W1`, …) via `gh issue create`. Optional bulk: `launchpad seed-work` from plan §9 YAML (multi-repo). See [delivery-workflow.md](delivery-workflow.md).
 
 **prd-handoff PRs** (app repo) — PM opens PRD-link-only PR per repo; dev runs `/spec-draft` to write spec slice, then `/initiative-feasibility`. PM does **not** write spec files. See [pm-dev-handoff.md](pm-dev-handoff.md).
 
@@ -48,16 +49,16 @@ Manual reinstall (debug only):
 
 ```bash
 npx skills add github/awesome-copilot --skill prd -a cursor -y
-npx skills add drivestream-lab/prayog-skills --skill validate-requirements --skill review-findings --skill update-documents --skill generate-work-manifest -a cursor -y
+npx skills add drivestream-lab/prayog-skills --skill validate-requirements --skill review-findings --skill update-documents --skill prd-impact-map -a cursor -y
 ```
 
 Verify: `npx skills list`
 
-Invoke: `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/generate-work-manifest`
+Invoke: `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/prd-impact-map`
 
 **Do not** copy prayog-skills into `.cursor/skills/` here — edit upstream in [prayog-skills](https://github.com/drivestream-lab/prayog-skills), push `main`, reinstall.
 
-**Wave delivery:** When PRD `delivery_model: waves`, `generate-work-manifest` emits one task per wave (W0…Wn, PRE*). See [delivery-model.md](delivery-model.md). Agent templates: `templates/INIT-PRD-outline.md`, `templates/INIT-spec-handoff.md`.
+**Wave delivery:** When PRD `delivery_model: waves`, dev `/spec-implementation-plan` §9 emits one issue per wave (`W0`…`Wn`). See [delivery-model.md](delivery-model.md) and [delivery-workflow.md](delivery-workflow.md).
 
 ---
 
@@ -82,7 +83,7 @@ Production sources: merged `docs/specification/product/` and `04-cross-service-c
 |-------|--------|-------|
 | Spec feasibility | `initiative-feasibility` | `.agents/skills/` (prayog-skills @ harness pin) |
 | Technical review (PE) | `spec-technical-review` | same |
-| Execution plan | `spec-implementation-plan` | same |
+| Execution plan + board seed | `spec-implementation-plan` | same — §9 WorkManifest YAML; dev runs `gh issue create` |
 | Pre-flight | `pre-implement` | same |
 | Implementation loop | `loop-spec` | same |
 | Wave grounding | `ground-spec` | same |
@@ -91,7 +92,7 @@ Production sources: merged `docs/specification/product/` and `04-cross-service-c
 
 ```text
 prd-handoff PR → /spec-draft → /initiative-feasibility → /spec-technical-review (PE) → merge spec
-       → /spec-implementation-plan
+       → /spec-implementation-plan → gh issue create (one issue per wave W0, W1, …)
 board issue → /pre-implement → /loop-spec → /ground-spec → /verify → PR → develop
 ```
 
@@ -106,8 +107,7 @@ Retro closure epics (e.g. **INIT-EXAMPLE-001**): optional `seed-work` from `work
 ```text
 PRD loop (meta, prayog-skills)
     → spec handoff PRs per repo (Phase 1 open, Phase 2 merge)
-    → /generate-work-manifest → work/INIT-*.yaml
-    → launchpad seed-work --apply
+    → dev: /spec-implementation-plan → gh issue create (or launchpad seed-work for multi-repo)
     → dev: /pre-implement → /loop-spec → /ground-spec → /verify → feature PRs
 ```
 

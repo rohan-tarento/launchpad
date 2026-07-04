@@ -79,7 +79,7 @@ rules:
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: v0.3.0
+  ref: v0.3.1
   skills:
     - spec-feasibility-review
     - spec-implementation-plan
@@ -89,7 +89,7 @@ agent_skills:
 
 `sync-harness-app` writes the pin, `AGENTS.md`, rules submodule, and seeds dev prayog skills into `.agents/skills/`. `sync-harness-meta` does the same for PM skills in tenant meta (no rules submodule). `verify-harness-app` / `verify-harness-meta` check repos match tenant harness config.
 
-**PM pipeline skills** (`validate-requirements`, `generate-work-manifest`, …) run in **`<client>-meta` only**. **Dev skills** run in **app repos** after harness sync.
+**PM pipeline skills** (`validate-requirements`, `prd-impact-map`, …) run in **`<client>-meta` only**. **Dev skills** (including board seed via `/spec-implementation-plan` §9) run in **app repos** after harness sync.
 
 ---
 
@@ -165,7 +165,7 @@ Creates GitHub repos, seeds `develop`, **clones locally** (greenfield meta keeps
 | 9 | Harness meta | `launchpad sync-harness-meta --apply` |
 | 10 | Scaffold each app | `launchpad scaffold-app --repo <app> --apply --force` (into existing clone) |
 | 11 | Harness each app | `launchpad sync-harness-app --repo <app> --apply` |
-| 12 | Backlog | PRD → `work/INIT-*.yaml` → `launchpad seed-work --apply` |
+| 12 | Backlog | PRD → dev plan §9 → `gh issue create` (optional `launchpad seed-work` multi-repo) |
 
 Wizard details: [docs/onboarding-wizard.md](docs/onboarding-wizard.md) · App repo deep dive: [playbook/greenfield-app-repo.md](playbook/greenfield-app-repo.md)
 

@@ -26,7 +26,7 @@ rules:
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: v0.3.0
+  ref: v0.3.1
   profile: python-backend
   skills:
     - spec-draft
@@ -49,7 +49,8 @@ Document your org's approved `rules` + `agent_skills` ref pairs in tenant `confi
 
 | rules | agent_skills | Notes |
 |-------|--------------|-------|
-| v1.0.0 | v0.3.0 | Current — 8-skill dev bundle (`development_skills` in prayog `profiles/python-backend.yaml`) |
+| v1.0.0 | v0.3.1 | Current — 8-skill dev bundle; meta-pm = 4 requirements skills (no generate-work-manifest) |
+| v1.0.0 | v0.3.0 | Superseded — included generate-work-manifest in meta-pm tree |
 | v1.0.0 | v0.2.0 | Superseded — 4-skill dev bundle |
 
 Bump via harness PR after platform publishes a new approved rules + skills pair.
@@ -64,7 +65,7 @@ Bump via harness PR after platform publishes a new approved rules + skills pair.
 4. Seed prayog-skills dev bundle → `.agents/skills/`
 5. Gitignore **`.agents/`**; optional commit **`skills-lock.json`**
 
-**PM pipeline skills** (`validate-requirements`, `generate-work-manifest`, …) install in **`<client>-meta`** only — not app repos.
+**PM pipeline skills** (`validate-requirements`, `prd-impact-map`, …) install in **`<client>-meta`** only — not app repos.
 
 ---
 

@@ -10,8 +10,8 @@ Copy-paste starters for Cursor Agent. **Use the section for your role** — work
 
 | Role | Open in Cursor | Skills | Typical work |
 |------|----------------|--------|--------------|
-| **Product owner / PM** | `<client>-meta` | `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/prd-impact-map`, `/generate-work-manifest` | PRD writing, impact mapping, prd-handoff PRs (PRD link only — no spec files) |
-| **Developer** | App repo (e.g. `example-api`) | `/spec-draft`, `/initiative-feasibility`, `/spec-technical-review`, `/spec-implementation-plan`, `/pre-implement`, `/loop-spec`, `/ground-spec`, `/verify` | Writes spec, reviews buildability, PE lane, plan, board seed, implementation, wave grounding |
+| **Product owner / PM** | `<client>-meta` | `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/prd-impact-map` | PRD writing, impact mapping, prd-handoff PRs (PRD link only — no spec files) |
+| **Developer** | App repo (e.g. `example-api`) | `/spec-draft`, `/initiative-feasibility`, `/spec-technical-review`, `/spec-implementation-plan`, `/pre-implement`, `/loop-spec`, `/ground-spec`, `/verify` | Writes spec, reviews buildability, PE lane, plan, board seed (`gh issue create`), implementation, wave grounding |
 
 **Board:** cite **GitHub issue #** and **full title** — not manifest ids (`Q1`, `T2`) in conversation.
 
@@ -143,31 +143,21 @@ Report only — list gaps; do not merge spec PR until clean.
 
 ---
 
-## 7 — Generate work manifest (after Phase 2 merges)
+## 7 — Seed board (dev — after plan PR merges)
 
-**When:** Meta PRD + all spec PRs merged to `develop`.  
-**Output:** `work/INIT-*.yaml`
+**When:** Spec + feasibility + TDD + implementation plan merged to `develop` in app repo.  
+**Workspace:** app repo (not meta).  
+**Output:** GitHub Issues — one per wave (`W0`, `W1`, …) from plan §9
 
 ```text
-/generate-work-manifest
+From Implementation-Plan-INIT-EXAMPLE-002.md §9 WorkManifest YAML:
 
-PRD: prd/INIT-EXAMPLE-002.md on <client>-meta develop
-Read delivery_model from PRD §4.0 (playbook/delivery-model.md).
-If delivery_model: waves — one manifest task per wave ID (W0, W1, …, PRE* from merged spec).
-If delivery_model: repo-slice — one task per repo (v1).
+Create one GitHub Issue per wave using gh issue create:
+- id W0 → title "[INIT-EXAMPLE-002 W0] {wave goal}"
+- id W1 → depends_on W0
+Use §9 body text for issue bodies. Label: init-example-002.
 
-Merged spec paths:
-- example-registry docs/specification/product/INIT-EXAMPLE-002.md
-- (other repos)
-
-Output: work/INIT-EXAMPLE-002.yaml
-apiVersion: launchpad/v1 (see work/INIT-EXAMPLE-001.yaml).
-Include dry-run seed command; do not run seed-work unless I ask.
-```
-
-**Terminal (PM):** after manifest PR merges:
-
-```bash
+Optional multi-repo bulk: copy §9 to work/INIT-EXAMPLE-002.yaml in meta, then:
 launchpad seed-work --config work/INIT-EXAMPLE-002.yaml --dry-run
 launchpad seed-work --config work/INIT-EXAMPLE-002.yaml --apply
 ```
