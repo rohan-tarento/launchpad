@@ -22,7 +22,7 @@ Playbook SSOT: **launchpad** `playbook/` (from tenant meta or pip install).
 | Topic | Where |
 |-------|--------|
 | PM workflow | launchpad `playbook/pm-workflow.md` |
-| PM ↔ dev handoff | launchpad `playbook/pm-dev-handoff.md` |
+| Delivery workflow | launchpad `playbook/delivery-workflow.md` |
 | Skills matrix | launchpad `playbook/skills-matrix.md` |
 | Harness pins | launchpad `playbook/harness-pins.md` |
 | Program board | Your forge engineering board |
@@ -39,6 +39,6 @@ Playbook SSOT: **launchpad** `playbook/` (from tenant meta or pip install).
 | Apply | `/update-documents` | PRD + cross-repo spec drafts |
 | Impact | `/prd-impact-map` | Impact map PR comment — affected repos, merge order |
 
-Dev handoff: PM opens **prd-handoff** PRs in app repos (PRD link only). Devs run dev harness skills in app repos — not here.
+Engineering opens **spec PRs** in app repos after impact map LGTM. Devs run dev harness skills in app repos — not here.
 
-See launchpad `playbook/pm-dev-handoff.md`.
+See launchpad `playbook/delivery-workflow.md`.

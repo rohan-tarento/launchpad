@@ -1,4 +1,4 @@
-# Spec handoff (INIT template)
+# Spec PR (INIT template)
 
 | Artifact | Location |
 |----------|----------|
@@ -6,4 +6,4 @@
 | **Board** | Engineering board — Initiative = `INIT-<id>`, Codebase = `<repo>` |
 | **App spec** | `<app>/docs/specification/product/INIT-<id>.md` |
 
-See launchpad `playbook/pm-dev-handoff.md`.
+Eng opens PR on branch `chore/INIT-<id>-spec-<repo>`. See launchpad `playbook/delivery-workflow.md`.

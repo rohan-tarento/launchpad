@@ -13,7 +13,7 @@ Checklist. Full walkthrough: **[setup-guide.md](setup-guide.md)**. Wizard (recom
 7. **`launchpad verify-platform`**
 8. **PM:** PR local meta content → `<client>-meta/develop` · **Dev:** scaffold app repos → PR to `develop`
 9. **`launchpad sync-harness-app --repo <app> --apply`**
-10. PRD → `work/INIT-*.yaml` → **`launchpad seed-work --apply`**
+10. PRD PR (PM) → spec PR (eng) → merge → board seed from §9 → wave coding
 
 ## Workspace layout
 

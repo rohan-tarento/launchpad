@@ -1,19 +1,7 @@
 # PM workflow
 
-> **Content moved to [pm-dev-handoff.md](pm-dev-handoff.md).**
->
-> `pm-workflow.md` is retained for inbound links. All PM pipeline detail —
-> skills install, three-phase timeline, seed-work gate, prompt templates —
-> lives in `pm-dev-handoff.md`.
+> **Pointer:** PM steps 1–5 and merge gates live in [delivery-workflow.md](delivery-workflow.md).
 
-**Skills install (from `<client>-meta` root):**
+PM workspace: `<client>-meta`. Skills: [skills-matrix.md](skills-matrix.md#pm-pipeline-meta--prd-pr).
 
-```bash
-npx skills add github/awesome-copilot --skill prd -a cursor -y
-npx skills add drivestream-lab/prayog-skills --skill '*' -a cursor -y
-npx skills list
-```
-
-**Full PM ↔ dev workflow:** [pm-dev-handoff.md](pm-dev-handoff.md)  
-**Skills reference:** [skills-matrix.md](skills-matrix.md)  
-**Board:** [github-project.md](github-project.md)
+**PRD PR checklist:** [delivery-workflow.md § Checklists](delivery-workflow.md#checklists)

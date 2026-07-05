@@ -2,7 +2,7 @@
 
 Copy-paste starters for Cursor Agent. **Use the section for your role** — workspace and skills differ.
 
-**Skills:** [skills-matrix.md](skills-matrix.md) · **Handoff:** [pm-dev-handoff.md](pm-dev-handoff.md) · **Audition:** [skills-audition.md](skills-audition.md)
+**Skills:** [skills-matrix.md](skills-matrix.md) · **Workflow:** [delivery-workflow.md](delivery-workflow.md) · **Audition:** [skills-audition.md](skills-audition.md)
 
 ---
 
@@ -10,8 +10,8 @@ Copy-paste starters for Cursor Agent. **Use the section for your role** — work
 
 | Role | Open in Cursor | Skills | Typical work |
 |------|----------------|--------|--------------|
-| **Product owner / PM** | `<client>-meta` | `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/prd-impact-map` | PRD writing, impact mapping, prd-handoff PRs (PRD link only — no spec files) |
-| **Developer** | App repo (e.g. `example-api`) | `/spec-draft`, `/initiative-feasibility`, `/spec-technical-review`, `/spec-implementation-plan`, `/pre-implement`, `/loop-spec`, `/ground-spec`, `/verify` | Writes spec, reviews buildability, PE lane, plan, board seed (`gh issue create`), implementation, wave grounding |
+| **Product owner / PM** | `<client>-meta` | `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/prd-impact-map` | PRD writing, impact mapping, product Q&A on PRD PR |
+| **Developer** | App repo (e.g. `example-api`) | `/spec-draft`, `/initiative-feasibility`, `/spec-technical-review`, `/spec-implementation-plan`, `/pre-implement`, `/loop-spec`, `/ground-spec`, `/verify` | Opens spec PR, spec/feasibility/TDD/plan, board seed after merge, wave implementation |
 
 **Board:** cite **GitHub issue #** and **full title** — not manifest ids (`Q1`, `T2`) in conversation.
 
@@ -99,53 +99,44 @@ Also align: (list spec paths on open PR branches if any)
 
 ---
 
-## 5 — Spec handoff PR (product INIT — one repo)
+## 5 — Impact map (before eng opens spec PRs)
 
-**When:** Phase 1 — PM opens docs-only PR per app repo. **Dev merges** — PM does not merge app `develop`.  
-**Branch:** `chore/INIT-<id>-spec-handoff-<repo>` from app `develop`
+**When:** PRD validated; before engineering opens spec PRs in app repos.
 
 ```text
+/prd-impact-map
+
 Initiative: INIT-EXAMPLE-002
-Repo: example-api
-Branch: chore/INIT-EXAMPLE-002-spec-handoff-example-api from develop
+PRD: prd/INIT-EXAMPLE-002.md
+Service catalog: config/service-catalog.yaml
 
-Start from <client>-meta/templates/INIT-spec-handoff.md (wave IDs must match PRD §4.0).
-Gate: playbook/spec-layout.md § INIT spec handoff.
-
-Update docs/specification/product/ only:
-- product/INIT-EXAMPLE-002.md (slice for this repo)
-- 02-api-contract.md deltas if routes change
-- 04-cross-service-contracts.md if integrations change
-
-No src/. No tests/.
-Link meta PRD: prd/INIT-EXAMPLE-002.md (meta PR branch or develop after Phase 2 merge).
-
-# Note: /validate-requirements is PM-only (meta workspace). Dev opens PR; PM runs validation in meta.
+Post impact map as comment on meta PRD PR.
+Tech lead must LGTM before eng opens spec PRs.
 ```
 
 ---
 
 ## 6 — Spec vs PRD conformance (PM only — meta workspace)
 
-**When:** PM validates spec drafts against PRD **before** opening spec handoff PRs (or after `/update-documents`). **Not** seeded in app-repo harness.
+**When:** PM validates spec drafts against PRD in meta workspace.
 
 ```text
 /validate-requirements
 
 Initiative: INIT-EXAMPLE-002
 Primary doc: prd/INIT-EXAMPLE-002.md on <client>-meta develop
-Spec draft: product/INIT-EXAMPLE-002.md on handoff branch (or pasted path)
+Spec draft: product/INIT-EXAMPLE-002.md on spec PR branch (or pasted path)
 Check: repo spec slice matches PRD.
 Report only — list gaps; do not merge spec PR until clean.
 ```
 
-**Dev on prd-handoff PR:** runs `/spec-draft` → `/initiative-feasibility` → PE `/spec-technical-review` → `/spec-implementation-plan`. PM does **not** write spec files. Dev does **not** run `/validate-requirements` (PM-only in meta).
+**Dev on spec PR:** runs `/spec-draft` → `/initiative-feasibility` → `/spec-technical-review` (if NEW-ADR) → `/spec-implementation-plan`. PM does **not** write spec files. Product Q&A on **meta PRD PR**; PE Q&A on **spec PR**.
 
 ---
 
-## 7 — Seed board (dev — after plan PR merges)
+## 7 — Seed board (dev — after spec PR merges)
 
-**When:** Spec + feasibility + TDD + implementation plan merged to `develop` in app repo.  
+**When:** Spec PR merged to `develop` in app repo.  
 **Workspace:** app repo (not meta).  
 **Output:** GitHub Issues — one per wave (`W0`, `W1`, …) from plan §9
 
@@ -164,15 +155,14 @@ launchpad seed-work --config work/INIT-EXAMPLE-002.yaml --apply
 
 ---
 
-## 8 — INIT retro — spec handoff (chore closure)
+## 8 — INIT retro — spec closure (chore)
 
-**When:** PRD signed off; retro closure like **INIT-EXAMPLE-001** (implementation already on `develop`).  
-**One PR** per repo — dev merges; **no `src/`**.
+**When:** PRD signed off; retro closure like **INIT-EXAMPLE-001** (implementation already on `develop`).
 
 ```text
 Initiative: INIT-EXAMPLE-001
 Repo: example-api
-Branch: chore/INIT-EXAMPLE-001-spec-handoff-example-api from develop
+Branch: chore/INIT-EXAMPLE-001-spec-example-api from develop
 
 Add docs/specification/product/INIT-EXAMPLE-001.md:
 - Status Closed / retro; link to <client>-meta prd/INIT-EXAMPLE-001.md
@@ -181,7 +171,7 @@ Add docs/specification/product/INIT-EXAMPLE-001.md:
 
 No src/. No tests/.
 
-PR title: [spec] handoff — INIT-EXAMPLE-001 — example-api
+PR title: [INIT-EXAMPLE-001] Spec — example-api (retro)
 Label: spec
 ```
 
@@ -269,10 +259,10 @@ Do not edit .cursor/rules/ submodule. No new product features unless scoped.
 
 ---
 
-## D3 — prd-handoff PR (dev writes spec, reviews, plans)
+## D3 — Spec PR (dev writes spec, reviews, plans)
 
-**When:** PM opened prd-handoff PR with PRD link + plain-English scope. Dev writes spec, checks buildability, gets PE technical review, then produces plan.  
-**Workspace:** app repo, checkout the prd-handoff PR branch.
+**When:** Eng opened spec PR after impact map LGTM. May parallel meta PRD PR.  
+**Workspace:** app repo, branch `chore/INIT-*-spec-<repo>`.
 
 ### D3a — Write spec slice (first)
 
@@ -280,8 +270,7 @@ Do not edit .cursor/rules/ submodule. No new product features unless scoped.
 /spec-draft
 
 Initiative: INIT-EXAMPLE-003
-PRD: <client>-meta/prd/INIT-EXAMPLE-003.md  (linked in prd-handoff PR body)
-Scope: (paste PM's plain-English scope from prd-handoff PR body)
+PRD: <client>-meta/prd/INIT-EXAMPLE-003.md  (meta PRD PR branch or develop)
 Repo: example-registry (this workspace)
 
 Output: docs/specification/product/INIT-EXAMPLE-003.md
@@ -298,8 +287,8 @@ Spec: docs/specification/product/INIT-EXAMPLE-003.md
 PRD: <client>-meta/prd/INIT-EXAMPLE-003.md
 
 Output: docs/specification/reports/Initiative-Feasibility-Report-INIT-EXAMPLE-003.md
-Post PM questions as PR comments on prd-handoff PR (plain English, no jargon).
-Route PE questions to /spec-technical-review. Auto-fix naming drift.
+Post PM questions on meta PRD PR (plain English).
+Post PE questions on this spec PR. Route to /spec-technical-review.
 ```
 
 ### D3c — PE technical review (when feasibility has PE questions / NEW-ADR)
@@ -312,22 +301,21 @@ Feasibility report: docs/specification/reports/Initiative-Feasibility-Report-INI
 Spec: docs/specification/product/INIT-EXAMPLE-003.md
 
 Output: docs/specification/reports/Technical-Review-INIT-EXAMPLE-003.md
-Resolves engineering decisions, drafts ADRs.
-PE opens a separate PR for this — PE approves it.
+Commit TDD to spec branch. PE Approve on the same spec PR.
 ```
 
-### D3d — Implementation plan (after PE approves TDD)
+### D3d — Implementation plan (after PE approves TDD if required)
 
 ```text
 /spec-implementation-plan
 
 Initiative: INIT-EXAMPLE-003
-Technical review: docs/specification/reports/Technical-Review-INIT-EXAMPLE-003.md
+Technical review: docs/specification/reports/Technical-Review-INIT-EXAMPLE-003.md (or N/A)
 Feasibility report: docs/specification/reports/Initiative-Feasibility-Report-INIT-EXAMPLE-003.md
 Spec: docs/specification/product/INIT-EXAMPLE-003.md
 
 Output: docs/specification/reports/Implementation-Plan-INIT-EXAMPLE-003.md
-Includes §WorkManifest YAML — dev runs gh issue create to seed board.
+Includes §WorkManifest YAML. Merge spec PR, then gh issue create to seed board.
 ```
 
 ---

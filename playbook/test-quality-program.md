@@ -47,4 +47,4 @@ Set **Initiative** and **Codebase** project fields on each issue. Move to **Veri
 
 - [sdd-workflow.md](sdd-workflow.md)
 - [harness-pins.md](harness-pins.md)
-- [pm-dev-handoff.md](pm-dev-handoff.md)
+- [delivery-workflow.md](delivery-workflow.md)

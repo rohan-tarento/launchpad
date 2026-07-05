@@ -2,7 +2,7 @@
 
 Config: [`gitflow-example.yaml`](../examples/tenant-meta/config/gitflow-example.yaml)
 
-**PM ↔ dev handoff:** [pm-dev-handoff.md](pm-dev-handoff.md)
+**Delivery workflow:** [delivery-workflow.md](delivery-workflow.md)
 
 ## Teams
 

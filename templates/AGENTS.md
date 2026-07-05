@@ -18,7 +18,7 @@ Playbook SSOT: **launchpad** `playbook/` (pinned from tenant `<client>-meta`).
 | Topic | Where |
 |-------|--------|
 | Branching policy (`INIT-{COMPONENT}-{NUMBER}` naming) | launchpad `playbook/branching-policy.md` |
-| PM ↔ dev handoff + sign-off workflow | launchpad `playbook/pm-dev-handoff.md` |
+| PM ↔ dev delivery workflow | launchpad `playbook/delivery-workflow.md` |
 | Delivery model (1:1 wave rule) | launchpad `playbook/delivery-model.md` |
 | SDD workflow | launchpad `playbook/sdd-workflow.md` |
 | Harness pins | launchpad `playbook/harness-pins.md` |

@@ -62,14 +62,12 @@ Switch to `strict` in `gitflow-{org}.yaml` when the org begins product INIT deli
 ### Spec pipeline branches (chore/)
 
 The spec pipeline produces docs-only artifacts before implementation starts.
-These use `chore/` — no product code, safe to merge without QA phase.
 
 | Artifact | Branch |
 |----------|--------|
-| Technical Design Document | `chore/INIT-{COMPONENT}-{NUMBER}-technical-review` |
-| Implementation plan | `chore/INIT-{COMPONENT}-{NUMBER}-plan` |
+| Spec + feasibility + TDD + plan | `chore/INIT-{COMPONENT}-{NUMBER}-spec-<repo>` |
 
-Note: the feasibility report lives on the **prd-handoff branch** alongside the spec slice — no separate chore branch.
+All spec pipeline artifacts live on the **spec PR branch** — one PR to `develop`.
 
 ### Wave pipeline branches (feature/)
 
