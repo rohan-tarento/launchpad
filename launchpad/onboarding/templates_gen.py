@@ -87,7 +87,7 @@ Process SSOT: [launchpad playbook]({_LAUNCHPAD_PLAYBOOK}) · Tenant deltas: [{ct
 |-------|------|
 | SDD workflow | [launchpad sdd-workflow]({_LAUNCHPAD_BLOB}/sdd-workflow.md) |
 | Harness pins | [launchpad harness-pins]({_LAUNCHPAD_BLOB}/harness-pins.md) |
-| PM ↔ dev handoff | [launchpad pm-dev-handoff]({_LAUNCHPAD_BLOB}/pm-dev-handoff.md) |
+| Delivery workflow | [launchpad delivery-workflow]({_LAUNCHPAD_BLOB}/delivery-workflow.md) |
 | Program board | [{ctx.spec['project']['name']}]({board}) |
 
 **Constitution:** [{rules_label}](https://github.com/{rules_repo}) @ {{{{RULES_PIN}}}}

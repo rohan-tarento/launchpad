@@ -4,7 +4,7 @@
 # Branch protection required:
 #   Settings → Branches → develop → "Require review from Code Owners" ON
 #
-# Sign-off workflow: launchpad/playbook/pm-dev-handoff.md § Sign-off workflow
+# Sign-off workflow: launchpad/playbook/delivery-workflow.md § Sign-off workflow
 
 # ── Spec pipeline reports (skill gates) ──────────────────────────────────────
 
@@ -17,8 +17,8 @@
 # Ground reports gate the next wave — tech lead must approve
 /docs/specification/reports/Ground-Report-*          @example-org/backend-devs
 
-# Feasibility reports — PM answers product questions on the PR
-/docs/specification/reports/Feasibility-Report-*     @example-org/pm-team @example-org/backend-devs
+# Feasibility reports — dev-owned; product Q&A on meta PRD PR
+/docs/specification/reports/Feasibility-Report-*     @example-org/backend-devs
 
 # ── Product specs ─────────────────────────────────────────────────────────────
 

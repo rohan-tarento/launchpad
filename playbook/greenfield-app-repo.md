@@ -290,11 +290,11 @@ make test
 
 | Step | Owner | Action |
 |------|-------|--------|
-| Backlog | PM | `launchpad seed-work --config work/INIT-*.yaml --apply` from meta |
-| Spec handoff | PM/dev | PR: `docs/specification/product/INIT-*.md` → `develop` |
+| Backlog | **Dev** | After spec PR merged: `gh issue create` per wave from §9, or copy §9 → `work/INIT-*.yaml` + `launchpad seed-work` (multi-repo) |
+| Spec PR | **Dev** opens | PR: spec + feasibility + TDD + plan → `develop` |
 | W0+ | Dev | Feature PRs on top of foundation (iac-local, adapters, domain code) |
 
-See [pm-dev-handoff.md](pm-dev-handoff.md) and [delivery-model.md](delivery-model.md).
+See [delivery-workflow.md](delivery-workflow.md) and [delivery-model.md](delivery-model.md).
 
 ---
 

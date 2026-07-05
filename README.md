@@ -59,7 +59,7 @@ Deep dives: [SDD workflow](playbook/sdd-workflow.md) · [Spec layout](playbook/s
 4. **`docs/specification/adr/`** — accepted decisions
 5. **`docs/specification/as-built/`** — what is live today (do not assume from product spec alone)
 
-**PM owns narrative truth** in `<client>-meta` (`prd/`, `planning/`, `work/`). **Dev owns implementation truth** in app repos (product spec updates, as-built, tests, verify). Long-form pre-build planning stays in meta — not scattered in app repos.
+**PM owns narrative truth** in `<client>-meta` (`prd/`, `planning/`). **Dev owns implementation truth** in app repos (product spec, as-built, tests, verify). **`work/INIT-*.yaml`** is dev-generated (plan §9) for product INITs — PM merges only when bulk `seed-work` is used. Long-form pre-build planning stays in meta — not scattered in app repos.
 
 Every PR ties back to an **INIT**, issue #, **spec paths touched**, and **verify command run**.
 
@@ -79,7 +79,7 @@ rules:
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: v0.3.1
+  ref: v0.4.0
   skills:
     - spec-feasibility-review
     - spec-implementation-plan
@@ -288,7 +288,7 @@ Full command reference: [playbook/python-automation.md](playbook/python-automati
 | [playbook/sdd-workflow.md](playbook/sdd-workflow.md) | SDD truth hierarchy and PR discipline |
 | [playbook/spec-layout.md](playbook/spec-layout.md) | Mandatory `docs/specification/` layout |
 | [playbook/harness-pins.md](playbook/harness-pins.md) | Harness pin format and sync workflow |
-| [playbook/pm-dev-handoff.md](playbook/pm-dev-handoff.md) | PM ↔ dev lanes and merge rules |
+| [playbook/delivery-workflow.md](playbook/delivery-workflow.md) | **How we ship** — two-PR model, skills, merge gates |
 | [playbook/README.md](playbook/README.md) | Full playbook index |
 | [docs/multi-laptop.md](docs/multi-laptop.md) | **Client registry** — install + `clients.yaml` + `env.d` |
 | [docs/local-dev.md](docs/local-dev.md) | Kit contributors — venv / source testing |

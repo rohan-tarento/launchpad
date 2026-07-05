@@ -29,7 +29,7 @@ Base URL: `tenant <client>-meta/blob/develop/`
 |------|------|
 | PM workflow | `playbook/pm-workflow.md` |
 | Skills matrix (prayog-skills install) | `playbook/skills-matrix.md` |
-| PM ↔ dev handoff | `playbook/pm-dev-handoff.md` |
+| Delivery workflow | `playbook/delivery-workflow.md` |
 
 ---
 
@@ -39,7 +39,7 @@ Base URL: `tenant <client>-meta/blob/develop/`
 
 | Link | Path |
 |------|------|
-| PM ↔ dev handoff | `playbook/pm-dev-handoff.md` |
+| Delivery workflow | `playbook/delivery-workflow.md` |
 | Branching policy | `playbook/branching-policy.md` |
 | Board columns + fields | `playbook/github-project.md` |
 | PR template | `templates/pull_request_template.md` |

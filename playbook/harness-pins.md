@@ -26,7 +26,7 @@ rules:
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: v0.3.1
+  ref: v0.4.0
   profile: python-backend
   skills:
     - spec-draft
@@ -49,8 +49,9 @@ Document your org's approved `rules` + `agent_skills` ref pairs in tenant `confi
 
 | rules | agent_skills | Notes |
 |-------|--------------|-------|
-| v1.0.0 | v0.3.1 | Current — 8-skill dev bundle; meta-pm = 4 requirements skills (no generate-work-manifest) |
-| v1.0.0 | v0.3.0 | Superseded — included generate-work-manifest in meta-pm tree |
+| v1.0.0 | v0.4.0 | Current — two-PR delivery model; Q&A routing in skills |
+| v1.0.0 | v0.3.2 | Superseded — prd-handoff branch naming |
+| v1.0.0 | v0.3.1 | Superseded — 8-skill dev bundle; no generate-work-manifest |
 | v1.0.0 | v0.2.0 | Superseded — 4-skill dev bundle |
 
 Bump via harness PR after platform publishes a new approved rules + skills pair.

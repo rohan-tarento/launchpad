@@ -51,17 +51,17 @@ When planning content hardens: promote via **PRD** + app-repo **product/** + **A
 
 ## PM handoff (product INIT)
 
-Process: [pm-workflow.md](pm-workflow.md) · [pm-dev-handoff.md](pm-dev-handoff.md) · [delivery-model.md](delivery-model.md)
+Process: [delivery-workflow.md](delivery-workflow.md) · [delivery-model.md](delivery-model.md)
 
 1. PRD in **<client>-meta** `prd/INIT-*.md` — declares `delivery_model` + wave table when `waves`
-2. Spec PR per repo: `product/INIT-*.md` + contract deltas + cross-service docs — **no `src/`**
-3. Phase 2 merge to **`develop`**
-4. Dev `/spec-implementation-plan` → `gh issue create` per wave (optional `seed-work` multi-repo)
+2. Eng opens spec PR per repo: `product/INIT-*.md` + feasibility + TDD + plan — **no `src/`**
+3. Spec PR merge to **`develop`**
+4. Dev seeds board: `gh issue create` per wave (optional `seed-work` multi-repo)
 5. Dev implements from **product** + **as-built** — not from meta PRD alone
 
-### INIT spec handoff (`product/INIT-*.md`) — mandatory sections
+### INIT spec (`product/INIT-*.md`) — mandatory sections
 
-Agent starting point: [templates/INIT-spec-handoff.md](../templates/INIT-spec-handoff.md). Reviewers gate against this list.
+Agent starting point: [templates/INIT-spec-PR.md](../templates/INIT-spec-PR.md). Reviewers gate against this list.
 
 | Section | Requirement |
 |---------|-------------|

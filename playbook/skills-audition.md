@@ -17,7 +17,7 @@ Score skills before marking harness or PM pipeline ready. Lab sample prompts: [l
 | review-findings | | | prayog-skills |
 | update-documents | | | prayog-skills |
 | generate-work-manifest | removed v0.3.1 | — | was prayog-skills backlog skill; superseded by spec-implementation-plan §9 |
-| spec-feasibility-review | | | prayog-skills dev |
+| initiative-feasibility | | | prayog-skills dev |
 | spec-technical-review | | | prayog-skills dev (PE lane) |
 | spec-implementation-plan | | | prayog-skills dev |
 | pre-implement | | | prayog-skills dev |
@@ -65,18 +65,18 @@ launchpad seed-work --config work/INIT-<id>.yaml --dry-run
 
 ---
 
-## 4. spec-feasibility-review (app repo, spec PR branch)
+## 4. initiative-feasibility (app repo, spec PR branch)
 
-**Workspace:** example-registry (or pilot repo), spec handoff branch
+**Workspace:** example-registry (or pilot repo), branch `chore/INIT-*-spec-<repo>`
 
 ```text
-/spec-feasibility-review
+/initiative-feasibility
 
 Initiative: INIT-EXAMPLE-003
 Spec: docs/specification/product/INIT-EXAMPLE-003.md
 ```
 
-**Pass if:** report saved; F-checks evidenced; PM questions numbered; no `src/` edits.
+**Pass if:** report saved; F-checks evidenced; PM questions routed to meta PRD PR; PE questions on spec PR; no `src/` edits.
 
 ---
 
@@ -95,17 +95,17 @@ Feasibility report: docs/specification/reports/Feasibility-Report-INIT-EXAMPLE-0
 
 ---
 
-## 6. spec-implementation-plan (app repo, post-feasibility + PE sign-off)
+## 6. spec-implementation-plan (app repo, while spec PR open)
 
 ```text
 /spec-implementation-plan
 
 Initiative: INIT-EXAMPLE-003
-Feasibility report path: docs/specification/reports/Feasibility-Report-INIT-EXAMPLE-003.md
-Technical review path: docs/specification/reports/Technical-Review-INIT-EXAMPLE-003.md
+Feasibility report path: docs/specification/reports/Initiative-Feasibility-Report-INIT-EXAMPLE-003.md
+Technical review path: docs/specification/reports/Technical-Review-INIT-EXAMPLE-003.md (or N/A)
 ```
 
-**Pass if:** §0 PE sign-off referenced; W0–Wn phases with REQ/TASK/FILE; done-when per task; P1–P14 checks in report; §WorkManifest YAML present.
+**Pass if:** §0 PE sign-off referenced; W0–Wn phases with REQ/TASK/FILE; done-when per task; P1–P14 checks; §9 WorkManifest YAML present. Board seed happens **after** spec merge.
 
 ---
 

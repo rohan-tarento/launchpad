@@ -7,13 +7,16 @@ How implementation work is **declared** (PRD), **detailed** (repo spec), **track
 ```text
 PRD delivery_model + wave table
   → repo spec (mirror wave IDs; may add PRE* gates)
-  → work manifest (one issue per delivery unit)
-  → seed-work → GitHub Project
+  → dev: /spec-implementation-plan §9 WorkManifest YAML   ← on spec branch, before spec merge
+  → spec PR merge
+  → gh issue create (single repo) OR seed-work (multi-repo bulk)   ← after spec merge
   → feature branch PR per wave → merge → wave Done
   → INIT closure when all units + success criteria pass
 ```
 
-Related: [pm-dev-handoff.md](pm-dev-handoff.md) · [spec-layout.md](spec-layout.md) · [pm-workflow.md](pm-workflow.md)
+**Work manifest rule:** PM provides the PRD. Dev generates wave manifest content via `/spec-implementation-plan` §9. PM never hand-writes `work/INIT-*.yaml` before spec merge. See [delivery-workflow.md](delivery-workflow.md#work-manifest).
+
+Related: [delivery-workflow.md](delivery-workflow.md) · [spec-layout.md](spec-layout.md) · [pm-workflow.md](pm-workflow.md)
 
 ---
 
@@ -76,7 +79,7 @@ After **all** wave issues are Done:
 - Meta PRD success criteria (S1–Sn)
 - Live verify / harness verify per PRD (closure gates — not necessarily every wave in CI)
 - Board epic closed
-- [pm-dev-handoff.md](pm-dev-handoff.md) Phase 3 checklist complete
+- [delivery-workflow.md](delivery-workflow.md) wave checklist complete
 
 ---
 
@@ -85,8 +88,9 @@ After **all** wave issues are Done:
 | Step | PM | Dev |
 |------|-----|-----|
 | Declare `delivery_model` + waves in PRD | ✓ | review |
-| Draft spec from [templates/INIT-spec-handoff.md](../templates/INIT-spec-handoff.md) | — | ✓ |
-| `/spec-implementation-plan` §9 board seed | — | ✓ (`gh issue create` per wave; optional `seed-work` multi-repo) |
+| Spec PR + `/spec-draft` | — | ✓ |
+| `/spec-implementation-plan` §9 | — | ✓ (on spec branch) |
+| Board seed after spec merge | — | ✓ (`gh issue create` per wave; optional `seed-work`) |
 | Implement wave PRs | — | ✓ |
 | Close epic | ✓ | verify S-criteria |
 
@@ -94,14 +98,22 @@ After **all** wave issues are Done:
 
 ## Board seed behavior
 
-After spec merge, **dev** runs `/spec-implementation-plan`. Plan §9 emits WorkManifest YAML with **one `work:` item per wave** (`id: W0`, `W1`, …).
+Dev runs `/spec-implementation-plan` **while spec PR is open**. Plan §9 emits WorkManifest YAML with **one `work:` item per wave** (`id: W0`, `W1`, …).
 
-| Path | When |
-|------|------|
-| `gh issue create` | Default — single-repo initiatives |
-| `launchpad seed-work` | Optional — multi-repo bulk; copy §9 YAML to `work/INIT-*.yaml` in meta first |
+**After spec PR merge**, dev seeds the board:
 
-Do not hand-write wave manifests — dev generates them via `/spec-implementation-plan` §9 after Phase 2 merge. PM does not author `work/INIT-*.yaml` before Phase 2.
+| Role | Action |
+|------|--------|
+| **Dev** | Runs `/spec-implementation-plan`; owns §9 YAML content |
+| **Dev** | Seeds board **after spec PR merge** |
+| **PM** | Does **not** author manifest before spec merge; may merge `work/*.yaml` in meta if dev uses bulk path |
+
+| Path | When | Who |
+|------|------|-----|
+| `gh issue create` | Default — single-repo initiatives | Dev — from §9 YAML |
+| `launchpad seed-work` | Optional — multi-repo bulk | Dev copies §9 → `work/INIT-*.yaml`; PM may merge file in meta |
+
+Do not hand-write wave manifests — dev generates them via `/spec-implementation-plan` §9.
 
 ---
 
@@ -110,6 +122,6 @@ Do not hand-write wave manifests — dev generates them via `/spec-implementatio
 | Template | Use |
 |----------|-----|
 | [templates/INIT-PRD-outline.md](../templates/INIT-PRD-outline.md) | `/prd` — Delivery section stub |
-| [templates/INIT-spec-handoff.md](../templates/INIT-spec-handoff.md) | Spec handoff PR on app repo |
+| [templates/INIT-spec-PR.md](../templates/INIT-spec-PR.md) | Spec PR on app repo |
 
 Playbook = policy; templates = agent starting structure.

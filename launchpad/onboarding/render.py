@@ -431,7 +431,7 @@ def render_playbook_readme(ctx: OnboardingContext) -> str:
 | Topic | Document |
 |-------|----------|
 | **How we ship (start here)** | [launchpad/delivery-workflow.md]({lp}/delivery-workflow.md) |
-| PM ↔ dev handoff | [launchpad/pm-dev-handoff.md]({lp}/pm-dev-handoff.md) |
+| Delivery workflow | [launchpad/delivery-workflow.md]({lp}/delivery-workflow.md) |
 | SDD workflow | [launchpad/sdd-workflow.md]({lp}/sdd-workflow.md) |
 | Spec layout | [launchpad/spec-layout.md]({lp}/spec-layout.md) |
 | Harness pins | [launchpad/harness-pins.md]({lp}/harness-pins.md) |

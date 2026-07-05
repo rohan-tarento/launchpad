@@ -8,7 +8,7 @@ Policy docs describe intent. **These mechanisms enforce it.**
 
 | Layer | Enforces |
 |-------|----------|
-| **Teams** | Who may push to `develop` vs `main`; PM handoff — [pm-dev-handoff.md](pm-dev-handoff.md) |
+| **Teams** | Who may push to `develop` vs `main`; merge rules — [delivery-workflow.md](delivery-workflow.md) |
 | **Branch protection** | PR required, reviews (`protection` in gitflow YAML) |
 | **Ruleset** `branch-naming-standard` | Only allowed branch name patterns (when `options.branch_naming: true`) |
 | **`policy-branch-name` workflow** | PRs to `develop` — generated from `branch_naming` + `merge_policy.develop` |

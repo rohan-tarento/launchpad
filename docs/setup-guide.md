@@ -140,11 +140,26 @@ See [playbook/harness-pins.md](../playbook/harness-pins.md) and [playbook/sdd-wo
 
 ## Phase 6 — First INIT
 
-In **`<client>-meta`** (PM lane):
+In **`<client>-meta`** (PM lane) then **app repo** (dev lane):
 
-1. `prd/INIT-….md`
-2. `work/INIT-….yaml` (e.g. sample `work/INIT-EXAMPLE-001.yaml` in skeleton)
-3. `launchpad seed-work --config work/INIT-….yaml --apply`
+**PM (meta PRD PR)**
+
+1. `prd/INIT-….md` + validation reports → meta PR (**no** `work/INIT-*.yaml`)
+2. `/prd-impact-map` + tech lead LGTM
+3. Answer product questions from eng on PRD PR
+
+**Dev (app spec PR — may open parallel after impact LGTM)**
+
+1. Open spec PR: `chore/INIT-*-spec-<repo>`
+2. `/spec-draft` → `/initiative-feasibility` → `/spec-technical-review` (if NEW-ADR) → `/spec-implementation-plan`
+3. Merge spec PR
+
+**After spec merge**
+
+1. `gh issue create` per wave from plan §9 — **default** (single repo)
+2. Optional multi-repo: copy §9 → `work/INIT-….yaml` → `launchpad seed-work --config work/INIT-….yaml --apply`
+
+See [delivery-workflow.md](../playbook/delivery-workflow.md).
 
 ---
 

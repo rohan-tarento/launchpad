@@ -2,7 +2,7 @@
 
 How agents and engineers use the **truth hierarchy** in Launchpad repos. Constitution rules live in submodules; product truth lives in each service repo.
 
-**PM ↔ dev handoff:** [pm-dev-handoff.md](pm-dev-handoff.md)
+**Delivery workflow:** [delivery-workflow.md](delivery-workflow.md)
 
 ## Hierarchy (read in this order)
 

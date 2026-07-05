@@ -12,7 +12,7 @@ metadata:
     Example waves model — W0 structure, W1 domain. Replace with a real INIT after PRD sign-off.
   playbook:
     - prd/INIT-EXAMPLE-001.md
-    - playbook/pm-dev-handoff.md
+    - playbook/delivery-workflow.md
 
 target:
   org: example-org
