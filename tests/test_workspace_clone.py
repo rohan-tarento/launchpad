@@ -105,7 +105,7 @@ class WorkspaceCloneRunTests(unittest.TestCase):
                 from launchpad.workspace_clone import clone_one_repo
 
                 clone_one_repo(
-                    org="autrio10x",
+                    org="example-org",
                     repo="mobbot-meta",
                     dest=meta,
                     dry_run=True,

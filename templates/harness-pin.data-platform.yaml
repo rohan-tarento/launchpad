@@ -1,7 +1,7 @@
 profile: data-platform
 
 rules:
-  repo: your-org/platform-rules
+  repo: drivestream-lab/data-platform-rules
   ref: {{RULES_REF}}
 
 agent_skills:
