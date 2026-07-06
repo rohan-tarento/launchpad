@@ -295,7 +295,7 @@ See [delivery-workflow.md](delivery-workflow.md) and [delivery-model.md](deliver
 
 ## Full cheat sheet (python-backend)
 
-Replace `example-api`, `autrio10x`, and client id for each new repo.
+Replace `example-api`, `example-org`, and client id for each new repo.
 
 ### Path A — empty GitHub repo, first local checkout
 

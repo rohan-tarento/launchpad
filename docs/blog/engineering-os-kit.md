@@ -45,7 +45,7 @@ We borrowed the name from spec-driven development, but tightened it for multi-re
 ### Truth hierarchy (read in this order)
 
 ```text
-1. Constitution     →  .cursor/rules/*.mdc  (private rules submodule)
+1. Constitution     →  .cursor/rules/*.mdc  (drivestream-lab/*-rules submodule)
 2. Router           →  AGENTS.md
 3. What to build    →  docs/specification/product/
 4. Why              →  docs/specification/adr/
@@ -93,7 +93,7 @@ Each app repo gets a **pin file** at the root:
 profile: python-backend
 
 rules:
-  repo: your-org/service-rules   # private — MDC constitution
+  repo: drivestream-lab/python-services-rules
   ref: v1.0.0
 
 agent_skills:
@@ -106,7 +106,7 @@ agent_skills:
     - verify
 ```
 
-**Rules** stay private per customer — they're your constitution, not ours to ship. **Skills** come from public [prayog-skills](https://github.com/drivestream-lab/prayog-skills) — the dev workflow bundle (`/pre-implement`, `/verify`, etc.).
+**Rules** ship as public OSS per profile (`python-services-rules`, `data-platform-rules`, `nextjs-bff-rules`) — pinned per app. **Skills** come from public [prayog-skills](https://github.com/drivestream-lab/prayog-skills) — the dev workflow bundle (`/pre-implement`, `/verify`, etc.).
 
 `sync-harness-app` writes the pin, `AGENTS.md`, the rules submodule, and seeds skills into `.agents/skills/` (gitignored; reproducible from the pin). `verify-harness-app` checks the repo still matches tenant config.
 
@@ -162,7 +162,7 @@ Factory is GitHub-first today; GitLab covers `seed-work` + labels. Honest scope 
                              │
          ┌───────────────────┼───────────────────┐
          ▼                   ▼                   ▼
-   <client>-meta         app repos          private rules
+   <client>-meta         app repos          drivestream-lab rules
    PRDs, manifests      specs, code        *.mdc constitution
    factory YAML         harness pin
          │                   │
@@ -173,7 +173,7 @@ Factory is GitHub-first today; GitLab covers `seed-work` + labels. Honest scope 
          (INIT, codebase, verify cmd)
 ```
 
-The **kit** (`launchpad` repo) never contains customer PRDs or private rules. The **tenant** (`<client>-meta`) does. You install Launchpad once per machine; you copy [`examples/tenant-meta`](https://github.com/drivestream-lab/launchpad/tree/main/examples/tenant-meta) per customer.
+The **kit** (`launchpad` repo) never contains customer PRDs. **Rules** are public OSS in `drivestream-lab/*-rules`; the **tenant** (`<client>-meta`) holds factory config and PRDs. You install Launchpad once per machine; you copy [`examples/tenant-meta`](https://github.com/drivestream-lab/launchpad/tree/main/examples/tenant-meta) per customer.
 
 ---
 
@@ -196,7 +196,7 @@ Launchpad **productizes the pattern**. It does not auto-migrate ten years of tri
 Calling it a **kit** is intentional:
 
 - **Not a SaaS** — no hosted tenant, no vendor lock-in
-- **Not rules in the public repo** — constitution stays `your-org/*-rules`, pinned per app
+- **Not rules in the public repo** — constitution lives in `drivestream-lab/*-rules`, pinned per app
 - **Not "push button client"** — people still join teams in GitHub UI; meta is pushed manually first
 - **Not full GitLab factory** — yet
 - **Not magic brownfield** — migration is playbook + discipline
