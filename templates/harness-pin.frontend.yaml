@@ -1,7 +1,7 @@
 profile: frontend
 
 rules:
-  repo: your-org/frontend-rules
+  repo: drivestream-lab/nextjs-bff-rules
   ref: {{RULES_REF}}
 
 agent_skills:

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from launchpad.scaffold.errors import ScaffoldError
+from launchpad.platform_repos import gh_cookiecutter_template, platform_repo
 
 
 @dataclass(frozen=True)
@@ -45,7 +46,7 @@ _PYTHON_BACKEND_DEFAULTS: dict[str, str] = {
     "has_emqx": "no",
     "has_telemetry": "yes",
     "has_internal_api": "no",
-    "parichay_client": "yes",
+    "parichay_client": "no",
     "abhilekh_client": "no",
     "kavach_client": "no",
     "default_port": "8000",
@@ -76,7 +77,7 @@ _register(
         name="python-backend",
         engine="cookiecutter",
         template_env="LAUNCHPAD_PYTHON_FOUNDATION",
-        template_default="gh:autrio10x/python-fastapi-foundation",
+        template_default=gh_cookiecutter_template("python-backend"),
         cookiecutter_keys=_PYTHON_BACKEND_KEYS,
         defaults=_PYTHON_BACKEND_DEFAULTS,
     )
@@ -87,7 +88,7 @@ _register(
         name="frontend",
         engine="cookiecutter",
         template_env="LAUNCHPAD_NEXTJS_BFF_FOUNDATION",
-        template_default="gh:autrio10x/nextjs-bff-foundation",
+        template_default=gh_cookiecutter_template("frontend"),
         cookiecutter_keys=frozenset(),
         defaults={},
         implemented=False,
@@ -117,7 +118,7 @@ _register(
         name="tenant-meta",
         engine="cookiecutter",
         template_env="LAUNCHPAD_META_FOUNDATION",
-        template_default="gh:drivestream-lab/tenant-meta-foundation",
+        template_default=f"gh:{platform_repo('tenant-meta-foundation')}",
         cookiecutter_keys=_TENANT_META_KEYS,
         defaults=_TENANT_META_DEFAULTS,
     )

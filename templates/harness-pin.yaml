@@ -1,7 +1,7 @@
 profile: python-backend
 
 rules:
-  repo: your-org/service-rules
+  repo: drivestream-lab/python-services-rules
   ref: {{RULES_REF}}
 
 agent_skills:
