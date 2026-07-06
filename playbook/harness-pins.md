@@ -8,7 +8,7 @@ Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. 
 
 | Repo | Mount / path | Owner | Contents |
 |------|----------------|-------|----------|
-| `your-org/service-rules` (private) | `.cursor/rules/` submodule | Platform | `.mdc` constitution |
+| `drivestream-lab/python-services-rules` | `.cursor/rules/` submodule | Platform (OSS) | `.mdc` constitution |
 | [prayog-skills](https://github.com/drivestream-lab/prayog-skills) | `.agents/skills/` (seeded) | Public | Dev workflow skills |
 | `<client>-meta` (private) | (tenant workspace) | Tenant | PRDs, manifests, factory config, templates |
 
@@ -21,7 +21,7 @@ Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. 
 profile: python-backend
 
 rules:
-  repo: your-org/service-rules
+  repo: drivestream-lab/python-services-rules
   ref: v1.0.0
 
 agent_skills:
@@ -84,7 +84,7 @@ launchpad verify-harness-app
 
 Config: `config/harness-<org>.yaml`
 
-Template paths (`agents_template`, `pin_template`) resolve **tenant override first**, then **launchpad kit** `templates/` (pipx install). Store only autrio10x-specific overrides under `<client>-meta/templates/`.
+Template paths (`agents_template`, `pin_template`) resolve **tenant override first**, then **launchpad kit** `templates/` (pipx install). Store only tenant-specific overrides under `<client>-meta/templates/`.
 
 **Onboard a new app repo:** see [greenfield-app-repo.md](greenfield-app-repo.md) (scaffold-app → git push → gitflow → sync-harness-app).
 
