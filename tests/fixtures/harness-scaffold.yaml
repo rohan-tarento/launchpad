@@ -8,8 +8,8 @@ default_workspace: ..
 profiles:
   python-backend:
     rules:
-      repo: your-org/service-rules
-      url: https://github.com/your-org/service-rules.git
+      repo: drivestream-lab/python-services-rules
+      url: https://github.com/drivestream-lab/python-services-rules.git
       ref: v0.0.0
       path: .cursor/rules
     agent_skills:
@@ -28,8 +28,8 @@ profiles:
 
   frontend:
     rules:
-      repo: your-org/nextjs-bff-rules
-      url: https://github.com/your-org/nextjs-bff-rules.git
+      repo: drivestream-lab/nextjs-bff-rules
+      url: https://github.com/drivestream-lab/nextjs-bff-rules.git
       ref: v0.0.0
       path: .cursor/rules
     agent_skills:

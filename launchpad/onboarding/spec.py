@@ -10,6 +10,12 @@ import yaml
 
 from launchpad.config import load_yaml
 from launchpad.onboarding.errors import OnboardingError
+from launchpad.platform_repos import (
+    DEFAULT_AGENT_SKILLS_REF,
+    DEFAULT_RULES_REF,
+    PRAYOG_SKILLS_REPO,
+    platform_rules_repo,
+)
 
 _CLIENT_ID_RE = re.compile(r"^[a-z][a-z0-9-]{0,62}$")
 _REPO_NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]+$")
@@ -119,9 +125,9 @@ def normalize_spec(raw: dict[str, Any]) -> dict[str, Any]:
     rules_raw = _require_mapping(raw, "rules") if "rules" in raw else {}
     python_rules = _require_mapping(rules_raw, "python") if "python" in rules_raw else {}
     rules_python_repo = str(
-        python_rules.get("repo") or f"{org}/python-services-rules"
+        python_rules.get("repo") or platform_rules_repo("python")
     ).strip()
-    rules_python_ref = str(python_rules.get("initial_ref") or "v0.1.0").strip()
+    rules_python_ref = str(python_rules.get("initial_ref") or DEFAULT_RULES_REF).strip()
 
     rules: dict[str, Any] = {
         "python": {"repo": rules_python_repo, "initial_ref": rules_python_ref},
@@ -129,19 +135,31 @@ def normalize_spec(raw: dict[str, Any]) -> dict[str, Any]:
     if "frontend" in rules_raw:
         fe = _require_mapping(rules_raw, "frontend")
         rules["frontend"] = {
-            "repo": str(fe.get("repo") or f"{org}/nextjs-bff-rules").strip(),
-            "initial_ref": str(fe.get("initial_ref") or "v0.1.0").strip(),
+            "repo": str(fe.get("repo") or platform_rules_repo("frontend")).strip(),
+            "initial_ref": str(fe.get("initial_ref") or DEFAULT_RULES_REF).strip(),
         }
     elif any(r["profile"] == "frontend" for r in repos):
         rules["frontend"] = {
-            "repo": f"{org}/nextjs-bff-rules",
-            "initial_ref": "v0.1.0",
+            "repo": platform_rules_repo("frontend"),
+            "initial_ref": DEFAULT_RULES_REF,
+        }
+
+    if "data_platform" in rules_raw:
+        dp = _require_mapping(rules_raw, "data_platform")
+        rules["data_platform"] = {
+            "repo": str(dp.get("repo") or platform_rules_repo("data_platform")).strip(),
+            "initial_ref": str(dp.get("initial_ref") or DEFAULT_RULES_REF).strip(),
+        }
+    elif any(r["profile"] == "data_platform" for r in repos):
+        rules["data_platform"] = {
+            "repo": platform_rules_repo("data_platform"),
+            "initial_ref": DEFAULT_RULES_REF,
         }
 
     agent_skills_raw = _require_mapping(raw, "agent_skills") if "agent_skills" in raw else {}
     agent_skills = {
-        "repo": str(agent_skills_raw.get("repo") or "drivestream-lab/prayog-skills").strip(),
-        "ref": str(agent_skills_raw.get("ref") or "v0.4.0").strip(),
+        "repo": str(agent_skills_raw.get("repo") or PRAYOG_SKILLS_REPO).strip(),
+        "ref": str(agent_skills_raw.get("ref") or DEFAULT_AGENT_SKILLS_REF).strip(),
     }
 
     teams_raw = raw.get("teams")

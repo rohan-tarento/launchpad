@@ -7,6 +7,7 @@ from typing import Any
 import yaml
 
 from launchpad.onboarding.context import OnboardingContext
+from launchpad.platform_repos import DEFAULT_RULES_REF, platform_rules_repo
 from launchpad.service_catalog import entries_from_onboarding_spec, render_service_catalog
 
 _DEFAULT_COMMUNITY_SKILLS = [
@@ -220,11 +221,10 @@ def _harness_profile(
     profile_key: str,
     pin_template: str,
     rules_key: str,
-    default_suffix: str,
 ) -> dict[str, Any]:
     rules_spec = ctx.spec["rules"].get(rules_key) or {
-        "repo": f"{ctx.org}/{default_suffix}",
-        "initial_ref": "v0.1.0",
+        "repo": platform_rules_repo(rules_key),
+        "initial_ref": DEFAULT_RULES_REF,
     }
     commands = _PROFILE_COMMANDS.get(profile_key, _PROFILE_COMMANDS["python-backend"])
     return {
@@ -254,7 +254,6 @@ def render_harness_config(ctx: OnboardingContext) -> str:
             "python-backend",
             "templates/harness-pin.yaml",
             "python",
-            "python-services-rules",
         ),
     }
     if any(r["profile"] == "frontend" for r in ctx.spec["repos"]):
@@ -263,15 +262,13 @@ def render_harness_config(ctx: OnboardingContext) -> str:
             "frontend",
             "templates/harness-pin.frontend.yaml",
             "frontend",
-            "nextjs-bff-rules",
         )
     if any(r["profile"] == "data_platform" for r in ctx.spec["repos"]):
         profiles["data-platform"] = _harness_profile(
             ctx,
             "data-platform",
             "templates/harness-pin.data-platform.yaml",
-            "python",
-            "data-platform-rules",
+            "data_platform",
         )
 
     harness_repos: dict[str, Any] = {}

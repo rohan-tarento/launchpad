@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Callable, TextIO
 
 from launchpad.onboarding.spec import normalize_spec, save_onboarding_spec
+from launchpad.platform_repos import DEFAULT_RULES_REF, platform_rules_repo
 
 
 def _prompt(
@@ -96,11 +97,11 @@ def build_spec_from_interview(
 
     rules_python_repo = _prompt(
         "Python rules repo (org/name)",
-        f"{org}/python-services-rules",
+        platform_rules_repo("python"),
         input_fn=reader,
         stream=stream,
     )
-    rules_python_ref = _prompt("Python rules initial tag", "v0.1.0", input_fn=reader, stream=stream)
+    rules_python_ref = _prompt("Python rules initial tag", DEFAULT_RULES_REF, input_fn=reader, stream=stream)
 
     rules: dict[str, Any] = {
         "python": {"repo": rules_python_repo, "initial_ref": rules_python_ref},
@@ -109,11 +110,11 @@ def build_spec_from_interview(
         rules["frontend"] = {
             "repo": _prompt(
                 "Frontend rules repo (org/name)",
-                f"{org}/nextjs-bff-rules",
+                platform_rules_repo("frontend"),
                 input_fn=reader,
                 stream=stream,
             ),
-            "initial_ref": _prompt("Frontend rules initial tag", "v0.1.0", input_fn=reader, stream=stream),
+            "initial_ref": _prompt("Frontend rules initial tag", DEFAULT_RULES_REF, input_fn=reader, stream=stream),
         }
 
     strict = _prompt_yes_no("Strict branch naming (INIT/feature/…)?", True, input_fn=reader)

@@ -50,6 +50,17 @@ class OnboardingSpecTests(unittest.TestCase):
         with self.assertRaises(OnboardingError):
             normalize_spec({"client_id": "KOLA", "org": "x", "repos": [{"name": "a"}]})
 
+    def test_default_rules_use_platform_org(self) -> None:
+        spec = normalize_spec(
+            {
+                "client_id": "acme",
+                "org": "acme-org",
+                "repos": [{"name": "acme-api", "profile": "backend"}],
+            }
+        )
+        self.assertEqual(spec["rules"]["python"]["repo"], "drivestream-lab/python-services-rules")
+        self.assertEqual(spec["agent_skills"]["repo"], "drivestream-lab/prayog-skills")
+
 
 class OnboardingPlanTests(unittest.TestCase):
     def test_plan_lists_config_files(self) -> None:
@@ -80,9 +91,9 @@ class OnboardingInterviewTests(unittest.TestCase):
                 "~/Workspace/handson/kola",
                 "kola-api",
                 "kola-portal",
-                "kola-lab/python-services-rules",
+                "drivestream-lab/python-services-rules",
                 "v0.1.0",
-                "kola-lab/nextjs-bff-rules",
+                "drivestream-lab/nextjs-bff-rules",
                 "v0.1.0",
                 "y",
                 "y",

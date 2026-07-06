@@ -6,6 +6,7 @@ from pathlib import Path
 
 from launchpad.onboarding.context import OnboardingContext
 from launchpad.paths import kit_root
+from launchpad.platform_repos import platform_rules_repo
 
 _LAUNCHPAD_PLAYBOOK = "https://github.com/drivestream-lab/launchpad/tree/main/playbook"
 _LAUNCHPAD_BLOB = "https://github.com/drivestream-lab/launchpad/blob/main/playbook"
@@ -99,7 +100,7 @@ Process SSOT: [launchpad playbook]({_LAUNCHPAD_PLAYBOOK}) · Tenant deltas: [{ct
 def _agents(ctx: OnboardingContext, rules_key: str) -> str:
     """Render the unified AGENTS.md template with org-specific rules link."""
     rules_spec = ctx.spec["rules"].get(rules_key) or {}
-    rules_repo = rules_spec.get("repo", f"{ctx.org}/service-rules")
+    rules_repo = rules_spec.get("repo", platform_rules_repo(rules_key))
     rules_label = rules_repo.split("/")[-1]
     text = _read_kit("AGENTS.md")
     # Substitute the generic rules placeholder with the actual rules repo link.
