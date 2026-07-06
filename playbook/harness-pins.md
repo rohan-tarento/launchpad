@@ -14,6 +14,18 @@ Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. 
 
 ---
 
+## Constitution vs router vs skills (do not mix layers)
+
+| Layer | Location | Contains | SSOT for changes |
+|-------|----------|----------|------------------|
+| **Constitution** | `.cursor/rules/*.mdc` (rules submodule) | How to code — SDD discipline, patterns, boundaries | `drivestream-lab/*-rules` repo |
+| **Router** | `AGENTS.md` | Harness pin, verify commands, playbook links, **which** skills exist | Harness sync templates + tenant overrides |
+| **Procedures** | `.agents/skills/` (gitignored) | Step-by-step slash workflows (`/pre-implement`, `/verify`, …) | [prayog-skills](https://github.com/drivestream-lab/prayog-skills) @ pinned ref |
+
+**Never** enumerate prayog skill names or slash commands in `*-rules` MDC files — they drift from `AGENTS.md` and prayog. Rules repos run `scripts/check_mdc_boundary.sh` in CI to enforce this.
+
+---
+
 ## Recommended pin file (app repo root)
 
 ```yaml

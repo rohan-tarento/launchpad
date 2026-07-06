@@ -110,6 +110,8 @@ agent_skills:
 
 **Rules** ship as public OSS per profile (`python-services-rules`, `data-platform-rules`, `nextjs-bff-rules`) — pinned per app. **Skills** come from public [prayog-skills](https://github.com/drivestream-lab/prayog-skills) — the eight-skill dev workflow bundle (`/spec-draft` through `/verify`).
 
+Three layers stay separate: **MDC rules** = coding constitution; **`AGENTS.md`** = router (lists which skills); **`.agents/skills/`** = prayog procedures. Do not duplicate skill catalogs in rules repos — only the harness pin and `AGENTS.md` name them.
+
 `sync-harness-app` writes the pin, `AGENTS.md`, the rules submodule, and seeds skills into `.agents/skills/` (gitignored; reproducible from the pin). `verify-harness-app` checks the repo still matches tenant config.
 
 ### PM skills vs dev skills (don't mix lanes)

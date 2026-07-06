@@ -16,6 +16,16 @@ How agents and engineers use the **truth hierarchy** in Launchpad repos. Constit
 
 **Mandatory layout:** [spec-layout.md](spec-layout.md) — **no** `docs/specification/harness/`.
 
+## Constitution vs router vs skills
+
+| Layer | Location | Role |
+|-------|----------|------|
+| `.cursor/rules/*.mdc` | Rules submodule | **Constitution** — how to build (never list prayog skills here) |
+| `AGENTS.md` | App or meta repo root | **Router** — pins, verify commands, skill names |
+| `.agents/skills/` | Gitignored, seeded on sync | **Procedures** — prayog slash-command workflows |
+
+See [harness-pins.md](harness-pins.md) for the full boundary table.
+
 ## Before changing behavior
 
 1. Read `AGENTS.md`
