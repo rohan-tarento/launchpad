@@ -70,7 +70,6 @@ repos:
       has_postgres: "yes"
       has_redis: "yes"               # omit → profile default is also "yes"
       has_kafka: "yes"
-      parichay_client: "yes"
       has_internal_api: "yes"        # before W1 if E1 uses /internal/v1/…
 ```
 
@@ -92,9 +91,6 @@ repos:
 | `has_emqx` | `no` | EMQX REST publish service | MQTT telemetry publish |
 | `has_telemetry` | `yes` | OpenTelemetry OTLP setup | `no` only for minimal spikes |
 | `has_internal_api` | `no` | `/internal` router (service-to-service) | `yes` when peers call `/internal/v1/…` |
-| `parichay_client` | `yes` | HTTP client to Parichay | `no` if no auth integration |
-| `abhilekh_client` | `no` | HTTP client to Abhilekh (device registry) | `yes` for device lookups |
-| `kavach_client` | `no` | HTTP client to Kavach | Security/policy integrations |
 
 Values must be strings `"yes"` / `"no"` (cookiecutter choice format).
 
@@ -107,7 +103,6 @@ Common overrides (quick reference):
 | `has_kafka` | `yes` | Event consumers, message ingress |
 | `has_internal_api` | `yes` | Services with `/internal/v1/…` peers |
 | `has_redis` | `no` | Minimal W0 with no cache yet |
-| `abhilekh_client` | `yes` | Services needing device registry |
 
 Also add repo to `config/gitflow-<org>.yaml` if not already present.
 

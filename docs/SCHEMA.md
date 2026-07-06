@@ -50,7 +50,7 @@ Generates app repos from cookiecutter templates. Meta layout uses `tenant-meta-f
 
 | Profile | Template (default) | Harness `repos.<name>.profile` |
 |---------|-------------------|--------------------------------|
-| `python-backend` | `gh:autrio10x/python-fastapi-foundation` or local sibling | `python-backend` |
+| `python-backend` | `gh:drivestream-lab/python-fastapi-foundation` or local sibling | `python-backend` |
 | `tenant-meta` | `gh:drivestream-lab/tenant-meta-foundation` or `LAUNCHPAD_META_FOUNDATION` | (meta harness uses `meta.profile: meta-pm`) |
 | `frontend` | planned `nextjs-bff-foundation` | `frontend` |
 
@@ -85,11 +85,10 @@ repos:
       has_postgres: "yes"
       has_redis: "yes"      # profile default; omit if default OK
       has_kafka: "yes"
-      parichay_client: "yes"
       has_internal_api: "yes"
 ```
 
-All keys: `auth_mode`, `has_postgres`, `has_redis`, `has_kafka`, `has_s3`, `has_cratedb`, `has_emqx`, `has_telemetry`, `has_internal_api`, `parichay_client`, `abhilekh_client`, `kavach_client`, `default_port`. See [greenfield-app-repo.md](../playbook/greenfield-app-repo.md).
+All keys: `auth_mode`, `has_postgres`, `has_redis`, `has_kafka`, `has_s3`, `has_cratedb`, `has_emqx`, `has_telemetry`, `has_internal_api`, `default_port`. See [greenfield-app-repo.md](../playbook/greenfield-app-repo.md).
 
 ## ServiceCatalog
 
