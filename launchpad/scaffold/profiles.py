@@ -46,9 +46,6 @@ _PYTHON_BACKEND_DEFAULTS: dict[str, str] = {
     "has_emqx": "no",
     "has_telemetry": "yes",
     "has_internal_api": "no",
-    "parichay_client": "no",
-    "abhilekh_client": "no",
-    "kavach_client": "no",
     "default_port": "8000",
 }
 
@@ -66,9 +63,6 @@ _PYTHON_BACKEND_KEYS = frozenset(
         "has_emqx",
         "has_telemetry",
         "has_internal_api",
-        "parichay_client",
-        "abhilekh_client",
-        "kavach_client",
     }
 )
 
