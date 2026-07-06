@@ -22,7 +22,7 @@ profile: python-backend
 
 rules:
   repo: drivestream-lab/python-services-rules
-  ref: v1.0.0
+  ref: v0.5.5
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
@@ -49,10 +49,11 @@ Document your org's approved `rules` + `agent_skills` ref pairs in tenant `confi
 
 | rules | agent_skills | Notes |
 |-------|--------------|-------|
-| v1.0.0 | v0.4.0 | Current — two-PR delivery model; Q&A routing in skills |
-| v1.0.0 | v0.3.2 | Superseded — prd-handoff branch naming |
-| v1.0.0 | v0.3.1 | Superseded — 8-skill dev bundle; no generate-work-manifest |
-| v1.0.0 | v0.2.0 | Superseded — 4-skill dev bundle |
+| v0.5.5 | v0.4.0 | Current — python-services-rules (python-backend) |
+| v0.3.0 | v0.4.0 | Current — data-platform-rules (data-platform profile) |
+| v0.1.1 | v0.4.0 | Current — nextjs-bff-rules (frontend profile) |
+| v0.5.5 | v0.3.1 | Superseded — previous python-backend pin |
+| v0.5.5 | v0.2.0 | Superseded — 4-skill dev bundle |
 
 Bump via harness PR after platform publishes a new approved rules + skills pair.
 
