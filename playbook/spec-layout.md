@@ -75,7 +75,7 @@ Agent starting point: [templates/INIT-spec-PR.md](../templates/INIT-spec-PR.md).
 | Verify commands | CI (`make check`, `make test`) vs live verify (closure) |
 | Constraints | No initiative blocks in `AGENTS.md`; no `src/` in spec PR |
 
-**Wave parity gate:** spec wave table IDs = PRD §4.0 / §4.5 wave IDs (PRE* allowed; scope may refine after `/spec-feasibility-review`).
+**Wave parity gate:** spec wave table IDs = PRD §4.0 / §4.5 wave IDs (PRE* allowed; scope may refine after `/initiative-feasibility`).
 
 ---
 
