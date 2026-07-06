@@ -2,8 +2,6 @@
 
 **A technical post on specification-driven development, harness engineering, and why we packaged our delivery model as a kit — not a platform.**
 
-*Draft for Medium / technical blog. Review before publishing.*
-
 ---
 
 ## The scene
@@ -89,24 +87,30 @@ If SDD answers *what*, harness answers *how the agent is allowed to behave*.
 Each app repo gets a **pin file** at the root:
 
 ```yaml
-# .harness-pin.yaml (conceptual)
+# .harness-pin.yaml (python-backend example — refs from production harness)
 profile: python-backend
 
 rules:
   repo: drivestream-lab/python-services-rules
-  ref: v1.0.0
+  ref: v0.5.5
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: v0.3.1
+  ref: v0.4.0
   skills:
-    - spec-feasibility-review
+    - spec-draft
+    - initiative-feasibility
+    - spec-technical-review
     - spec-implementation-plan
     - pre-implement
+    - loop-spec
+    - ground-spec
     - verify
 ```
 
-**Rules** ship as public OSS per profile (`python-services-rules`, `data-platform-rules`, `nextjs-bff-rules`) — pinned per app. **Skills** come from public [prayog-skills](https://github.com/drivestream-lab/prayog-skills) — the dev workflow bundle (`/pre-implement`, `/verify`, etc.).
+**Rules** ship as public OSS per profile (`python-services-rules`, `data-platform-rules`, `nextjs-bff-rules`) — pinned per app. **Skills** come from public [prayog-skills](https://github.com/drivestream-lab/prayog-skills) — the eight-skill dev workflow bundle (`/spec-draft` through `/verify`).
+
+Three layers stay separate: **MDC rules** = coding constitution; **`AGENTS.md`** = router (lists which skills); **`.agents/skills/`** = prayog procedures. Do not duplicate skill catalogs in rules repos — only the harness pin and `AGENTS.md` name them.
 
 `sync-harness-app` writes the pin, `AGENTS.md`, the rules submodule, and seeds skills into `.agents/skills/` (gitignored; reproducible from the pin). `verify-harness-app` checks the repo still matches tenant config.
 
@@ -114,10 +118,10 @@ agent_skills:
 
 | Where | Skills | Examples |
 |-------|--------|----------|
-| **`<client>-meta`** | PM pipeline | `/prd`, `/validate-requirements`, `/prd-impact-map` |
-| **App repos** | Dev bundle | `/spec-feasibility-review`, `/pre-implement`, `/verify` |
+| **`<client>-meta`** | PM pipeline | `/prd` (community), `/validate-requirements`, `/prd-impact-map` |
+| **App repos** | Dev bundle | `/initiative-feasibility`, `/pre-implement`, `/verify` |
 
-PM skills install in the meta workspace. Dev skills arrive via harness sync. Collapsing those lanes is how you get PM validation running against the wrong tree.
+`/prd` comes from **awesome-copilot** (community skill), not prayog. PM skills install in the meta workspace. Dev skills arrive via harness sync. Collapsing those lanes is how you get PM validation running against the wrong tree.
 
 ---
 
@@ -173,7 +177,7 @@ Factory is GitHub-first today; GitLab covers `seed-work` + labels. Honest scope 
          (INIT, codebase, verify cmd)
 ```
 
-The **kit** (`launchpad` repo) never contains customer PRDs. **Rules** are public OSS in `drivestream-lab/*-rules`; the **tenant** (`<client>-meta`) holds factory config and PRDs. You install Launchpad once per machine; you copy [`examples/tenant-meta`](https://github.com/drivestream-lab/launchpad/tree/main/examples/tenant-meta) per customer.
+The **kit** (`launchpad` repo) never contains customer PRDs. **Rules** are public OSS in `drivestream-lab/*-rules`; the **tenant** (`<client>-meta`) holds factory config and PRDs. You install Launchpad once per machine; copy [`examples/tenant-meta`](https://github.com/drivestream-lab/launchpad/tree/main/examples/tenant-meta) per customer, or use `launchpad onboard plan` / `onboard apply` for the guided path.
 
 ---
 
@@ -196,12 +200,12 @@ Launchpad **productizes the pattern**. It does not auto-migrate ten years of tri
 Calling it a **kit** is intentional:
 
 - **Not a SaaS** — no hosted tenant, no vendor lock-in
-- **Not rules in the public repo** — constitution lives in `drivestream-lab/*-rules`, pinned per app
+- **Not rules inside the launchpad repo** — constitution lives in public `drivestream-lab/*-rules`, pinned per app via submodule
 - **Not "push button client"** — people still join teams in GitHub UI; meta is pushed manually first
 - **Not full GitLab factory** — yet
 - **Not magic brownfield** — migration is playbook + discipline
 
-That's the right trade for a consultancy / platform team: ship **repeatable scaffolding**, keep **customer-specific truth private**.
+That's the right trade for a consultancy / platform team: ship **repeatable scaffolding**, keep **customer PRDs and factory config private** in `<client>-meta`.
 
 ---
 
@@ -209,14 +213,15 @@ That's the right trade for a consultancy / platform team: ship **repeatable scaf
 
 If this post is useful, here's the compressed runbook:
 
-1. **Clone Launchpad** — `pip install -e .` or `bin/launchpad` from source
-2. **Copy `examples/tenant-meta`** → `~/Workspace/handson/<client>/<client>-meta`
+1. **Clone Launchpad** — `pip install -e .` or `pipx install -e .` from source
+2. **Tenant meta** — copy [`examples/tenant-meta`](https://github.com/drivestream-lab/launchpad/tree/main/examples/tenant-meta), *or* `launchpad onboard plan` / `onboard apply` + `scaffold-meta`
 3. **Edit `config/*.yaml`** — org, repos, gitflow, harness, project
-4. **Push meta** — factory doesn't create your meta repo
-5. **`launchpad setup-platform --apply`** — repos, teams, gitflow, board
-6. **Clone app repos as siblings** → **`launchpad sync-harness-app --repo <app> --apply`**
-7. **First INIT** — PRD in `prd/`, manifest in `work/`, `seed-work --apply`
-8. **Dev** — spec handoff PRs, then `feature/INIT-*` implementation PRs with verify
+4. **Client registry + token** — `~/.config/launchpad/clients.yaml` and `env.d/<client>.env`
+5. **Push meta** — factory doesn't create your meta repo
+6. **`launchpad setup-platform --apply`** — repos, teams, gitflow, board
+7. **Clone app repos as siblings** → **`launchpad scaffold-app`** (new) or **`sync-harness-app`** (existing)
+8. **First INIT** — PRD in `prd/`, manifest in `work/`, `seed-work --apply`
+9. **Dev** — spec handoff PRs, then `feature/INIT-*` implementation PRs with verify
 
 Full walkthrough: [setup-guide.md](https://github.com/drivestream-lab/launchpad/blob/main/docs/setup-guide.md) in the repo.
 
@@ -244,6 +249,8 @@ If you're building multi-client agent-assisted delivery, steal the pattern. The 
 
 - **Kit:** [github.com/drivestream-lab/launchpad](https://github.com/drivestream-lab/launchpad)
 - **Skills:** [github.com/drivestream-lab/prayog-skills](https://github.com/drivestream-lab/prayog-skills)
+- **Rules:** [python-services-rules](https://github.com/drivestream-lab/python-services-rules) · [data-platform-rules](https://github.com/drivestream-lab/data-platform-rules) · [nextjs-bff-rules](https://github.com/drivestream-lab/nextjs-bff-rules)
+- **Scaffolds:** [python-fastapi-foundation](https://github.com/drivestream-lab/python-fastapi-foundation) · [tenant-meta-foundation](https://github.com/drivestream-lab/tenant-meta-foundation)
 
 ---
 

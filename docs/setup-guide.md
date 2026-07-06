@@ -44,7 +44,7 @@ The skeleton ships with neutral **`example-org`** / **`example-api`** so smoke t
 
 1. **GitHub org** exists (org admin access).
 2. **GitHub Team** plan for branch protection on private repos (if needed).
-3. **Private rules repo** with `.mdc` constitution (harness submodule).
+3. **Rules repos** — public [drivestream-lab/*-rules](https://github.com/drivestream-lab/python-services-rules) (`.mdc` constitution pinned as harness submodule per app profile).
 4. **Fine-grained PAT** — [playbook/bootstrap-prerequisites.md](../playbook/bootstrap-prerequisites.md).
 
 `gh auth login` is for day-to-day PRs. Factory uses **`GITHUB_TOKEN`** in `~/.config/launchpad/env.d/<client-id>.env`.

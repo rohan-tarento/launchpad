@@ -14,6 +14,18 @@ Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. 
 
 ---
 
+## Constitution vs router vs skills (do not mix layers)
+
+| Layer | Location | Contains | SSOT for changes |
+|-------|----------|----------|------------------|
+| **Constitution** | `.cursor/rules/*.mdc` (rules submodule) | How to code — SDD discipline, patterns, boundaries | `drivestream-lab/*-rules` repo |
+| **Router** | `AGENTS.md` | Harness pin, verify commands, playbook links, **which** skills exist | Harness sync templates + tenant overrides |
+| **Procedures** | `.agents/skills/` (gitignored) | Step-by-step slash workflows (`/pre-implement`, `/verify`, …) | [prayog-skills](https://github.com/drivestream-lab/prayog-skills) @ pinned ref |
+
+**Never** enumerate prayog skill names or slash commands in `*-rules` MDC files — they drift from `AGENTS.md` and prayog. Rules repos run `scripts/check_mdc_boundary.sh` in CI to enforce this.
+
+---
+
 ## Recommended pin file (app repo root)
 
 ```yaml
@@ -22,7 +34,7 @@ profile: python-backend
 
 rules:
   repo: drivestream-lab/python-services-rules
-  ref: v1.0.0
+  ref: v0.5.5
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
@@ -49,10 +61,11 @@ Document your org's approved `rules` + `agent_skills` ref pairs in tenant `confi
 
 | rules | agent_skills | Notes |
 |-------|--------------|-------|
-| v1.0.0 | v0.4.0 | Current — two-PR delivery model; Q&A routing in skills |
-| v1.0.0 | v0.3.2 | Superseded — prd-handoff branch naming |
-| v1.0.0 | v0.3.1 | Superseded — 8-skill dev bundle; no generate-work-manifest |
-| v1.0.0 | v0.2.0 | Superseded — 4-skill dev bundle |
+| v0.5.5 | v0.4.0 | Current — python-services-rules (python-backend) |
+| v0.3.0 | v0.4.0 | Current — data-platform-rules (data-platform profile) |
+| v0.1.1 | v0.4.0 | Current — nextjs-bff-rules (frontend profile) |
+| v0.5.5 | v0.3.1 | Superseded — previous python-backend pin |
+| v0.5.5 | v0.2.0 | Superseded — 4-skill dev bundle |
 
 Bump via harness PR after platform publishes a new approved rules + skills pair.
 
