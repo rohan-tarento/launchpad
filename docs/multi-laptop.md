@@ -17,8 +17,8 @@ One-time setup under `~/.config/launchpad/`:
 ~/.config/launchpad/
 ├── clients.yaml          # tenant paths + default client
 └── env.d/
-    drivestream.env       # secrets (GITHUB_TOKEN) — one file per client
-    acme.env
+    acme.env                # secrets (GITHUB_TOKEN) — one file per client
+    kola.env
 ```
 
 ### 1. Create `clients.yaml`
@@ -26,11 +26,11 @@ One-time setup under `~/.config/launchpad/`:
 Copy [examples/clients.yaml.example](../examples/clients.yaml.example):
 
 ```yaml
-default: drivestream
+default: acme
 
 clients:
-  - id: drivestream
-    path: ~/Workspace/handson/drivestream/drivestream-meta
+  - id: acme
+    path: ~/Workspace/handson/acme/acme-meta
     forge: github
 ```
 
@@ -40,9 +40,9 @@ Copy [examples/env.d/client.env.example](../examples/env.d/client.env.example):
 
 ```bash
 mkdir -p ~/.config/launchpad/env.d
-cp examples/env.d/client.env.example ~/.config/launchpad/env.d/drivestream.env
-# Edit drivestream.env — paste GITHUB_TOKEN (never commit this file)
-chmod 600 ~/.config/launchpad/env.d/drivestream.env
+cp examples/env.d/client.env.example ~/.config/launchpad/env.d/acme.env
+# Edit acme.env — paste GITHUB_TOKEN (never commit this file)
+chmod 600 ~/.config/launchpad/env.d/acme.env
 ```
 
 **Secrets SSOT:** `~/.config/launchpad/env.d/<id>.env` — not `<client>-meta/.env`.
@@ -52,13 +52,13 @@ chmod 600 ~/.config/launchpad/env.d/drivestream.env
 ```bash
 launchpad clients              # list configured clients
 launchpad doctor               # uses default client from clients.yaml
-launchpad --client drivestream seed-work --config work/INIT-*.yaml --dry-run
+launchpad --client acme seed-work --config work/INIT-*.yaml --dry-run
 ```
 
 Or set a shell default:
 
 ```bash
-export LAUNCHPAD_CLIENT=drivestream   # same as --client drivestream
+export LAUNCHPAD_CLIENT=acme   # same as --client acme
 launchpad doctor
 ```
 
@@ -82,22 +82,22 @@ Secrets load from `env.d/<client-id>.env` when a client is active.
 
 ```yaml
 # ~/.config/launchpad/clients.yaml
-default: drivestream
+default: acme
 
 clients:
-  - id: drivestream
-    path: ~/Workspace/handson/drivestream/drivestream-meta
   - id: acme
     path: ~/Workspace/handson/acme/acme-meta
+  - id: kola
+    path: ~/Workspace/handson/kola/kola-meta
 ```
 
 ```bash
-# ~/.config/launchpad/env.d/acme.env
-GITHUB_TOKEN=github_pat_acme_...
+# ~/.config/launchpad/env.d/kola.env
+GITHUB_TOKEN=github_pat_kola_...
 ```
 
 ```bash
-launchpad --client acme doctor
+launchpad --client kola doctor
 ```
 
 No `source` required.
@@ -113,7 +113,7 @@ Tenant `.launchpad-version` should match `pipx list | grep launchpad`.
 ## Legacy: manual env (still works)
 
 ```bash
-export LAUNCHPAD_TENANT_ROOT=~/Workspace/handson/drivestream/drivestream-meta
+export LAUNCHPAD_TENANT_ROOT=~/Workspace/handson/acme/acme-meta
 export GITHUB_TOKEN=github_pat_...
 launchpad doctor
 ```
