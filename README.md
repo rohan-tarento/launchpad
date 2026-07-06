@@ -5,7 +5,7 @@
 Launchpad is not primarily a “create GitHub repos” script. It is a repeatable kit for running product delivery where **specs are truth**, **agents have a pinned constitution**, and **factory automation enforces the process** (gitflow, board, backlog seeding).
 
 Agent skills: **[prayog-skills](https://github.com/drivestream-lab/prayog-skills)**.  
-MDC / rules repos stay **private** and are **pinned** per app repo via harness config.
+MDC / rules repos ([python-services-rules](https://github.com/drivestream-lab/python-services-rules), [nextjs-bff-rules](https://github.com/drivestream-lab/nextjs-bff-rules), [data-platform-rules](https://github.com/drivestream-lab/data-platform-rules)) are **public**, **pinned** per app repo via harness config — never copied into launchpad.
 
 ---
 
@@ -53,7 +53,7 @@ Deep dives: [SDD workflow](playbook/sdd-workflow.md) · [Spec layout](playbook/s
 
 **Read order for every change** (agents and humans):
 
-1. **Constitution** — `.cursor/rules/*.mdc` (private rules submodule)
+1. **Constitution** — `.cursor/rules/*.mdc` (rules submodule @ pinned ref)
 2. **`AGENTS.md`** — router, verify commands, harness pin
 3. **`docs/specification/product/`** — what to build
 4. **`docs/specification/adr/`** — accepted decisions
@@ -74,16 +74,20 @@ The **harness** is the frozen agent + verify surface for each app repo:
 profile: python-backend
 
 rules:
-  repo: your-org/service-rules   # private — .mdc constitution
-  ref: v1.0.0
+  repo: drivestream-lab/python-services-rules   # .mdc constitution submodule
+  ref: v0.5.5
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
   ref: v0.4.0
+  profile: python-backend
   skills:
-    - spec-feasibility-review
+    - spec-draft
+    - initiative-feasibility
     - spec-implementation-plan
     - pre-implement
+    - loop-spec
+    - ground-spec
     - verify
 ```
 
@@ -99,8 +103,9 @@ agent_skills:
 |-------|------|------------|------|
 | Kit | **launchpad** (this repo) | Public | Playbook, CLI, templates, tenant skeleton |
 | Skills | [prayog-skills](https://github.com/drivestream-lab/prayog-skills) | Public | Dev + PM agent skills |
-| Tenant | `<client>-meta` | Private | PRDs, planning, wiki, factory + harness YAML |
-| Constitution | `your-org/*-rules` | Private | MDC rules — pinned, never copied into launchpad |
+| Foundations | [python-fastapi-foundation](https://github.com/drivestream-lab/python-fastapi-foundation), [tenant-meta-foundation](https://github.com/drivestream-lab/tenant-meta-foundation) | Public | Cookiecutter scaffolds for app + meta repos |
+| Constitution | [python-services-rules](https://github.com/drivestream-lab/python-services-rules), [nextjs-bff-rules](https://github.com/drivestream-lab/nextjs-bff-rules), [data-platform-rules](https://github.com/drivestream-lab/data-platform-rules) | Public | MDC rules — pinned submodule, never copied into launchpad |
+| Tenant | `<client>-meta` | Private (per customer) | PRDs, planning, wiki, factory + harness YAML |
 
 ---
 
