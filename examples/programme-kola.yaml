@@ -1,0 +1,20 @@
+# Example programme.yaml — illustrative KOLA programme on a shared enterprise org.
+#
+# Pattern: GitHub org (apex-common) ≠ programme slug (kola).
+# All repos are kola-* on apex-common.
+#
+# To onboard automatically, run:
+#   launchpad onboard interview
+#
+# To use this file as a reference when hand-authoring:
+#   Copy to <workspace>/kola-meta/config/programme.yaml and adjust.
+
+apiVersion: launchpad/v1
+kind: Programme
+programme: KOLA
+programme_slug: kola
+org: apex-common
+meta_repo: kola-meta
+workspace: ~/Workspace/kola
+forge:
+  provider: github

@@ -1,13 +1,17 @@
-# Copy to ~/.config/launchpad/clients.yaml
-# One registry for all clients on this machine.
-
-default: acme
+# ~/.config/launchpad/clients.yaml
+# One entry per programme on this machine.
+# Generated automatically by `launchpad onboard interview`.
+# You can also edit manually — the format is:
+#
+#   id:      programme_slug from programme.yaml (must match exactly)
+#   path:    local path to the meta repo (supports ~)
+#   forge:   "github" (only supported provider in v0.5.10)
 
 clients:
-  - id: acme
-    path: ~/Workspace/handson/acme/acme-meta
+  - id: kola
+    path: ~/Workspace/kola/kola-meta
     forge: github
 
-  # - id: kola
-  #   path: ~/Workspace/handson/kola/kola-meta
+  # - id: acme
+  #   path: ~/Workspace/acme/acme-meta
   #   forge: github

@@ -1,0 +1,50 @@
+apiVersion: launchpad/v1
+kind: ServiceCatalog
+
+# ─── Service catalog (required) ────────────────────────────────────────────
+# Rename to service-catalog-<org>.yaml (e.g. service-catalog-apex-common.yaml).
+#
+# Required: must contain at least one live service.
+# Day 1: only the meta repo is live.
+# Day N: promote app repos from 'planned' to 'live' once on GitHub.
+#
+# status:  "live" | "planned" | "deprecated"
+# links:   free-form map of named URLs (repo, docs, dashboard, runbook, etc.)
+
+org: example-org
+
+services:
+  # ─── Day 1: meta repo (required live entry) ──────────────────────────────
+  example-meta:
+    stack: meta-pm
+    description: Control-plane for example-org — PRDs, work manifests, factory config
+    status: live
+    teams: [platform-devs, pm-team]
+    links:
+      repo: https://github.com/example-org/example-meta
+
+  # ─── Day N examples (uncomment when the repo is live) ────────────────────
+  #
+  # example-api:
+  #   stack: python-backend
+  #   description: Core API service
+  #   status: planned     # change to 'live' after scaffold + harness applied
+  #   teams: [platform-devs, backend-devs]
+  #   links:
+  #     repo: https://github.com/example-org/example-api
+  #
+  # example-portal:
+  #   stack: nextjs-frontend
+  #   description: Customer-facing web portal
+  #   status: planned
+  #   teams: [frontend-devs, platform-devs]
+  #   links:
+  #     repo: https://github.com/example-org/example-portal
+  #
+  # example-infra:
+  #   stack: terraform-iac
+  #   description: Terraform infrastructure modules
+  #   status: planned
+  #   teams: [platform-devs]
+  #   links:
+  #     repo: https://github.com/example-org/example-infra

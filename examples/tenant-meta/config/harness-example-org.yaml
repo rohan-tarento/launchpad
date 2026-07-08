@@ -1,0 +1,52 @@
+apiVersion: launchpad/v1
+kind: HarnessConfig
+
+# ─── Harness: constitution + agent skills per stack ────────────────────────
+# Rename to harness-<org>.yaml (e.g. harness-apex-common.yaml).
+# Run:  launchpad apply-harness --meta --dry-run   to preview.
+#       launchpad apply-harness --meta --apply      to execute.
+# Run:  launchpad check-harness --meta             to verify.
+#
+# constitution.ref — must be a pinned tag (never a branch).
+# To upgrade rules: bump the ref here, then re-run apply-harness.
+
+org: example-org
+
+profiles:
+  # ─── Meta repo profile ───────────────────────────────────────────────────
+  meta-pm:
+    constitution:
+      repo: meta-governance-rules       # rules submodule repo on drivestream-lab
+      # org: drivestream-lab            # optional — defaults to drivestream-lab
+      ref: v1.0.0                       # pin to a tag
+    skills: []
+
+  # ─── Python microservice profile ─────────────────────────────────────────
+  python-backend:
+    constitution:
+      repo: python-services-rules
+      ref: v2.1.0
+    skills:
+      - repo: python-agent-skills
+        ref: v1.0.0
+
+  # ─── Next.js frontend / BFF profile ──────────────────────────────────────
+  # nextjs-frontend:
+  #   constitution:
+  #     repo: nextjs-frontend-rules
+  #     ref: v1.0.0
+  #   skills: []
+
+  # ─── Terraform IaC profile ────────────────────────────────────────────────
+  # terraform-iac:
+  #   constitution:
+  #     repo: terraform-rules
+  #     ref: v1.0.0
+  #   skills: []
+
+# Per-repo harness_profile overrides (optional).
+# If absent, a repo's harness_profile defaults to its stack from governance.yaml.
+# Example: force a repo that uses python-backend stack to use a custom profile:
+# repos:
+#   special-service: custom-profile
+repos: {}

@@ -1,15 +1,24 @@
 # Work manifests
 
-**PM does not author these for product INITs.** Dev generates content via `/spec-implementation-plan` §9 after Phase 2 merge (PRD + spec on `develop`).
-
-Optional bulk board seed for **multi-repo** initiatives only. Copy §9 WorkManifest YAML from the dev implementation plan output. One file per initiative: `work/INIT-<id>.yaml`.
-
-**Primary path (single repo):** dev runs `gh issue create` — one issue per wave (`W0`, `W1`, …). No file required in meta.
+`WorkManifest` YAML files drive backlog seeding onto a GitHub project board.
 
 ```bash
-# After dev copies §9 to work/INIT-<id>.yaml
-launchpad seed-work --config work/INIT-<id>.yaml --dry-run
-launchpad seed-work --config work/INIT-<id>.yaml --apply
+launchpad seed-work --config work/INIT-EXAMPLE-001.yaml --dry-run
+launchpad seed-work --config work/INIT-EXAMPLE-001.yaml --apply
 ```
 
-Playbook: [delivery-workflow.md](https://github.com/drivestream-lab/launchpad/blob/main/playbook/delivery-workflow.md#work-manifest) · [delivery-model.md](https://github.com/drivestream-lab/launchpad/blob/main/playbook/delivery-model.md)
+## When to use
+
+After PRD sign-off, the dev team authors a `WorkManifest` (typically via the
+`/spec-implementation-plan` agent skill in an app repo).  The PM reviews and
+runs `seed-work` to create the issues and project items.
+
+## Naming
+
+`INIT-<id>.yaml` — one file per product initiative.  Use the same `initiative`
+ID throughout (PRD, spec paths, branch names, issue titles).
+
+## See also
+
+- [playbook/sdd-workflow.md](../../playbook/sdd-workflow.md) — full SDD workflow
+- [INIT-EXAMPLE-001.yaml](./INIT-EXAMPLE-001.yaml) — annotated example

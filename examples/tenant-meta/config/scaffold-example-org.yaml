@@ -1,0 +1,62 @@
+apiVersion: launchpad/v1
+kind: ScaffoldConfig
+
+# ─── Scaffold: cookiecutter template sources ───────────────────────────────
+# Rename to scaffold-<org>.yaml (e.g. scaffold-apex-common.yaml).
+# Run:  launchpad apply-scaffold --meta --dry-run         to preview meta scaffold.
+#       launchpad apply-scaffold --repo <name> --dry-run  to preview a repo.
+#       launchpad apply-scaffold --meta --apply           to execute.
+#
+# Scaffold is OPTIONAL for every repo.
+# context: fields are passed FREE-FORM to cookiecutter — no Launchpad validation.
+# Template owners evolve cookiecutter.json without any kit changes.
+#
+# Template sources:
+#   gh:<org>/<repo>            → https://github.com/<org>/<repo>
+#   git+https://...            → arbitrary git URL
+#   /absolute/path/to/template → local filesystem
+
+org: example-org
+
+# ─── Meta repo scaffold ────────────────────────────────────────────────────
+meta:
+  enabled: false          # set true when ready, then run apply-scaffold --meta --apply
+  engine: cookiecutter
+  # template: gh:drivestream-lab/tenant-meta-foundation
+  # ref: v1.0.0
+  # context:
+  #   project_name: KOLA
+  #   programme_slug: kola
+  #   github_org: apex-common
+
+# ─── App repo scaffolds ────────────────────────────────────────────────────
+# One block per repo. Copy-paste the example below.
+repos: {}
+
+  # example-api:
+  #   enabled: true
+  #   engine: cookiecutter
+  #   template: gh:drivestream-lab/python-fastapi-foundation
+  #   ref: v2.0.0
+  #   context:
+  #     project_name: example-api
+  #     has_kafka: false          # template owner can add any param — no kit change
+  #     has_postgres: true
+  #
+  # example-portal:
+  #   enabled: true
+  #   engine: cookiecutter
+  #   template: gh:drivestream-lab/nextjs-bff-foundation
+  #   ref: v1.0.0
+  #   context:
+  #     project_name: example-portal
+  #     has_graphql: false
+  #
+  # example-infra:
+  #   enabled: true
+  #   engine: cookiecutter
+  #   template: gh:drivestream-lab/terraform-foundation
+  #   ref: v1.0.0
+  #   context:
+  #     project_name: example-infra
+  #     cloud_provider: aws

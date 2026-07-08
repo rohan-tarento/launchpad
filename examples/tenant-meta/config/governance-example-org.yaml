@@ -1,0 +1,70 @@
+apiVersion: launchpad/v1
+kind: GovernanceConfig
+
+# ─── GitHub governance ─────────────────────────────────────────────────────
+# Rename this file to governance-<org>.yaml (e.g. governance-apex-common.yaml).
+# Run:  launchpad init-client --meta --dry-run   to preview.
+#       launchpad init-client --meta --apply      to execute.
+# Both are idempotent — safe to re-run after fixing config.
+#
+# Day 1: meta repo only.
+# Day N: add app repos incrementally by uncommenting / adding blocks below.
+
+org: example-org
+
+# stack_profiles: the starter set is always available — list here only what you add.
+# Starter stacks: meta-pm, python-backend, nextjs-frontend, terraform-iac
+stack_profiles:
+  # Add custom stacks here without any kit-code change:
+  # go-backend: Go microservice
+  # java-spring: Java Spring Boot
+
+teams:
+  - name: platform-devs
+    description: Platform engineering
+    privacy: closed
+  - name: backend-devs
+    description: Backend developers
+    privacy: closed
+  - name: frontend-devs
+    description: Frontend developers
+    privacy: closed
+  - name: pm-team
+    description: Programme management
+    privacy: closed
+
+repos:
+  # ─── Day 1: meta repo (required) ─────────────────────────────────────────
+  example-meta:
+    stack: meta-pm                  # must be a key in stack_profiles (starter or custom)
+    teams: [platform-devs, pm-team] # must reference entries in teams[] above
+    visibility: private
+    description: Control-plane for example-org
+
+  # ─── Day N: add app repos (uncomment when ready) ──────────────────────────
+  # example-api:
+  #   stack: python-backend
+  #   teams: [platform-devs, backend-devs]
+  #   visibility: private
+  #   description: Core API service
+
+  # example-portal:
+  #   stack: nextjs-frontend
+  #   teams: [frontend-devs, platform-devs]
+  #   visibility: private
+  #   description: Customer-facing web portal
+
+  # example-infra:
+  #   stack: terraform-iac
+  #   teams: [platform-devs]
+  #   visibility: private
+  #   description: Terraform infrastructure modules
+
+policy:
+  default_branch: main
+  require_pr_reviews: 1
+  dismiss_stale_reviews: true
+
+project_board:
+  enabled: true
+  name: "example-org Board"

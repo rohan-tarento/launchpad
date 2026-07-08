@@ -1,0 +1,21 @@
+apiVersion: launchpad/v1
+kind: Programme
+
+# ─── Identity spine ────────────────────────────────────────────────────────
+# This file is the single source of truth for your programme identity.
+# Run:  launchpad onboard interview   to generate this automatically.
+#
+# programme      Human name shown in board titles, docs, and emails.
+# programme_slug Lowercase machine id — must match ~/.config/launchpad/clients.yaml id.
+# org            GitHub organisation slug — exact spelling.
+# meta_repo      Control-plane repo name (created by init-client --meta).
+# workspace      Parent directory where repo clones live (supports ~).
+# forge.provider "github" only in v0.5.10; "gitlab" is planned (v0.6).
+
+programme: EXAMPLE
+programme_slug: example
+org: example-org
+meta_repo: example-meta
+workspace: ~/Workspace/example
+forge:
+  provider: github
