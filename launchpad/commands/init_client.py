@@ -7,8 +7,8 @@ Pipeline (for --meta):
   4. Assign teams to repo
   5. Setup gitflow (default branch + branch protection)
   6. Ensure project board + link repo
-  7. Merge service-catalog repo entry
-  8. Re-ensure clients.yaml entry from programme.yaml
+  7. Re-ensure clients.yaml entry from programme.yaml
+  8. Local git setup: init + commit config + push, or clone if no local dir
   9. Print NEXT: block
 
 Pipeline (for --repo <name>):
@@ -18,7 +18,7 @@ Pipeline (for --repo <name>):
   4. Assign teams to repo
   5. Setup gitflow
   6. Link repo to project board
-  7. Merge service-catalog repo entry
+  7. Clone repo locally (if not already cloned)
   8. Print NEXT: block
 
 All steps are idempotent — re-run after a config fix with the same flags.
@@ -26,6 +26,7 @@ All steps are idempotent — re-run after a config fix with the same flags.
 
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -90,6 +91,76 @@ def _patch_clients_yaml(slug: str, meta_path: Path) -> None:
     data["clients"] = clients
     with CLIENTS_FILE.open("w", encoding="utf-8") as f:
         yaml.safe_dump(data, f, sort_keys=False, default_flow_style=False)
+
+
+def _setup_local_repo(
+    repo_path: Path,
+    org: str,
+    repo_name: str,
+    default_branch: str,
+    *,
+    dry_run: bool,
+) -> None:
+    """Ensure repo_path is a local git clone of org/repo_name.
+
+    Three cases:
+      A) repo_path already has .git/  → nothing to do (idempotent)
+      B) repo_path is a plain dir     → git init, commit, set remote, push
+      C) repo_path does not exist     → git clone from GitHub
+    """
+    remote_url = f"https://github.com/{org}/{repo_name}.git"
+
+    if (repo_path / ".git").is_dir():
+        print(f"  ✔  local repo already exists: {repo_path}")
+        return
+
+    if dry_run:
+        if repo_path.is_dir():
+            print(f"  [dry-run] git init + push config → {remote_url}")
+        else:
+            print(f"  [dry-run] git clone {remote_url} → {repo_path}")
+        return
+
+    def _run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess:
+        return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+
+    if repo_path.is_dir():
+        # Case B: plain dir from onboard interview — init + push config files
+        print(f"  Initialising git in existing directory: {repo_path}")
+        _run(["git", "init", "-b", default_branch], repo_path)
+        _run(["git", "remote", "add", "origin", remote_url], repo_path)
+
+        # Stage everything (config/ files written by interview)
+        _run(["git", "add", "."], repo_path)
+
+        # Only commit if there is something staged
+        staged = _run(["git", "diff", "--cached", "--name-only"], repo_path)
+        if staged.stdout.strip():
+            _run(
+                ["git", "commit", "-m", "chore: initial config from launchpad onboard interview"],
+                repo_path,
+            )
+            result = _run(["git", "push", "-u", "origin", default_branch], repo_path)
+            if result.returncode != 0:
+                print(f"  WARN: git push failed: {result.stderr.strip()}")
+                print(f"  Push manually: cd {repo_path} && git push -u origin {default_branch}")
+            else:
+                print(f"  ✔  committed config/ and pushed to {remote_url}")
+        else:
+            print(f"  ✔  git init done (nothing to commit yet)")
+    else:
+        # Case C: directory does not exist — clone the (empty) repo from GitHub
+        repo_path.parent.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            ["git", "clone", remote_url, str(repo_path)],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            print(f"  WARN: git clone failed: {result.stderr.strip()}")
+            print(f"  Clone manually: git clone {remote_url} {repo_path}")
+        else:
+            print(f"  ✔  cloned {remote_url} → {repo_path}")
 
 
 def run_init_client(
@@ -183,7 +254,7 @@ def run_init_client(
             if board_id:
                 forge.link_repo_to_project(org, target_repo, board_id)
 
-    # 6. Re-ensure clients.yaml (meta only)
+    # 6. Re-ensure clients.yaml + local git setup (meta only)
     if meta:
         meta_path = Path(prog.workspace).expanduser().resolve() / prog.meta_repo
         _patch_clients_yaml(slug, meta_path)
@@ -192,30 +263,52 @@ def run_init_client(
         else:
             print(f"  ✔  ~/.config/launchpad/clients.yaml  (id={slug})")
 
+        # Step 8: local git clone / init
+        _setup_local_repo(
+            meta_path,
+            org,
+            prog.meta_repo,
+            default_branch,
+            dry_run=dr,
+        )
+    else:
+        # For app repos: clone locally if the workspace directory doesn't exist
+        ws_path = Path(prog.workspace).expanduser().resolve()
+        repo_path = ws_path / repo_name
+        _setup_local_repo(
+            repo_path,
+            org,
+            repo_name,
+            default_branch,
+            dry_run=dr,
+        )
+
     # NEXT step
     print()
     if meta:
-        from launchpad.schema.scaffold import load_scaffold
-
         sca_path = _find_config(cdir, "scaffold-*.yaml")
         scaffold_enabled = False
         if sca_path and sca_path.is_file():
             try:
-                from launchpad.schema.scaffold import ScaffoldSchema
+                from launchpad.schema.scaffold import load_scaffold
                 sca = load_scaffold(sca_path)
                 scaffold_enabled = sca.meta is not None and sca.meta.enabled
             except SchemaError:
                 pass
 
-        if scaffold_enabled:
-            next_cmd = f"launchpad apply-scaffold --meta --apply"
-        else:
-            next_cmd = f"launchpad apply-scaffold --meta --apply  # (after enabling meta scaffold in config/scaffold-{org}.yaml)"
-
         print("╔══════════════════════════════════════════════════════════════╗")
         print("║  NEXT:                                                       ║")
         print("╠══════════════════════════════════════════════════════════════╣")
-        print(f"║  {next_cmd:<60}  ║")
+        if scaffold_enabled:
+            print("║  launchpad apply-scaffold --meta --apply                     ║")
+        else:
+            print("║  Option A — skip scaffold (no foundation template):          ║")
+            print("║    launchpad apply-harness --meta --apply                    ║")
+            print("║                                                              ║")
+            print("║  Option B — scaffold from a cookiecutter template first:     ║")
+            print(f"║    Edit config/scaffold-{org}.yaml                  ║")
+            print("║    Set meta.enabled: true, template, ref, context            ║")
+            print("║    launchpad apply-scaffold --meta --apply                   ║")
         print("╚══════════════════════════════════════════════════════════════╝")
     else:
         print("╔══════════════════════════════════════════════════════════════╗")

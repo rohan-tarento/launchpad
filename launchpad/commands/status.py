@@ -110,10 +110,14 @@ def run_status(
     if not gov_ok:
         next_cmd = f"launchpad init-client --meta --dry-run" if meta else f"launchpad init-client --repo {target} --dry-run"
 
-    # [2] Local clone exists
+    # [2] Local clone exists (must be a real git repo, not just a directory)
     repo_path = Path(ws).expanduser().resolve() / target
-    clone_ok = repo_path.is_dir()
-    results.append(_check("Local clone", clone_ok, str(repo_path) if clone_ok else f"not found: {repo_path}"))
+    clone_ok = (repo_path / ".git").is_dir()
+    detail = str(repo_path) if clone_ok else (
+        f"not a git repo: {repo_path}  (run init-client --apply)" if repo_path.is_dir()
+        else f"not found: {repo_path}"
+    )
+    results.append(_check("Local clone (git repo)", clone_ok, detail))
     if not clone_ok and not next_cmd:
         next_cmd = f"launchpad init-client --{'meta' if meta else f'repo {target}'} --apply  # creates repo + clone"
 
