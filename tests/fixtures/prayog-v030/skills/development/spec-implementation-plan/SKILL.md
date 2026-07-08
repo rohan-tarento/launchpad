@@ -1,3 +1,0 @@
----
-name: spec-implementation-plan
----

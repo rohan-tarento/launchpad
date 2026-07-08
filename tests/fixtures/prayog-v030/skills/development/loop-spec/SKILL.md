@@ -1,3 +1,0 @@
----
-name: loop-spec
----
