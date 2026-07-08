@@ -21,16 +21,19 @@ Q&A → **`onboarding.yaml`** → **`onboard plan`** (dry-run) → **`onboard ap
 
 ## Quick start (KOLA)
 
+Illustrative mapping: shared enterprise org **`apex-common`** hosts programme repos **`kola-*`** (meta `kola-meta`).
+
 ```bash
-# Option A — interview
+# Option A — interview (run from your tenant workspace directory)
+mkdir -p ~/Workspace/kola && cd ~/Workspace/kola
 launchpad onboard interview
-# writes ~/Workspace/handson/kola/onboarding.yaml (default paths from answers)
+# writes ./onboarding.yaml in the current directory; meta → ./kola-meta/
 
 # Option B — copy example
-cp examples/onboarding-kola.yaml ~/Workspace/handson/kola/onboarding.yaml
+cp examples/onboarding-kola.yaml ~/Workspace/kola/onboarding.yaml
 
-launchpad onboard plan --spec ~/Workspace/handson/kola/onboarding.yaml
-launchpad onboard apply --spec ~/Workspace/handson/kola/onboarding.yaml
+launchpad onboard plan --spec ~/Workspace/kola/onboarding.yaml
+launchpad onboard apply --spec ~/Workspace/kola/onboarding.yaml
 ```
 
 Do **not** set `options.seed_empty: false` unless repos already have history you must preserve.
@@ -38,7 +41,7 @@ Do **not** set `options.seed_empty: false` unless repos already have history you
 After apply:
 
 1. Paste token in `~/.config/launchpad/env.d/kola.env`
-2. `launchpad --client kola setup-platform --config config/platform-kola-lab.yaml --apply`
+2. `launchpad --client kola setup-platform --config config/platform-apex-common.yaml --apply`
 3. PM: PR local meta content → `kola-meta/develop`
 
 ## GitLab

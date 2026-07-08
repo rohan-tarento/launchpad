@@ -99,6 +99,15 @@ def check_gitflow_default_branch(
 ) -> CheckResult:
     from launchpad.github_ops import get_default_branch
 
+    gitflow = ctx.get("gitflow") or {}
+    options = gitflow.get("options") or {}
+    if options.get("set_default_branch") is False:
+        repos = _repo_list(ctx, spec)
+        return True, (
+            f"skipped (options.set_default_branch: false) — "
+            f"org owner must set develop as default in UI ({len(repos)} repos)"
+        )
+
     repos = _repo_list(ctx, spec)
     wrong = [r for r in repos if get_default_branch(client, org, r) != "develop"]
     if wrong:

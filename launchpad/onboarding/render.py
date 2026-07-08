@@ -86,9 +86,10 @@ def render_org_config(ctx: OnboardingContext) -> str:
         forge["host"] = ctx.forge_host
 
     teams = []
+    pm_slug = ctx.team_slug("pm")
     for team in ctx.spec["teams"]:
         entry: dict[str, Any] = {"slug": team["slug"]}
-        if team["slug"] != "pm-team":
+        if team["slug"] != pm_slug:
             entry["description"] = f"{team['slug']} — {ctx.display_name}"
             entry["privacy"] = "closed"
         else:
@@ -169,6 +170,7 @@ def render_gitflow_config(ctx: OnboardingContext) -> str:
             "with_templates": gf["with_templates"],
             "seed_empty": True,
             "init_empty": False,
+            "set_default_branch": gf.get("set_default_branch", True),
             "workspace": "..",
         },
         "branch_naming": {"mode": gf["branch_naming_mode"]},
@@ -296,9 +298,14 @@ def render_harness_config(ctx: OnboardingContext) -> str:
 
 
 def render_project_config(ctx: OnboardingContext) -> str:
+    org = ctx.org
     codebase = [r["name"] for r in ctx.spec["repos"]] + [ctx.meta_repo]
+    team_access = ctx.spec["project"].get("team_access")
+    if team_access is None:
+        team_access = {"default_role": "WRITER"}
     data = {
-        "org": ctx.org,
+        "org": org,
+        "includes": {"org": f"org-{org}.yaml"},
         "project_title": ctx.spec["project"]["name"],
         "status_columns": [
             "Backlog",
@@ -323,7 +330,8 @@ def render_project_config(ctx: OnboardingContext) -> str:
             {"name": "QA manifest", "type": "TEXT"},
         ],
         "repos": [r["name"] for r in ctx.spec["repos"]],
-        "issue_types": {
+        "issue_types": ctx.spec["project"].get("issue_types")
+        or {
             "required": True,
             "roles": {"epic": "Epic", "task": "Task"},
             "ensure": [
@@ -335,6 +343,8 @@ def render_project_config(ctx: OnboardingContext) -> str:
             ],
         },
     }
+    if team_access is not False:
+        data["team_access"] = team_access
     return _dump(data)
 
 

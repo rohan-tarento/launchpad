@@ -101,7 +101,11 @@ def run_apply(
         )
         print(f"Patched: ~/.config/launchpad/clients.yaml (+ client {client_id})")
         if spec["registry"]["secrets_stub"]:
-            env_path = write_secrets_stub(client_id=client_id, forge_type=ctx.forge_type)
+            env_path = write_secrets_stub(
+                client_id=client_id,
+                forge_type=ctx.forge_type,
+                meta_path=meta_path,
+            )
             print(f"Secrets stub: {env_path}")
 
     if run_platform or spec["provision"]["run_setup_platform"]:

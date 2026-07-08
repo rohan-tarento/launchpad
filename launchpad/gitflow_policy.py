@@ -11,6 +11,7 @@ DEFAULT_GITFLOW_OPTIONS: dict[str, Any] = {
     "seed_empty": True,
     "init_empty": False,
     "workspace": "",
+    "set_default_branch": True,
 }
 
 DEFAULT_BRANCH_NAMING: dict[str, Any] = {

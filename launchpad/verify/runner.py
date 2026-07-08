@@ -144,10 +144,14 @@ def _fail_applied(ctx: dict, failed: list[str], org: str) -> None:
 def _print_repo_seed_hints(ctx: dict, org: str) -> None:
     gitflow = ctx.get("gitflow") or {}
     cfg_path = gitflow.get("path") or f"config/gitflow-{org}.yaml"
+    options = gitflow.get("options") or {}
     print("")
     print("How to fix repo / branch checks:")
     print("  setup-platform seeds every gitflow repo (meta + apps): main → develop → default develop")
-    print("  Meta develop merges: pm-team only (configured in gitflow YAML)")
+    if options.get("set_default_branch") is False:
+        print("  options.set_default_branch: false — set develop as default branch via org owner in GitHub UI")
+    else:
+        print("  If seed-repos cannot PATCH default branch, set options.set_default_branch: false in gitflow YAML")
     print("")
     print("  Re-run:")
     print(f"    launchpad setup-platform --config config/platform-{org}.yaml --apply")

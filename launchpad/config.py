@@ -339,6 +339,36 @@ def load_project_config(path: Path | str) -> dict[str, Any]:
     else:
         repos = []
 
+    team_access: dict[str, Any] | None = None
+    team_access_raw = cfg.get("team_access")
+    if team_access_raw is not False and team_access_raw is not None:
+        if team_access_raw is True:
+            default_role = "READER"
+            explicit_teams = []
+            role_overrides = {}
+        elif isinstance(team_access_raw, dict):
+            default_role = str(
+                team_access_raw.get("default_role") or team_access_raw.get("role") or "READER"
+            ).upper()
+            explicit_teams = [str(t).strip() for t in (team_access_raw.get("teams") or []) if str(t).strip()]
+            role_overrides = {
+                str(k): str(v).upper()
+                for k, v in (team_access_raw.get("roles") or {}).items()
+                if k and v
+            }
+        else:
+            default_role = "READER"
+            explicit_teams = []
+            role_overrides = {}
+        if not explicit_teams and org_cfg:
+            explicit_teams = [str(t["slug"]) for t in org_cfg.get("teams") or [] if t.get("slug")]
+        if explicit_teams:
+            team_access = {
+                "default_role": default_role,
+                "teams": explicit_teams,
+                "roles": role_overrides,
+            }
+
     return {
         "org": cfg.get("org", "") or (org_cfg or {}).get("org", ""),
         "project_title": cfg.get("project_title", ""),
@@ -348,6 +378,7 @@ def load_project_config(path: Path | str) -> dict[str, Any]:
         "issue_type_roles": issue_type_roles,
         "issue_types_ensure": issue_types_ensure,
         "issue_types_required": issue_types_required,
+        "team_access": team_access,
         "org_config": org_cfg,
         "path": str(path),
     }

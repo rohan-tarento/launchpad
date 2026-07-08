@@ -58,7 +58,13 @@ def patch_clients_registry(
         yaml.safe_dump(data, f, sort_keys=False, default_flow_style=False)
 
 
-def write_secrets_stub(*, client_id: str, forge_type: str, overwrite: bool = False) -> Path:
+def write_secrets_stub(
+    *,
+    client_id: str,
+    forge_type: str,
+    meta_path: Path | str | None = None,
+    overwrite: bool = False,
+) -> Path:
     ENV_D_DIR.mkdir(parents=True, exist_ok=True)
     path = ENV_D_DIR / f"{client_id}.env"
     if path.is_file() and not overwrite:
@@ -75,13 +81,8 @@ def write_secrets_stub(*, client_id: str, forge_type: str, overwrite: bool = Fal
     else:
         lines.append("GITHUB_TOKEN=github_pat_REPLACE_ME")
         lines.append("# GITLAB_TOKEN=  # GitLab forge only")
-    lines.extend(
-        [
-            "",
-            f"# LAUNCHPAD_TENANT_ROOT={Path('~/Workspace/handson').expanduser() / client_id / f'{client_id}-meta'}",
-            "",
-        ]
-    )
+    if meta_path is not None:
+        lines.extend(["", f"# LAUNCHPAD_TENANT_ROOT={Path(meta_path).expanduser()}", ""])
     path.write_text("\n".join(lines), encoding="utf-8")
     path.chmod(0o600)
     return path

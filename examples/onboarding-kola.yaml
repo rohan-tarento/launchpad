@@ -1,34 +1,42 @@
-# Example OnboardingSpec — illustrative KOLA tenant.
-# Copy to ~/Workspace/handson/kola/onboarding.yaml and edit.
+# Example OnboardingSpec — illustrative KOLA programme on a shared enterprise org.
 #
-#   launchpad onboard plan --spec ~/Workspace/handson/kola/onboarding.yaml
-#   launchpad onboard apply --spec ~/Workspace/handson/kola/onboarding.yaml  # PR3
+# Pattern: forge org (apex-common) ≠ project slug (kola). Repos are kola-* on apex-common.
+# Copy to your workspace and edit:
+#
+#   mkdir -p ~/Workspace/kola && cd ~/Workspace/kola
+#   cp examples/onboarding-kola.yaml ./onboarding.yaml
+#   launchpad onboard plan --spec ./onboarding.yaml
+#   launchpad onboard apply --spec ./onboarding.yaml
 
 apiVersion: launchpad/v1
 kind: OnboardingSpec
 
 client_id: kola
+project_slug: kola
+repo_prefix: kola
 display_name: KOLA
 
 forge:
   type: github   # github | gitlab (gitlab: scaffold stubbed; see plan warnings)
 
-org: kola-lab
+org: apex-common
 meta_repo: kola-meta
 
 paths:
-  workspace: ~/Workspace/handson/kola
+  workspace: .
   spec: onboarding.yaml
 
 repos:
-  - name: kola-api
-    profile: backend
-    description: KOLA API
-    private: true
-  - name: kola-portal
-    profile: frontend
-    description: KOLA BFF portal
-    private: true
+  prefix: kola
+  apps:
+    - suffix: api
+      profile: backend
+      description: KOLA API
+      private: true
+    - suffix: portal
+      profile: frontend
+      description: KOLA BFF portal
+      private: true
 
 rules:
   python:

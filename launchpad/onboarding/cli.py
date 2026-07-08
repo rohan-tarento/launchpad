@@ -73,7 +73,7 @@ def add_onboard_parser(sub: argparse._SubParsersAction) -> None:
     p_interview.add_argument(
         "--output",
         default="",
-        help="Spec output path (default: <workspace>/onboarding.yaml)",
+        help="Spec output path (default: ./onboarding.yaml in current directory)",
     )
     p_interview.set_defaults(func=cmd_onboard_interview)
 

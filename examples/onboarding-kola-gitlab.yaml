@@ -1,23 +1,29 @@
+# GitLab stub — same org ≠ project pattern as onboarding-kola.yaml (apex-common / kola).
+
 apiVersion: launchpad/v1
 kind: OnboardingSpec
 
 client_id: kola-gitlab
+project_slug: kola
+repo_prefix: kola
 display_name: KOLA GitLab
 
 forge:
   type: gitlab
 
-org: kola-lab
+org: apex-common
 meta_repo: kola-meta
 
 paths:
-  workspace: ~/Workspace/handson/kola-gitlab
+  workspace: .
   spec: onboarding.yaml
 
 repos:
-  - name: kola-api
-    profile: backend
-    private: true
+  prefix: kola
+  apps:
+    - suffix: api
+      profile: backend
+      private: true
 
 rules:
   python:

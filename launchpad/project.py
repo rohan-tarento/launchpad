@@ -10,6 +10,7 @@ from launchpad.github_ops import repo_exists
 from launchpad.issue_types import ensure_org_issue_types
 
 STATUS_COLORS = ["GRAY", "BLUE", "GREEN", "YELLOW", "ORANGE", "RED", "PURPLE"]
+_PROJECT_V2_ROLES = frozenset({"READER", "WRITER", "ADMIN", "NONE"})
 
 
 def _org_node_id(client: GitHubClient, org: str) -> str:
@@ -258,6 +259,84 @@ def ensure_custom_field(
         raise ValueError(f"unsupported field type: {field_type}")
 
 
+def _team_node_id(client: GitHubClient, org: str, slug: str) -> str:
+    data = client.graphql(
+        """
+        query($login: String!, $slug: String!) {
+          organization(login: $login) {
+            team(slug: $slug) { id }
+          }
+        }
+        """,
+        {"login": org, "slug": slug},
+    )
+    node_id = (data.get("organization") or {}).get("team", {}).get("id")
+    if not node_id:
+        raise GitHubError(f"team not found: {org}/{slug}")
+    return str(node_id)
+
+
+def ensure_project_team_access(
+    client: GitHubClient,
+    org: str,
+    project_id: str,
+    team_access: dict[str, Any],
+) -> None:
+    """Grant org teams access to a ProjectV2 board (READER by default)."""
+    if not team_access:
+        return
+
+    default_role = str(team_access.get("default_role") or "READER").upper()
+    if default_role not in _PROJECT_V2_ROLES - {"NONE"}:
+        raise ValueError(f"invalid project team_access.default_role: {default_role!r}")
+
+    role_overrides = {
+        str(k): str(v).upper()
+        for k, v in (team_access.get("roles") or {}).items()
+        if k and v
+    }
+    for slug, role in role_overrides.items():
+        if role not in _PROJECT_V2_ROLES - {"NONE"}:
+            raise ValueError(f"invalid project team_access.roles[{slug!r}]: {role!r}")
+
+    slugs = [str(s).strip() for s in (team_access.get("teams") or []) if str(s).strip()]
+    if not slugs:
+        return
+
+    collaborators: list[dict[str, Any]] = []
+    for slug in slugs:
+        role = role_overrides.get(slug, default_role)
+        if role == "NONE":
+            continue
+        if client.dry_run:
+            print(f"[dry-run] grant team {slug} {role} on project")
+            continue
+        team_id = _team_node_id(client, org, slug)
+        collaborators.append({"teamId": team_id, "role": role})
+
+    if client.dry_run or not collaborators:
+        return
+
+    print(f"[run] grant project access: {len(collaborators)} team(s) (default {default_role})")
+    client.graphql(
+        """
+        mutation($projectId: ID!, $collaborators: [ProjectV2Collaborator!]!) {
+          updateProjectV2Collaborators(input: {
+            projectId: $projectId
+            collaborators: $collaborators
+          }) {
+            clientMutationId
+          }
+        }
+        """,
+        {"projectId": project_id, "collaborators": collaborators},
+    )
+    for slug in slugs:
+        role = role_overrides.get(slug, default_role)
+        if role != "NONE":
+            print(f"  team {slug}: {role}")
+
+
 def link_repo_to_project(client: GitHubClient, org: str, project_id: str, repo: str) -> None:
     if client.dry_run:
         print(f"[dry-run] link project → {org}/{repo}")
@@ -342,6 +421,8 @@ def run(
 
     if project_num == 0 and client.dry_run:
         print("[dry-run] would configure Status + fields + repo links")
+        if cfg.get("team_access"):
+            ensure_project_team_access(client, org, "PVT_dryrun", cfg["team_access"])
         if cfg["issue_type_roles"]:
             print(f"[dry-run] issue type roles: {cfg['issue_type_roles']}")
         for field in cfg["fields"]:
@@ -375,6 +456,9 @@ def run(
 
     for repo in cfg["repos"]:
         link_repo_to_project(client, org, project_id, repo)
+
+    if cfg.get("team_access"):
+        ensure_project_team_access(client, org, project_id, cfg["team_access"])
 
     print("")
     print("=== Done ===")

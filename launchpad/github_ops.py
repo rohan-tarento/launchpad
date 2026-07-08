@@ -5,7 +5,7 @@ from __future__ import annotations
 import base64
 from typing import Any
 
-from launchpad.github_client import GitHubClient, GitHubError
+from launchpad.github_client import GitHubClient, GitHubError, GitHubError
 
 BRANCH_NAME_REF_EXCLUDES = [
     "refs/heads/main",
@@ -127,16 +127,48 @@ def get_default_branch(client: GitHubClient, org: str, repo: str) -> str:
     return str(data.get("default_branch") or "main")
 
 
+def _github_error_detail(exc: GitHubError) -> str:
+    import json
+
+    if not exc.body:
+        return str(exc)
+    try:
+        data = json.loads(exc.body)
+    except json.JSONDecodeError:
+        return exc.body[:300]
+    errors = data.get("errors") or []
+    if errors and isinstance(errors[0], dict):
+        msg = errors[0].get("message")
+        if msg:
+            return str(msg)
+    message = data.get("message")
+    return str(message) if message else exc.body[:300]
+
+
 def set_default_branch(client: GitHubClient, org: str, repo: str, branch: str) -> None:
     if client.dry_run:
         print(f"[dry-run] PATCH repos/{org}/{repo} default_branch={branch}")
         return
     print(f"[run] default branch → {branch}: {org}/{repo}")
-    client.rest(
-        "PATCH",
-        f"/repos/{org}/{repo}",
-        json_body={"default_branch": branch},
-    )
+    try:
+        client.rest(
+            "PATCH",
+            f"/repos/{org}/{repo}",
+            json_body={"default_branch": branch},
+        )
+    except GitHubError as exc:
+        detail = _github_error_detail(exc)
+        hint = ""
+        if "permission to change the default branch" in detail.lower():
+            hint = (
+                " — org policy blocks non-owners; ask an org owner to set default branch "
+                "to develop in GitHub UI, or set gitflow options.set_default_branch: false"
+            )
+        raise GitHubError(
+            f"PATCH /repos/{org}/{repo} default_branch={branch} failed: {detail}{hint}",
+            exc.status,
+            exc.body,
+        ) from exc
 
 
 def create_develop_from_main(client: GitHubClient, org: str, repo: str) -> None:

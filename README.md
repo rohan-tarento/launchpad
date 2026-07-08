@@ -111,19 +111,21 @@ agent_skills:
 
 ## Install (operators)
 
-Once per machine — run factory commands from anywhere:
+Once per machine — install from a **git tag** (see [kit-evolution.md](docs/kit-evolution.md)):
 
 ```bash
-git clone https://github.com/drivestream-lab/launchpad.git ~/Workspace/handson/launchpad
-cd ~/Workspace/handson/launchpad
-pipx install -e .
+pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.7"
+launchpad --version
+```
 
-# One-time client registry — see docs/multi-laptop.md
+One-time client registry — see [docs/multi-laptop.md](docs/multi-laptop.md):
+
+```bash
 launchpad clients
 launchpad doctor
 ```
 
-Greenfield and incremental repo flows: see **Workflows** below.
+Kit developers: clone repo and `pipx install -e .` — tenants should **not** rely on editable local installs.
 
 Full walkthrough: [docs/setup-guide.md](docs/setup-guide.md) · [docs/multi-laptop.md](docs/multi-laptop.md)
 
@@ -148,7 +150,7 @@ First-time bootstrap: onboarding spec → local meta → GitHub factory → loca
 
 | Step | What | Command |
 |------|------|---------|
-| 1 | Install kit + registry | `pipx install -e .` · see [multi-laptop.md](docs/multi-laptop.md) |
+| 1 | Install kit + registry | tagged `pipx install` · see [multi-laptop.md](docs/multi-laptop.md) · [kit-evolution.md](docs/kit-evolution.md) |
 | 2 | Plan tenant | `launchpad onboard plan --spec ~/Workspace/handson/<client>/onboarding.yaml` |
 | 3 | Render factory YAML | `launchpad onboard apply --spec …/onboarding.yaml` (config + templates only) |
 | 4 | Meta layout stubs | `launchpad --client <client> scaffold-meta --apply --force` (prd/, work/, wiki/ — preserves config/) |

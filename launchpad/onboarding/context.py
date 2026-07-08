@@ -75,7 +75,14 @@ class OnboardingContext:
         preferred = mapping.get(role, role)
         if preferred in slugs:
             return preferred
-        return next(iter(slugs), preferred)
+        prefix = f"{self.spec.get('project_slug') or self.client_id}-"
+        prefixed = f"{prefix}{preferred}"
+        if prefixed in slugs:
+            return prefixed
+        for slug in slugs:
+            if slug.endswith(f"-{preferred}"):
+                return slug
+        return preferred
 
     def org_at_team(self, role: str) -> str:
         return f"@{self.org}/{self.team_slug(role)}" if self.forge_type == "gitlab" else f"@{self.org}/{self.team_slug(role)}"
