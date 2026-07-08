@@ -147,6 +147,29 @@ class TestHarnessSchema:
         assert "python-backend" in h.profiles
         assert h.profiles["python-backend"].constitution.repo == "python-services-rules"
 
+    def test_template_fields_explicit(self):
+        h = load_harness(FIXTURES / "harness-day1.yaml")
+        assert h.profiles["meta-pm"].codeowners_template == "CODEOWNERS.meta-pm"
+        assert h.profiles["meta-pm"].harness_pin_template == "harness-pin.meta.yaml"
+        assert h.profiles["python-backend"].codeowners_template == "CODEOWNERS.python-backend"
+        assert h.profiles["python-backend"].harness_pin_template == "harness-pin.python-backend.yaml"
+
+    def test_template_fields_convention_default(self):
+        """If codeowners_template / harness_pin_template are absent, convention applies."""
+        raw = {
+            "org": "acme",
+            "profiles": {
+                "nextjs-frontend": {
+                    "constitution": {"repo": "nextjs-rules", "ref": "v1.0.0"},
+                    "skills": [],
+                }
+            },
+        }
+        h = HarnessSchema(raw)
+        prof = h.profiles["nextjs-frontend"]
+        assert prof.codeowners_template == "CODEOWNERS.nextjs-frontend"
+        assert prof.harness_pin_template == "harness-pin.nextjs-frontend.yaml"
+
     def test_resolve_profile_defaults_to_stack(self):
         h = load_harness(FIXTURES / "harness-day1.yaml")
         assert h.resolve_profile("any-repo", "python-backend") == "python-backend"

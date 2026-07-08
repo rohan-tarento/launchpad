@@ -8,6 +8,8 @@ profiles:
       repo: meta-governance-rules
       ref: v1.0.0
     skills: []
+    codeowners_template: CODEOWNERS.meta-pm
+    harness_pin_template: harness-pin.meta.yaml
 
   python-backend:
     constitution:
@@ -16,6 +18,8 @@ profiles:
     skills:
       - repo: python-agent-skills
         ref: v1.0.0
+    codeowners_template: CODEOWNERS.python-backend
+    harness_pin_template: harness-pin.python-backend.yaml
 
 # Per-repo overrides (optional).
 # If absent, repo's harness_profile defaults to its stack from governance.yaml.

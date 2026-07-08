@@ -143,6 +143,14 @@ org: {org}
 
 # One profile entry per stack you use.
 # constitution.ref must be a pinned tag — change it here to upgrade rules.
+#
+# codeowners_template: filename inside kit templates/ to seed as .github/CODEOWNERS
+#   Default convention: CODEOWNERS.<profile-name>  (e.g. CODEOWNERS.python-backend)
+#
+# harness_pin_template: filename inside kit templates/ to seed as .harness-pin.yaml
+#   Default convention: harness-pin.<profile-name>.yaml
+#
+# Both fields are optional — omit to use the convention-based default.
 profiles:
   meta-pm:
     constitution:
@@ -150,6 +158,8 @@ profiles:
       # org: drivestream-lab  # optional override
       ref: v1.0.0             # pin to a tag
     skills: []
+    codeowners_template: CODEOWNERS.meta-pm
+    harness_pin_template: harness-pin.meta.yaml
 
   python-backend:
     constitution:
@@ -158,18 +168,24 @@ profiles:
     skills:
       - repo: python-agent-skills
         ref: v1.0.0
+    codeowners_template: CODEOWNERS.python-backend
+    harness_pin_template: harness-pin.python-backend.yaml
 
   # nextjs-frontend:
   #   constitution:
   #     repo: nextjs-frontend-rules
   #     ref: v1.0.0
   #   skills: []
+  #   codeowners_template: CODEOWNERS.nextjs-frontend
+  #   harness_pin_template: harness-pin.nextjs-frontend.yaml
 
   # terraform-iac:
   #   constitution:
   #     repo: terraform-rules
   #     ref: v1.0.0
   #   skills: []
+  #   codeowners_template: CODEOWNERS.terraform-iac
+  #   harness_pin_template: harness-pin.terraform-iac.yaml
 
 # Per-repo harness_profile overrides (optional).
 # If absent, a repo's harness_profile defaults to its stack from governance.yaml.

@@ -3,8 +3,8 @@
 File: config/harness-<org>.yaml
 Kind: HarnessConfig
 
-A harness = a pinned constitution (rules submodule) + optional agent skills.
-Profiles map stack names to harness resources.
+A harness = a pinned constitution (rules submodule) + optional agent skills +
+            CODEOWNERS and harness-pin skeleton templates.
 
 Fields
 ------
@@ -18,6 +18,10 @@ profiles        Map of stack name → HarnessProfile.
     repo        Skill repo slug.
     org         Optional override org.
     ref         Git ref.
+  codeowners_template   Filename inside kit templates/ to seed as .github/CODEOWNERS.
+                        Defaults to "CODEOWNERS.<profile-name>" (convention).
+  harness_pin_template  Filename inside kit templates/ to seed as .harness-pin.yaml.
+                        Defaults to "harness-pin.<profile-name>.yaml" (convention).
 repos           Map of repo slug → harness_profile (stack override per-repo).
                 If absent, harness_profile defaults to repo.stack from governance.
 """
@@ -89,6 +93,16 @@ class HarnessProfile:
         self.skills: list[SkillRef] = [
             SkillRef(s, profile=name, idx=i, path=path) for i, s in enumerate(skills_raw)
         ]
+        # Template filenames in kit templates/ — default to convention if not set.
+        # Convention: CODEOWNERS.<name>  and  harness-pin.<name>.yaml
+        self.codeowners_template: str = (
+            str(raw.get("codeowners_template") or "").strip()
+            or f"CODEOWNERS.{name}"
+        )
+        self.harness_pin_template: str = (
+            str(raw.get("harness_pin_template") or "").strip()
+            or f"harness-pin.{name}.yaml"
+        )
 
 
 class HarnessSchema:

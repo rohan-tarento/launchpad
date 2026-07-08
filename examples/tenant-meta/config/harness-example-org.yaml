@@ -1,7 +1,7 @@
 apiVersion: launchpad/v1
 kind: HarnessConfig
 
-# ─── Harness: constitution + agent skills per stack ────────────────────────
+# ─── Harness: constitution + agent skills + governance templates per stack ──
 # Rename to harness-<org>.yaml (e.g. harness-apex-common.yaml).
 # Run:  launchpad apply-harness --meta --dry-run   to preview.
 #       launchpad apply-harness --meta --apply      to execute.
@@ -9,6 +9,11 @@ kind: HarnessConfig
 #
 # constitution.ref — must be a pinned tag (never a branch).
 # To upgrade rules: bump the ref here, then re-run apply-harness.
+#
+# codeowners_template  — filename in kit templates/ seeded as .github/CODEOWNERS
+# harness_pin_template — filename in kit templates/ seeded as .harness-pin.yaml
+# Both default to the convention:  CODEOWNERS.<profile-name>
+#                                  harness-pin.<profile-name>.yaml
 
 org: example-org
 
@@ -20,6 +25,8 @@ profiles:
       # org: drivestream-lab            # optional — defaults to drivestream-lab
       ref: v1.0.0                       # pin to a tag
     skills: []
+    codeowners_template: CODEOWNERS.meta-pm
+    harness_pin_template: harness-pin.meta.yaml
 
   # ─── Python microservice profile ─────────────────────────────────────────
   python-backend:
@@ -29,6 +36,8 @@ profiles:
     skills:
       - repo: python-agent-skills
         ref: v1.0.0
+    codeowners_template: CODEOWNERS.python-backend
+    harness_pin_template: harness-pin.python-backend.yaml
 
   # ─── Next.js frontend / BFF profile ──────────────────────────────────────
   # nextjs-frontend:
@@ -36,6 +45,8 @@ profiles:
   #     repo: nextjs-frontend-rules
   #     ref: v1.0.0
   #   skills: []
+  #   codeowners_template: CODEOWNERS.nextjs-frontend
+  #   harness_pin_template: harness-pin.nextjs-frontend.yaml
 
   # ─── Terraform IaC profile ────────────────────────────────────────────────
   # terraform-iac:
@@ -43,10 +54,9 @@ profiles:
   #     repo: terraform-rules
   #     ref: v1.0.0
   #   skills: []
+  #   codeowners_template: CODEOWNERS.terraform-iac
+  #   harness_pin_template: harness-pin.terraform-iac.yaml
 
 # Per-repo harness_profile overrides (optional).
 # If absent, a repo's harness_profile defaults to its stack from governance.yaml.
-# Example: force a repo that uses python-backend stack to use a custom profile:
-# repos:
-#   special-service: custom-profile
 repos: {}
