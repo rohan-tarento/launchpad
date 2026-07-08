@@ -2,6 +2,8 @@
 # Rename to project-<org>.yaml and edit repo list
 
 org: example-org
+includes:
+  org: org-example.yaml
 project_title: Example Engineering
 
 status_columns:
@@ -46,6 +48,12 @@ repos:
   - example-bff
   # extend per promotion manifest
 
+# Grant every team in org-example.yaml access to the board (READER).
+# PM team can edit the board (WRITER). Omit team_access to skip.
+team_access:
+  default_role: WRITER
+
+# `roles.epic` maps manifest kind `epic` → org issue type name (often Epic or Feature).
 issue_types:
   required: true
   roles:
@@ -55,3 +63,6 @@ issue_types:
     - name: Epic
       color: purple
       description: Platform epic / initiative container (parent issue)
+    # Enterprise orgs with built-in types: set epic: Feature and ensure only missing types, e.g.:
+    # roles: { epic: Feature, task: Task }
+    # ensure: [{ name: Feature, color: purple, description: Initiative parent issue }]

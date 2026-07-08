@@ -9,6 +9,7 @@ from typing import Any
 import yaml
 
 from launchpad.config import discover_tenant_config, load_gitflow_config, load_yaml, tenant_root
+from launchpad.github_ops import team_slug_from_config
 
 _PROFILE_TEAM = {
     "backend": "backend-devs",
@@ -38,7 +39,12 @@ def suggest_branch_code(repo_name: str, *, meta_repo: str = "") -> str:
     return code[:7]
 
 
-def team_for_profile(profile: str) -> str:
+def team_for_profile(profile: str, teams: dict[str, str] | None = None) -> str:
+    if teams:
+        try:
+            return team_slug_from_config(teams, profile)
+        except ValueError:
+            pass
     return _PROFILE_TEAM.get(profile, "backend-devs")
 
 
@@ -52,6 +58,7 @@ def _service_entry(
     owns: list[str] | None = None,
     depends_on: list[str] | None = None,
     meta_repo: str = "",
+    teams: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     code = branch_code.strip().upper() if branch_code else suggest_branch_code(name, meta_repo=meta_repo)
     if not _BRANCH_CODE_RE.match(code):
@@ -60,7 +67,7 @@ def _service_entry(
     return {
         "name": name,
         "repo": f"{org}/{name}",
-        "team": team_for_profile(profile),
+        "team": team_for_profile(profile, teams),
         "branch_code": code,
         "description": desc,
         "owns": list(owns or []),
@@ -109,6 +116,7 @@ def entries_from_gitflow(cfg: dict[str, Any], *, meta_repo: str = "") -> list[di
     org = str(cfg.get("org") or "")
     if not org:
         raise ServiceCatalogError("org is required in gitflow config")
+    teams = dict(cfg.get("teams") or {})
     app_names = set((cfg.get("org_config") or {}).get("repo_names") or [])
     services: list[dict[str, Any]] = []
     for repo_entry in cfg.get("repos") or []:
@@ -126,6 +134,7 @@ def entries_from_gitflow(cfg: dict[str, Any], *, meta_repo: str = "") -> list[di
                     owns=["PRD and initiative management", "factory configuration"],
                     depends_on=[],
                     meta_repo=meta_repo or name,
+                    teams=teams,
                 )
             )
         else:
@@ -135,6 +144,7 @@ def entries_from_gitflow(cfg: dict[str, Any], *, meta_repo: str = "") -> list[di
                     org=org,
                     profile=profile,
                     meta_repo=meta_repo or name,
+                    teams=teams,
                 )
             )
     return services

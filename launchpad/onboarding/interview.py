@@ -6,6 +6,13 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, TextIO
 
+from launchpad.onboarding.errors import OnboardingError
+from launchpad.onboarding.naming import (
+    default_meta_repo_name,
+    normalize_registry_id,
+    validate_registry_id,
+)
+from launchpad.onboarding.paths import default_spec_path, default_workspace_parent
 from launchpad.onboarding.spec import normalize_spec, save_onboarding_spec
 from launchpad.platform_repos import DEFAULT_RULES_REF, platform_rules_repo
 
@@ -14,6 +21,7 @@ def _prompt(
     label: str,
     default: str = "",
     *,
+    required: bool = False,
     input_fn: Callable[[str], str] | None = None,
     stream: TextIO = sys.stdout,
 ) -> str:
@@ -24,9 +32,32 @@ def _prompt(
         if not value:
             if default:
                 return default
+            if required:
+                stream.write("  (required)\n")
+                continue
+            return ""
+        return value
+
+
+def _prompt_registry_id(
+    label: str,
+    default: str = "",
+    *,
+    field: str = "client_id",
+    input_fn: Callable[[str], str] | None = None,
+    stream: TextIO = sys.stdout,
+) -> str:
+    reader = input_fn or input
+    while True:
+        suffix = f" [{default}]" if default else ""
+        value = reader(f"{label}{suffix}: ").strip() or default
+        if not value:
             stream.write("  (required)\n")
             continue
-        return value
+        try:
+            return validate_registry_id(value, field=field)
+        except OnboardingError as exc:
+            stream.write(f"  {exc}\n")
 
 
 def _prompt_yes_no(label: str, default: bool = True, *, input_fn: Callable[[str], str] | None = None) -> bool:
@@ -42,17 +73,17 @@ def _prompt_yes_no(label: str, default: bool = True, *, input_fn: Callable[[str]
             return False
 
 
-def _parse_repos(raw: str, default_profile: str) -> list[dict[str, Any]]:
+def _parse_repo_suffixes(raw: str, default_profile: str) -> list[dict[str, Any]]:
     repos: list[dict[str, Any]] = []
     for part in raw.split(","):
-        name = part.strip()
-        if not name:
+        suffix = part.strip().lstrip("-")
+        if not suffix:
             continue
         repos.append(
             {
-                "name": name,
+                "suffix": suffix,
                 "profile": default_profile,
-                "description": name,
+                "description": suffix,
                 "private": True,
             }
         )
@@ -67,30 +98,72 @@ def build_spec_from_interview(
     """Collect answers and return normalized OnboardingSpec."""
     reader = input_fn or input
     stream.write("\n=== launchpad onboard interview ===\n\n")
+    stream.write(
+        "Org vs project: GitHub org (e.g. apex-common) hosts programme repos "
+        "(e.g. kola-meta, kola-api).\n"
+        "client_id / project_slug are lowercase local names — not the org slug.\n\n"
+    )
 
-    client_id = _prompt("Client id (registry, e.g. kola)", input_fn=reader, stream=stream)
-    display_name = _prompt("Display name", client_id.upper(), input_fn=reader, stream=stream)
+    project_slug = _prompt_registry_id(
+        "Project slug (programme name, lowercase)",
+        "kola",
+        field="project_slug",
+        input_fn=reader,
+        stream=stream,
+    )
+    client_id = _prompt_registry_id(
+        "Client id (~/.config/launchpad registry)",
+        project_slug,
+        field="client_id",
+        input_fn=reader,
+        stream=stream,
+    )
+    display_name = _prompt("Display name", project_slug.upper(), input_fn=reader, stream=stream)
 
     forge_raw = _prompt("Forge type (github/gitlab)", "github", input_fn=reader, stream=stream)
     forge_type = forge_raw.lower()
     if forge_type not in ("github", "gitlab"):
         forge_type = "github"
 
-    org = _prompt("Forge org / group slug", f"{client_id}-lab", input_fn=reader, stream=stream)
-    meta_repo = _prompt("Meta repo name", f"{client_id}-meta", input_fn=reader, stream=stream)
-    workspace = _prompt("Workspace path", f"~/Workspace/handson/{client_id}", input_fn=reader, stream=stream)
-
-    backend_raw = _prompt(
-        "Backend app repos (comma-separated)",
-        f"{client_id}-api",
+    org = _prompt(
+        "Forge org / group slug (GitHub org — exact spelling, e.g. apex-common)",
+        required=True,
         input_fn=reader,
         stream=stream,
     )
-    repos = _parse_repos(backend_raw, "backend")
+    repo_prefix = _prompt_registry_id(
+        "Repo prefix (<prefix>-<suffix> repo names)",
+        project_slug,
+        field="repo_prefix",
+        input_fn=reader,
+        stream=stream,
+    )
+    meta_repo = _prompt(
+        "Meta repo name",
+        default_meta_repo_name(repo_prefix=repo_prefix, project_slug=project_slug),
+        input_fn=reader,
+        stream=stream,
+    )
+    workspace = _prompt(
+        "Workspace path",
+        str(default_workspace_parent()),
+        input_fn=reader,
+        stream=stream,
+    )
 
-    frontend_raw = reader("Frontend/BFF repos (comma-separated, or empty): ").strip()
+    backend_raw = _prompt(
+        "Backend repo suffixes (comma-separated; omit prefix — e.g. platform-core,edge-agent)",
+        "api",
+        input_fn=reader,
+        stream=stream,
+    )
+    repos = _parse_repo_suffixes(backend_raw, "backend")
+
+    frontend_raw = reader(
+        "Frontend/BFF repo suffixes (comma-separated, or empty): "
+    ).strip()
     if frontend_raw:
-        repos.extend(_parse_repos(frontend_raw, "frontend"))
+        repos.extend(_parse_repo_suffixes(frontend_raw, "frontend"))
 
     if not repos:
         raise ValueError("at least one app repo is required")
@@ -127,6 +200,8 @@ def build_spec_from_interview(
         "apiVersion": "launchpad/v1",
         "kind": "OnboardingSpec",
         "client_id": client_id,
+        "project_slug": project_slug,
+        "repo_prefix": repo_prefix,
         "display_name": display_name,
         "forge": {"type": forge_type},
         "org": org,
@@ -153,7 +228,6 @@ def build_spec_from_interview(
 
 def run_interview(*, output: Path | None = None, input_fn: Callable[[str], str] | None = None) -> Path:
     spec = build_spec_from_interview(input_fn=input_fn)
-    workspace = Path(spec["paths"]["workspace"])
-    out = output or (workspace / spec["paths"]["spec"])
+    out = output or default_spec_path()
     save_onboarding_spec(out, spec)
     return out.resolve()

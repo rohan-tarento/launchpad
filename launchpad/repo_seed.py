@@ -33,6 +33,7 @@ def seed_one_repo(
     *,
     is_meta: bool,
     seed_empty: bool,
+    set_default_branch_develop: bool = True,
 ) -> None:
     if not repo_exists(client, org, repo):
         raise RepoSeedError(
@@ -50,10 +51,16 @@ def seed_one_repo(
     create_develop_from_main(client, org, repo)
 
     current = get_default_branch(client, org, repo)
-    if current != "develop":
-        set_default_branch(client, org, repo, "develop")
-    else:
+    if current == "develop":
         print(f"Default branch: {org}/{repo}@develop")
+        return
+    if not set_default_branch_develop:
+        print(
+            f"WARN: default branch is {current!r} (options.set_default_branch: false) — "
+            "set develop manually via org owner"
+        )
+        return
+    set_default_branch(client, org, repo, "develop")
 
 
 def run(
@@ -68,6 +75,7 @@ def run(
     org = org or cfg["org"]
     options = cfg["options"]
     seed_empty = bool(options.get("seed_empty", True))
+    set_default_branch_develop = bool(options.get("set_default_branch", True))
     app_repos = factory_app_repo_names(cfg)
 
     print("=== seed-repos ===")
@@ -75,6 +83,7 @@ def run(
     print(f"Config: {cfg_path}")
     print(f"Authenticated as: {client.whoami()}")
     print(f"options.seed_empty: {seed_empty}")
+    print(f"options.set_default_branch: {set_default_branch_develop}")
     print("")
 
     if not client.org_ok(org):
@@ -95,11 +104,12 @@ def run(
                 repo,
                 is_meta=is_meta,
                 seed_empty=seed_empty,
+                set_default_branch_develop=set_default_branch_develop,
             )
         except RepoSeedError as exc:
             print(f"[FAIL] {exc}")
             errors.append(str(exc))
-        except Exception as exc:
+        except GitHubError as exc:
             print(f"[FAIL] {org}/{repo}: {exc}")
             errors.append(f"{org}/{repo}: {exc}")
         print("")

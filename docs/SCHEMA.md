@@ -26,15 +26,17 @@ Gitflow and project configs include `apiVersion` and `kind` — see [`examples/t
 
 Authoritative input for `launchpad onboard plan` and `launchpad onboard apply`. Lives beside the tenant workspace (e.g. `~/Workspace/handson/kola/onboarding.yaml`), not inside meta until you optionally commit it after apply.
 
-Example: [`examples/onboarding-kola.yaml`](../examples/onboarding-kola.yaml) · GitLab stub: [`examples/onboarding-kola-gitlab.yaml`](../examples/onboarding-kola-gitlab.yaml)
+Example: [`examples/onboarding-kola.yaml`](../examples/onboarding-kola.yaml) (`apex-common` org + `kola-*` repos) · GitLab stub: [`examples/onboarding-kola-gitlab.yaml`](../examples/onboarding-kola-gitlab.yaml)
 
 | Field | Purpose |
 |-------|---------|
 | `client_id` | Registry id (`~/.config/launchpad/clients.yaml`) |
+| `project_slug` | Programme slug (defaults to `client_id`; drives repo naming) |
+| `repo_prefix` | Repo name prefix (defaults to `project_slug`; repos become `<prefix>-<suffix>`) |
 | `forge.type` | `github` \| `gitlab` |
-| `org` / `meta_repo` | Forge org + meta repo name |
+| `org` / `meta_repo` | Forge org + meta repo name (org ≠ project — e.g. `apex-common` + `kola-meta`) |
 | `paths.workspace` | Parent dir; meta = `workspace/meta_repo` |
-| `repos` | App repos for bootstrap (meta excluded) |
+| `repos` | App repos for bootstrap (meta excluded). Each entry may use `name` (full) or `suffix` (with `repo_prefix`). Or `repos: { prefix, apps: [...] }` |
 | `rules` | Private `*-rules` repos + initial tags |
 | `gitflow` | Branch naming / CI switches for generated gitflow YAML |
 | `registry` | Patch local client registry on apply |

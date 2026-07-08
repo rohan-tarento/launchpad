@@ -61,8 +61,10 @@ Defined in `config/project-example.yaml` under `issue_types`.
 
 | Role | GitHub Type | When |
 |------|-------------|------|
-| `epic` | Epic | Manifest `epic:` block |
+| `epic` | Epic or **Feature** (org-specific) | Manifest `epic:` block |
 | `task` | Task | Default for `work:` items |
+
+Set `issue_types.roles.epic` to your org’s parent/initiative type name (e.g. some enterprises use **Feature**, not Epic).
 
 **Project table:** add **Type** column; enable **Show hierarchy** for parent/child tree.
 
@@ -83,7 +85,20 @@ Or as part of platform setup:
 launchpad setup-platform --apply
 ```
 
-Config: `config/project-example.yaml` — columns, fields, repos.
+Config: `config/project-example.yaml` — columns, fields, repos, **team board access**.
+
+### Team access (board visibility)
+
+Repo team grants (`setup-gitflow`) do **not** grant access to the org project board. Set `team_access` in `project-<org>.yaml` (with `includes.org` so team slugs resolve):
+
+```yaml
+includes:
+  org: org-<org>.yaml
+team_access:
+  default_role: WRITER    # all org teams — view and edit board items
+```
+
+`bootstrap-project --apply` calls GitHub `updateProjectV2Collaborators` for each team. Roles: `READER`, `WRITER`, `ADMIN`. Set `team_access: false` to skip.
 
 Idempotent: safe to re-run; updates Status + single-select field options and creates missing fields.
 

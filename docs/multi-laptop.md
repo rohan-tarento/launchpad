@@ -2,10 +2,30 @@
 
 ## Install launchpad once per machine
 
+**Tenant operators (recommended)** — install a **released tag**, not a local editable fork:
+
+```bash
+pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.7"
+launchpad --version
+```
+
+Match the version in your tenant `<client>-meta/.launchpad-version`.
+
+**Upgrade:**
+
+```bash
+pipx install --force "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.7"
+launchpad --client <client> doctor
+```
+
+**Kit contributors** (launchpad repo development only):
+
 ```bash
 cd ~/Workspace/handson/launchpad
 pipx install -e .
 ```
+
+Multi-tenant feedback and release policy: [kit-evolution.md](kit-evolution.md).
 
 ---
 
