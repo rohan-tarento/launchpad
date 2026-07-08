@@ -30,8 +30,8 @@ Repos in factory config: **<client>-meta**, **example-api**.
 
 ```bash
 launchpad doctor
-launchpad setup-platform --apply
-launchpad verify-platform
+launchpad init-client --meta --apply
+launchpad check-harness --meta
 launchpad seed-work --config work/INIT-<id>.yaml --apply
 ```
 
@@ -41,7 +41,7 @@ Config SSOT: `config/*-<org>.yaml` (skeleton ships `*-example.yaml` until you re
 
 ## 3. Teams
 
-Created by `setup-platform`. Add members:
+Created by `init-client`. Add members:
 
 https://github.com/orgs/example-org/teams
 

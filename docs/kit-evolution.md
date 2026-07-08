@@ -22,14 +22,14 @@ Tenant-specific values live in **`<client>-meta`** (private per programme). This
 | CLI bug / idempotent factory step | Yes | No |
 | New gitflow or project option (generic) | Yes | No |
 | Enterprise PAT limitation (documented generically) | Yes | No |
-| Org name, repo list, team slugs | No | `config/org-*.yaml`, `gitflow-*.yaml` |
-| Board title, project #, field options | No | `config/project-*.yaml` |
-| Issue type names (Epic vs Feature) | No | `config/project-*.yaml` |
+| Org name, repo list, team slugs | No | `config/governance-<org>.yaml` |
+| Board title, project # | No | `config/governance-<org>.yaml` |
+| Stack profiles, issue types | No | `config/governance-<org>.yaml` |
 | PRDs, work manifests, wiki copy | No | `prd/`, `work/`, `wiki/` |
 | Playbook **deltas** (enterprise quirks for one programme) | No | `<client>-meta/playbook/` |
 | PAT, `clients.yaml` paths | No | `~/.config/launchpad/` (never commit) |
 
-**Examples in this repo** use fictional programmes only (`kola`, `apex-common`, `example-org`) — see `examples/onboarding-kola.yaml`.
+**Examples in this repo** use fictional programmes only (`kola`, `apex-common`, `example-org`) — see `examples/programme-kola.yaml` and `examples/tenant-meta/config/`.
 
 ---
 
@@ -80,7 +80,7 @@ launchpad --version    # must match <client>-meta/.launchpad-version
 launchpad --client <client> doctor
 ```
 
-Re-run idempotent factory commands only when release notes say so (`setup-gitflow`, `bootstrap-project`, etc.).
+Re-run idempotent factory commands only when release notes say so (`init-client`, `apply-harness`, etc.).
 
 ---
 
@@ -120,15 +120,18 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 
 ---
 
-## Current release line (enterprise-ready features)
+## Current release line (v0.5.10 — greenfield refactor)
 
-Target **v0.5.7** (pending merge) includes generic support for:
+**v0.5.10** introduces the greenfield refactor:
 
-- Shared org / programme slug (`project_slug`, `repo_prefix`, prefixed team slugs)
-- `options.set_default_branch: false` (enterprise org-owner workaround)
-- `project.team_access` (Projects v2 team collaborators)
-- `project.issue_types` in onboarding spec
-- `sync-catalog` team names from gitflow `teams` map
-- verify skips `gitflow.default_branch` when `set_default_branch: false`
+- **5-YAML config model** (`programme`, `governance`, `harness`, `scaffold`, `service-catalog`)
+- **5-command CLI** (`onboard interview`, `init-client`, `apply-scaffold`, `apply-harness`, `check-harness`)
+- **GitHub-only** (GitLab planned v0.6)
+- **Scaffold fully YAML-driven** — `cookiecutter` templates defined in `scaffold-<org>.yaml`
+- **`onboard interview`** — 4 questions, auto-writes all 5 YAMLs + registry + PAT stub
+- **Stack registry** — named stacks (`python-backend`, `nextjs-frontend`, `terraform-iac`, `meta-pm`)
+- **ForgeProvider protocol** — extensible for future forge types
+- **Idempotent** — all commands are dry-run by default, re-runnable after config fixes
+- **No `--all` flag** — `--meta` or `--repo <name>` required for all commands
 
-Tenants adopt by pinning `0.5.7` in `.launchpad-version` and installing from that tag.
+Tenants adopt by pinning `0.5.10` in `.launchpad-version` and installing from that tag.

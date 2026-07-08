@@ -1,58 +1,85 @@
-# Tenant onboarding wizard
+# Onboarding wizard (v0.5.10)
 
-Q&A → **`onboarding.yaml`** → **`onboard plan`** (dry-run) → **`onboard apply`** (scaffold).
+> **tl;dr:** Run `launchpad onboard interview`. Answer 4 questions.
+> All 5 config YAMLs, the client registry entry, and a PAT stub are written automatically.
 
-## Commands
+---
 
-| Command | Description |
-|---------|-------------|
-| `launchpad onboard interview` | Interactive Q&A → writes `onboarding.yaml` |
-| `launchpad onboard plan --spec …` | Preview files and next steps (no writes) |
-| `launchpad onboard show --spec …` | Print normalized spec |
-| `launchpad onboard apply --spec …` | Scaffold meta, configs, templates, registry |
-
-### Apply flags
-
-| Flag | Purpose |
-|------|---------|
-| `--skip-registry` | Do not patch `clients.yaml` / `env.d` |
-| `--skip-doctor` | Skip post-apply `launchpad doctor` |
-| `--with-platform` | Run `setup-platform --apply` (GitHub + PAT) |
-
-## Quick start (KOLA)
-
-Illustrative mapping: shared enterprise org **`apex-common`** hosts programme repos **`kola-*`** (meta `kola-meta`).
+## Command
 
 ```bash
-# Option A — interview (run from your tenant workspace directory)
-mkdir -p ~/Workspace/kola && cd ~/Workspace/kola
 launchpad onboard interview
-# writes ./onboarding.yaml in the current directory; meta → ./kola-meta/
-
-# Option B — copy example
-cp examples/onboarding-kola.yaml ~/Workspace/kola/onboarding.yaml
-
-launchpad onboard plan --spec ~/Workspace/kola/onboarding.yaml
-launchpad onboard apply --spec ~/Workspace/kola/onboarding.yaml
 ```
 
-Do **not** set `options.seed_empty: false` unless repos already have history you must preserve.
+`onboard interview` is the **only** public entry point for local setup.
+There is no `onboard apply`, `onboard plan`, or `onboard show`.
 
-After apply:
+---
 
-1. Paste token in `~/.config/launchpad/env.d/kola.env`
-2. `launchpad --client kola setup-platform --config config/platform-apex-common.yaml --apply`
-3. PM: PR local meta content → `kola-meta/develop`
+## What happens
 
-## GitLab
+```
+1.  Programme name?     → STRATUM
+2.  Programme slug?     → stratum     (auto-derived; confirm or override)
+3.  GitHub org?         → Sandvik-Common
+4.  Workspace path?     → ~/Workspace/stratum
+```
 
-Set `forge.type: gitlab` in the spec (`examples/onboarding-kola-gitlab.yaml`). Apply generates GitLab-aware org config; automated `setup-platform` remains GitHub-first — see [multi-forge.md](multi-forge.md).
+Writes locally:
 
-## Schema
+```
+~/Workspace/stratum/stratum-meta/config/
+  programme.yaml
+  governance-Sandvik-Common.yaml      ← teams, repos, stack profiles
+  harness-Sandvik-Common.yaml         ← constitution + skills pins (placeholders)
+  scaffold-Sandvik-Common.yaml        ← cookiecutter templates (all disabled by default)
+  service-catalog-Sandvik-Common.yaml ← service registry (commented examples)
 
-[SCHEMA.md](SCHEMA.md#onboardingspec)
+~/.config/launchpad/clients.yaml      ← id: stratum appended
+~/.config/launchpad/env.d/stratum.env ← GITHUB_TOKEN stub (chmod 600, fill in)
+```
+
+No GitHub API calls. No PAT required at this stage.
+
+---
+
+## After the interview
+
+The wizard prints the exact **NEXT:** command to run. Follow it.
+
+1. Open `~/.config/launchpad/env.d/stratum.env` — paste your GitHub PAT.
+2. Run `launchpad --client stratum doctor` — confirms setup.
+3. `launchpad init-client --meta --dry-run` then `--apply`.
+
+Full walkthrough: **[greenfield.md](greenfield.md)**.
+
+---
+
+## KOLA example (org ≠ slug)
+
+Some programmes live inside a shared enterprise org:
+
+| | |
+|--|--|
+| **GitHub org** | `apex-common` |
+| **Programme slug** | `kola` |
+| **Meta repo** | `kola-meta` |
+
+```bash
+mkdir -p ~/Workspace/kola && cd ~/Workspace/kola
+launchpad onboard interview
+# Programme name: KOLA
+# Slug: kola
+# GitHub org: apex-common
+# Workspace: ~/Workspace/kola
+```
+
+See [examples/programme-kola.yaml](../examples/programme-kola.yaml) for the resulting `programme.yaml`.
+
+---
 
 ## Related
 
-- [new-client.md](new-client.md)
-- [setup-guide.md](setup-guide.md)
+- [greenfield.md](greenfield.md) — full Day-0 → Day-N guide
+- [setup-guide.md](setup-guide.md) — phased setup reference
+- [SCHEMA.md](SCHEMA.md) — 5 YAML kinds reference

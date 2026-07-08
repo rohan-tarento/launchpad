@@ -11,7 +11,7 @@ Installed under **`.agents/skills/`** (gitignored; reproducible from pin):
 
 Pin record: [`.harness-pin.yaml`](.harness-pin.yaml) (`profile: meta-pm`).
 
-Re-sync after clone: `launchpad sync-harness-meta --apply`
+Re-sync after clone: `launchpad apply-harness --meta --apply`
 
 ---
 

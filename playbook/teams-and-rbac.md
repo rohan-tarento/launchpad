@@ -1,6 +1,6 @@
 # Teams and RBAC (example-org)
 
-Config: [`gitflow-example.yaml`](../examples/tenant-meta/config/gitflow-example.yaml)
+Config: [`governance-example-org.yaml`](../examples/tenant-meta/config/governance-example-org.yaml)
 
 **Delivery workflow:** [delivery-workflow.md](delivery-workflow.md)
 
@@ -38,7 +38,7 @@ PM pushes spec handoff branches on app repos; **dev merges** after review. PM me
 | `platform` | **`<client>-meta`** | iac, iac-local |
 | `data_platform` | **example-platform** (when added) | — |
 
-Config file: [`examples/tenant-meta/config/gitflow-example.yaml`](../examples/tenant-meta/config/gitflow-example.yaml)
+Config file: [`examples/tenant-meta/config/governance-example-org.yaml`](../examples/tenant-meta/config/governance-example-org.yaml)
 
 ## Branch rules (summary)
 
@@ -55,10 +55,10 @@ See [github-enforcement.md](github-enforcement.md) and [branching-policy.md](bra
 Requires `GITHUB_TOKEN` in `~/.config/launchpad/env.d/<client-id>.env` — [python-automation.md](python-automation.md).
 
 ```bash
-launchpad setup-platform --config config/platform-example.yaml --apply
+launchpad init-client --meta --config config/governance-example-org.yaml --apply
 # or individual steps:
-launchpad bootstrap-teams --config config/org-example.yaml --apply
-launchpad setup-gitflow --config config/gitflow-example.yaml --apply
+launchpad init-client --config config/governance-example-org.yaml --apply
+launchpad init-client --config config/governance-example-org.yaml --apply
 ```
 
 Add members to **`pm-team`** and dev teams in GitHub UI after team creation.

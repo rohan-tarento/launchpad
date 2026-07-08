@@ -1,184 +1,188 @@
-# Setup guide
+# Setup guide (v0.5.10)
 
-End-to-end onboarding using the **single** tenant skeleton: [`examples/tenant-meta/`](../examples/tenant-meta/).
+End-to-end onboarding for a new programme.
 
-Launchpad (the kit) and `<client>-meta` (the tenant) are **separate repos**. Install Launchpad once; copy `tenant-meta` per client.
+Launchpad (the kit) and `<slug>-meta` (the tenant) are **separate repos**.
+Install Launchpad once; the interview generates `<slug>-meta/config/` per programme.
+
+For the full day-by-day walkthrough with a STRATUM example, see **[greenfield.md](greenfield.md)**.
 
 ---
 
 ## Architecture
 
 ```text
-~/Workspace/handson/
-├── launchpad/              # public kit — CLI, playbook, templates (clone once)
-└── <client>/               # e.g. diet_coke/
-    ├── <client>-meta/      # private tenant — copy from examples/tenant-meta/
-    ├── <app-api>/          # app repos (siblings, created by factory or manual)
-    └── <app-bff>/
+~/Workspace/<slug>/
+├── <slug>-meta/          # control-plane repo (config, prd, work, wiki)
+│   └── config/
+│       ├── programme.yaml
+│       ├── governance-<org>.yaml
+│       ├── harness-<org>.yaml
+│       ├── scaffold-<org>.yaml
+│       └── service-catalog-<org>.yaml
+├── <app-api>/            # app repo clones (siblings of meta)
+└── <app-bff>/
 ```
 
 | Repo | Role |
 |------|------|
-| **launchpad** | Factory CLI + playbook — **not** copied into meta |
-| **`<client>-meta`** | PRDs, `work/`, factory YAML, wiki source |
+| **launchpad** | Factory CLI + playbook — not copied into meta |
+| **`<slug>-meta`** | Programme config, PRDs, work manifests, wiki |
 | **App repos** | Specs, code, harness pin |
 
 ---
 
-## Naming example (illustrative only)
+## Phase 0 — Prerequisites
 
-When you onboard a real client, you choose names — there is **no second example folder** in this repo.
+1. GitHub org exists (org admin access).
+2. Fine-grained PAT — scopes: `repo`, `admin:org`, `project`, `delete_repo`.
+   See [playbook/bootstrap-prerequisites.md](../playbook/bootstrap-prerequisites.md).
 
-| You choose | Example |
-|------------|---------|
-| GitHub org | `kd_diet_coke` |
-| Project slug | `diet_coke` |
-| Meta repo | `diet_coke-meta` |
-| App repos | `diet_coke-api`, `diet_coke-bff` |
-
-The skeleton ships with neutral **`example-org`** / **`example-api`** so smoke tests work without renaming. For production, search-replace in YAML and rename config files to `*-kd_diet_coke.yaml`.
-
----
-
-## Phase 0 — Prerequisites (manual)
-
-1. **GitHub org** exists (org admin access).
-2. **GitHub Team** plan for branch protection on private repos (if needed).
-3. **Rules repos** — public [drivestream-lab/*-rules](https://github.com/drivestream-lab/python-services-rules) (`.mdc` constitution pinned as harness submodule per app profile).
-4. **Fine-grained PAT** — [playbook/bootstrap-prerequisites.md](../playbook/bootstrap-prerequisites.md).
-
-`gh auth login` is for day-to-day PRs. Factory uses **`GITHUB_TOKEN`** in `~/.config/launchpad/env.d/<client-id>.env`.
+`gh auth login` is for day-to-day PRs. Factory uses `GITHUB_TOKEN` in `env.d/`.
 
 ---
 
 ## Phase 1 — Install Launchpad (once per machine)
 
-**Operators (recommended):**
-
 ```bash
-git clone https://github.com/drivestream-lab/launchpad.git ~/Workspace/handson/launchpad
-cd ~/Workspace/handson/launchpad
-pipx install -e .
-launchpad --help
+pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.10"
+launchpad --version
 ```
 
-**Kit contributors** (optional): [local-dev.md](local-dev.md) — venv + `./bin/launchpad`.
+See [multi-laptop.md](multi-laptop.md) for the client registry setup.
 
 ---
 
-## Phase 2 — Create tenant meta
+## Phase 2 — Interview (Day 0)
 
 ```bash
-mkdir -p ~/Workspace/handson/diet_coke
-cp -r ~/Workspace/handson/launchpad/examples/tenant-meta \
-      ~/Workspace/handson/diet_coke/diet_coke-meta
-cd ~/Workspace/handson/diet_coke/diet_coke-meta
-git init
-git remote add origin https://github.com/kd_diet_coke/diet_coke-meta.git
+launchpad onboard interview
 ```
 
-Create **`diet_coke-meta`** on GitHub first, then push. Meta is **not** created by `bootstrap-org`.
+4 questions → writes 5 YAML files, patches `clients.yaml`, creates `env.d/<slug>.env` stub.
 
-**Customize configs** — edit `config/*.yaml`:
+```
+  Programme name:   STRATUM
+  Programme slug:   stratum       (auto-derived, confirm)
+  GitHub org:       Sandvik-Common
+  Workspace path:   ~/Workspace/stratum
+```
 
-- Replace `example-org` → `kd_diet_coke`
-- Replace `example-api` → `diet_coke-api` (and other repos)
-- Rename files: `org-example.yaml` → `org-kd_diet_coke.yaml`, etc.
-- Update `platform-*.yaml` step `config:` paths to match new filenames
+Output:
+```
+~/Workspace/stratum/stratum-meta/config/
+  programme.yaml
+  governance-Sandvik-Common.yaml
+  harness-Sandvik-Common.yaml
+  scaffold-Sandvik-Common.yaml
+  service-catalog-Sandvik-Common.yaml
 
-Or keep `example-org` names for a sandbox org while learning.
+~/.config/launchpad/clients.yaml  ← id: stratum registered
+~/.config/launchpad/env.d/stratum.env  ← PAT stub (chmod 600, fill token)
+```
+
+**NEXT printed by the command** — follow it exactly.
 
 ---
 
-## Phase 3 — Client registry and doctor
-
-One-time per machine — [multi-laptop.md](multi-laptop.md):
+## Phase 3 — Doctor
 
 ```bash
-mkdir -p ~/.config/launchpad/env.d
-cp ~/Workspace/handson/launchpad/examples/clients.yaml.example ~/.config/launchpad/clients.yaml
-cp ~/Workspace/handson/launchpad/examples/env.d/client.env.example \
-   ~/.config/launchpad/env.d/diet_coke.env
-# Edit clients.yaml (path to diet_coke-meta) and diet_coke.env (GITHUB_TOKEN)
-chmod 600 ~/.config/launchpad/env.d/diet_coke.env
-
-launchpad --client diet_coke doctor
+source ~/.config/launchpad/env.d/stratum.env
+launchpad --client stratum doctor
 ```
 
-Or set `default: diet_coke` in `clients.yaml` and run `launchpad doctor`.
+Checks: token valid, programme.yaml found, version pin, GitHub API reachable.
 
 ---
 
-## Phase 4 — Factory bootstrap (PAT required)
+## Phase 4 — Meta repo on GitHub (Day 1)
 
 ```bash
-launchpad setup-platform --config config/platform-<org>.yaml --dry-run
-launchpad setup-platform --config config/platform-<org>.yaml --apply
-launchpad verify-platform --config config/verify-platform-<org>.yaml
+launchpad init-client --meta --dry-run    # preview
+launchpad init-client --meta --apply      # execute
 ```
 
-Runs: `bootstrap-org` → `bootstrap-teams` → `setup-gitflow` → `bootstrap-project`.
+Creates: GitHub team(s), meta repo, gitflow (main branch + protection), project board.
+All idempotent — re-run after fixing config.
 
-Gitflow policy is **only** in `gitflow-<org>.yaml` — no CLI policy flags.
-
-**Manual after apply:** add team members; merge workflow PRs if `options.with_templates: true`; then set `options.require_ci: true` and re-run `setup-gitflow --apply`.
-
----
-
-## Phase 5 — Harness (app repos)
-
-Clone app repos as siblings of meta, then:
+Clone locally:
 
 ```bash
-launchpad sync-harness-app --repo diet_coke-api --apply
-launchpad verify-harness-app --repo diet_coke-api
+gh repo clone <org>/<slug>-meta ~/Workspace/<slug>/<slug>-meta
 ```
 
-See [playbook/harness-pins.md](../playbook/harness-pins.md) and [playbook/sdd-workflow.md](../playbook/sdd-workflow.md).
+---
+
+## Phase 5 — Scaffold meta (optional)
+
+Edit `config/scaffold-<org>.yaml`: set `meta.enabled: true`, `template`, `ref`, `context`.
+
+```bash
+launchpad apply-scaffold --meta --apply
+```
 
 ---
 
-## Phase 6 — First INIT
+## Phase 6 — Pin meta harness
 
-In **`<client>-meta`** (PM lane) then **app repo** (dev lane):
+Edit `config/harness-<org>.yaml`: set `constitution.ref` to a pinned tag.
 
-**PM (meta PRD PR)**
-
-1. `prd/INIT-….md` + validation reports → meta PR (**no** `work/INIT-*.yaml`)
-2. `/prd-impact-map` + tech lead LGTM
-3. Answer product questions from eng on PRD PR
-
-**Dev (app spec PR — may open parallel after impact LGTM)**
-
-1. Open spec PR: `chore/INIT-*-spec-<repo>`
-2. `/spec-draft` → `/initiative-feasibility` → `/spec-technical-review` (if NEW-ADR) → `/spec-implementation-plan`
-3. Merge spec PR
-
-**After spec merge**
-
-1. `gh issue create` per wave from plan §9 — **default** (single repo)
-2. Optional multi-repo: copy §9 → `work/INIT-….yaml` → `launchpad seed-work --config work/INIT-….yaml --apply`
-
-See [delivery-workflow.md](../playbook/delivery-workflow.md).
+```bash
+launchpad apply-harness --meta --apply
+launchpad check-harness --meta
+```
 
 ---
 
-## Automated vs manual
+## Phase 7 — App repos (Day N, incremental)
 
-| Step | Launchpad + PAT | Manual |
-|------|-----------------|--------|
-| Create org | | ✓ |
-| Create & push `<client>-meta` | | ✓ |
-| Create app repos | ✓ `bootstrap-org` | |
-| Teams, gitflow, board | ✓ `setup-platform` | Add people in UI |
-| Issues | ✓ `seed-work` | PRD + manifest |
-| Harness | ✓ `sync-harness-app` | Clone repos first |
+For each app repo:
+
+1. Edit `config/governance-<org>.yaml` — add repo block (stack + teams required)
+2. `launchpad init-client --repo <name> --apply`
+3. Edit `config/scaffold-<org>.yaml` — add repo block
+4. `launchpad apply-scaffold --repo <name> --apply`
+5. `launchpad apply-harness --repo <name> --apply`
+6. `launchpad check-harness --repo <name>`
+7. Edit `config/service-catalog-<org>.yaml` — promote from `planned` → `live`
+
+---
+
+## Phase 8 — First INIT
+
+**PM (meta PRD PR):**
+1. Author `prd/INIT-<id>.md` → meta PR
+2. Run `/validate-requirements` → `/prd-impact-map`
+
+**Dev (app spec PR):**
+1. Open `chore/INIT-*-spec-<repo>` branch
+2. Run `/spec-draft` → `/spec-implementation-plan` (§9 → wave issues)
+
+See [playbook/delivery-workflow.md](../playbook/delivery-workflow.md).
+
+---
+
+## What Launchpad automates vs what stays manual
+
+| Step | Launchpad | Manual |
+|------|-----------|--------|
+| Create GitHub org | | ✓ |
+| Generate 5 config YAMLs | ✓ `onboard interview` | edit to customize |
+| Create teams + meta repo | ✓ `init-client --meta` | add members in UI |
+| Gitflow + board | ✓ `init-client` | |
+| Scaffold app repo | ✓ `apply-scaffold` | |
+| Pin harness | ✓ `apply-harness` | |
+| Verify harness | ✓ `check-harness` | |
+| Create issues | `seed-work` (WorkManifest) | `gh issue create` per wave |
 
 ---
 
 ## Docs
 
-- [new-client.md](new-client.md) — checklist  
-- [multi-laptop.md](multi-laptop.md) — install + client registry  
-- [local-dev.md](local-dev.md) — kit contributors / source testing  
-- [SCHEMA.md](SCHEMA.md) — `launchpad/v1` YAML kinds  
+- [greenfield.md](greenfield.md) — Day-0 through Day-N walkthrough
+- [new-client.md](new-client.md) — checklist
+- [multi-laptop.md](multi-laptop.md) — install + client registry
+- [SCHEMA.md](SCHEMA.md) — 5 YAML kinds reference
+- [stacks.md](stacks.md) — stack registry + custom stacks
+- [local-dev.md](local-dev.md) — kit contributors

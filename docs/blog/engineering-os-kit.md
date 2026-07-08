@@ -1,5 +1,7 @@
 # We Didn't Need Better Agents. We Needed a Better Repo.
 
+> **Note:** This post describes the pre-v0.5.10 design. The v0.5.10 greenfield refactor introduced the 5-YAML config model and 5-command CLI. See [docs/greenfield.md](../greenfield.md) for the current guide.
+
 **A technical post on specification-driven development, harness engineering, and why we packaged our delivery model as a kit — not a platform.**
 
 ---

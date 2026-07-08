@@ -71,7 +71,7 @@ Bump via harness PR after platform publishes a new approved rules + skills pair.
 
 ---
 
-## What sync-harness-app does
+## What apply-harness does
 
 1. Write `.harness-pin.yaml` and `AGENTS.md`
 2. Sync **rules** submodule @ pinned ref
@@ -79,7 +79,7 @@ Bump via harness PR after platform publishes a new approved rules + skills pair.
 4. Seed prayog-skills dev bundle → `.agents/skills/`
 5. Gitignore **`.agents/`**; optional commit **`skills-lock.json`**
 
-**PM pipeline skills** (`validate-requirements`, `prd-impact-map`, …) install in **`<client>-meta`** only — not app repos.
+**PM pipeline skills** (`validate-requirements`, `prd-impact-map`, …) install in **`<slug>-meta`** only — not app repos.
 
 ---
 
@@ -87,43 +87,43 @@ Bump via harness PR after platform publishes a new approved rules + skills pair.
 
 Submodule URLs in harness config must use **HTTPS** (`rules.url`, `agent_skills.url`). SSH URLs are rejected — fix the harness YAML if sync fails.
 
-From `<client>-meta`:
+From the `<slug>-meta` config directory:
 
 ```bash
-launchpad sync-harness-app --repo example-api --dry-run
-launchpad sync-harness-app --repo example-api --apply
-launchpad verify-harness-app
+launchpad apply-harness --repo example-api --dry-run
+launchpad apply-harness --repo example-api --apply
+launchpad check-harness --repo example-api
 ```
 
 Config: `config/harness-<org>.yaml`
 
-Template paths (`agents_template`, `pin_template`) resolve **tenant override first**, then **launchpad kit** `templates/` (pipx install). Store only tenant-specific overrides under `<client>-meta/templates/`.
+Template paths resolve **tenant override first**, then **launchpad kit** `templates/` (pipx install). Store only tenant-specific overrides under `<slug>-meta/templates/`.
 
-**Onboard a new app repo:** see [greenfield-app-repo.md](greenfield-app-repo.md) (scaffold-app → git push → gitflow → sync-harness-app).
+**Onboard a new app repo:** see [greenfield-app-repo.md](greenfield-app-repo.md).
 
 Short harness-only path (repo already exists with code):
 
-1. Add entry under `repos:` in harness config (include `scaffold:` for new Python repos).
-2. Ensure clone lives next to `<client>-meta` (see `default_workspace` in harness config).
-3. `launchpad sync-harness-app --repo <name> --apply`
+1. Add entry under `repos:` in `harness-<org>.yaml`.
+2. Ensure clone lives next to `<slug>-meta` in the workspace.
+3. `launchpad apply-harness --repo <name> --apply`
 4. Commit pin, `AGENTS.md`, rules submodule, `.gitignore` (`.agents/`).
-5. `launchpad verify-harness-app --repo <name>` before opening PR.
+5. `launchpad check-harness --repo <name>` before opening PR.
 
 ---
 
-## Meta repo (`sync-harness-meta`)
+## Meta repo (`apply-harness --meta`)
 
 PM workspace — no rules submodule. Installs prayog PM skills + community `prd` (awesome-copilot).
 
 ```bash
-launchpad sync-harness-meta --dry-run
-launchpad sync-harness-meta --apply
-launchpad verify-harness-meta
+launchpad apply-harness --meta --dry-run
+launchpad apply-harness --meta --apply
+launchpad check-harness --meta
 ```
 
 Commit `.harness-pin.yaml`, `skills-lock.json`, `AGENTS.md` — **not** `.agents/skills/` (gitignored).
 
-Meta structure comes from [tenant-meta-foundation](https://github.com/drivestream-lab/tenant-meta-foundation) via `onboard apply` / `scaffold-meta`.
+Meta structure comes from `apply-scaffold --meta` (cookiecutter `tenant-meta-foundation`).
 
 ---
 

@@ -1,82 +1,115 @@
 # Local development (launchpad kit contributors)
 
-For **operators** running factory commands against a tenant, use [multi-laptop.md](multi-laptop.md) (`pipx install -e .` + client registry).
+For **operators** running factory commands against a tenant, use [multi-laptop.md](multi-laptop.md).
 
 This guide is for **contributors** hacking on the launchpad repo itself.
 
 ---
 
-## One-time venv
+## One-time editable install
 
 ```bash
-cd ~/Workspace/handson/launchpad
-python3 -m venv .venv
-.venv/bin/pip install -e .
+cd ~/Workspace/drivestream-lab/launchpad
+pipx install -e .
+launchpad --version
 ```
 
-Or use `./bin/launchpad` without activating the venv (uses `.venv` if present).
+Or use `./bin/launchpad` without pipx — it sets `PYTHONPATH` to the repo root.
 
 ---
 
 ## Run from source
 
 ```bash
-export LAUNCHPAD_TENANT_ROOT=~/Workspace/handson/launchpad/examples/tenant-meta
-./bin/launchpad doctor
-./bin/launchpad seed-work --config work/INIT-EXAMPLE-001.yaml --dry-run
-```
+export LAUNCHPAD_TENANT_ROOT=~/Workspace/drivestream-lab/launchpad/examples/tenant-meta
 
-The `./bin/launchpad` script sets `PYTHONPATH` to the repo root.
+# Schema smoke
+launchpad init-client --meta \
+  --config-dir examples/tenant-meta/config \
+  --dry-run
 
----
+# Readiness check
+launchpad status --meta \
+  --config-dir examples/tenant-meta/config
 
-## Test tenant in another project
-
-```bash
-cp -r ~/Workspace/handson/launchpad/examples/tenant-meta ~/Workspace/handson/acme/acme-meta
-```
-
-Add to `~/.config/launchpad/clients.yaml`:
-
-```yaml
-clients:
-  - id: acme
-    path: ~/Workspace/handson/acme/acme-meta
-```
-
-Create `~/.config/launchpad/env.d/acme.env` with `GITHUB_TOKEN=...`, then:
-
-```bash
-launchpad --client acme doctor
+# Doctor (no PAT required for config checks)
+launchpad doctor
 ```
 
 ---
 
-## GitHub vs GitLab
+## Tests
 
-Set `forge.type` in `config/org-<org>.yaml`:
+```bash
+# Install pytest once
+pip install pytest
 
-```yaml
-forge:
-  type: github   # default
+# Schema tests (fast, no network, no PAT)
+pytest tests/test_schema.py -v
+
+# Full test suite
+pytest -v
 ```
-
-```yaml
-forge:
-  type: gitlab
-  host: https://gitlab.com
-```
-
-`seed-work` dispatches automatically. GitLab uses scoped labels (`status::backlog`, `codebase::example-api`).
-
-See `examples/tenant-meta/config/org-gitlab-example.yaml`.
 
 ---
 
 ## Smoke script
 
+Runs dry-run commands against `examples/tenant-meta` — no PAT required:
+
 ```bash
 ./scripts/smoke-local.sh
 ```
 
-Uses `examples/tenant-meta` via `LAUNCHPAD_TENANT_ROOT` — no PAT required for dry-run.
+---
+
+## Test with a real tenant
+
+```bash
+cp -r examples/tenant-meta ~/Workspace/acme/acme-meta
+# Edit config/*.yaml — replace example-org with your org name
+# Rename *-example-org.yaml → *-<your-org>.yaml
+
+launchpad --client acme doctor
+launchpad init-client --meta \
+  --config-dir ~/Workspace/acme/acme-meta/config \
+  --dry-run
+```
+
+Register in `~/.config/launchpad/clients.yaml`:
+
+```yaml
+clients:
+  - id: acme
+    path: ~/Workspace/acme/acme-meta
+    forge: github
+```
+
+---
+
+## Project layout
+
+| Path | Purpose |
+|---|---|
+| `launchpad/schema/` | 5-YAML schema validators (WS0) |
+| `launchpad/forge/` | ForgeProvider protocol + GitHub implementation |
+| `launchpad/commands/` | New 5-command implementations |
+| `launchpad/onboarding/` | Interview flow (4 questions → 5 YAMLs) |
+| `examples/tenant-meta/` | Smoke fixture — uses example-org |
+| `tests/fixtures/schema/` | Day-1 / Day-N YAML fixtures |
+| `tests/test_schema.py` | 36 schema unit tests |
+
+---
+
+## Forge (GitHub only)
+
+v0.5.10 supports GitHub only.  GitLab is planned for v0.6.
+
+```python
+# Wrong — do not test forge type at runtime
+if forge_type == "gitlab": ...
+
+# Correct — use the ForgeProvider protocol
+from launchpad.forge.providers import get_provider
+provider_class = get_provider("github")  # raises NotImplementedError for "gitlab"
+```
