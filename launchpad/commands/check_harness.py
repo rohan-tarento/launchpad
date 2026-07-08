@@ -122,7 +122,7 @@ def run_check_harness(
 
     if meta:
         target = meta_repo
-        stack = "meta-pm"
+        stack = gov.repos[target].stack if target in gov.repos else "meta-pm"
     else:
         target = repo_name
         if repo_name not in gov.repos:

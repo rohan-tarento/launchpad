@@ -18,6 +18,11 @@ from launchpad.schema import SchemaError
 from launchpad.schema.harness import HarnessProfile, load_harness
 from launchpad.schema.governance import load_governance
 
+# Sentinel placeholder used in kit CODEOWNERS templates.
+# All templates ship with this string; apply-harness substitutes the real org.
+_TEMPLATE_ORG_PLACEHOLDER = "example-org"
+
+
 def _find_config(config_dir: Path, pattern: str) -> Path | None:
     matches = list(config_dir.glob(pattern))
     return matches[0] if matches else None
@@ -47,11 +52,11 @@ def _seed_codeowners(repo_path: Path, tpl_name: str, org: str, *, apply: bool) -
 
     if not apply:
         print(f"    [dry-run] CODEOWNERS  ← {tpl_name}  →  .github/CODEOWNERS")
-        print(f"              (replace 'example-org' → '{org}')")
+        print(f"              (replace '{_TEMPLATE_ORG_PLACEHOLDER}' → '{org}')")
         return
 
     dest.parent.mkdir(parents=True, exist_ok=True)
-    content = tpl_path.read_text(encoding="utf-8").replace("example-org", org)
+    content = tpl_path.read_text(encoding="utf-8").replace(_TEMPLATE_ORG_PLACEHOLDER, org)
     dest.write_text(content, encoding="utf-8")
     print(f"  ✔  CODEOWNERS  ← {tpl_name}  (org: {org})")
 
@@ -210,7 +215,8 @@ def run_apply_harness(
 
     if meta:
         target = meta_repo
-        stack = "meta-pm"
+        # Read stack from governance so tenants can name their meta stack freely.
+        stack = gov.repos[target].stack if target in gov.repos else "meta-pm"
     else:
         target = repo_name
         if repo_name not in gov.repos:

@@ -92,7 +92,7 @@ def run_status(
 
     if meta:
         target = meta_repo
-        stack = "meta-pm"
+        stack = (gov.repos[target].stack if gov and target in gov.repos else "meta-pm")
     else:
         target = repo_name
         stack = gov.repos[repo_name].stack if gov and repo_name in gov.repos else ""
