@@ -1,0 +1,22 @@
+apiVersion: launchpad/v1
+kind: HarnessConfig
+org: Sandvik-Common
+
+profiles:
+  meta-pm:
+    constitution:
+      repo: meta-governance-rules
+      ref: v1.0.0
+    skills: []
+
+  python-backend:
+    constitution:
+      repo: python-services-rules
+      ref: v2.1.0
+    skills:
+      - repo: python-agent-skills
+        ref: v1.0.0
+
+# Per-repo overrides (optional).
+# If absent, repo's harness_profile defaults to its stack from governance.yaml.
+repos: {}

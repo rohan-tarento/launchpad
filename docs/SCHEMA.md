@@ -1,115 +1,234 @@
-# Launchpad YAML schema (`launchpad/v1`)
+# Launchpad Config Schema Reference (v0.5.10)
 
-All factory YAML uses this header:
+Every operator-facing configuration lives in YAML files inside your meta repo's
+`config/` directory.  The CLI treats YAML as the **single source of truth** —
+no runtime arguments, no hardcoded mappings.
+
+---
+
+## Five YAML kinds
+
+| Kind | File | Required | Purpose |
+|---|---|---|---|
+| `Programme` | `config/programme.yaml` | Yes | Identity spine: name, org, forge |
+| `GovernanceConfig` | `config/governance-<org>.yaml` | Yes | GitHub teams, repos, gitflow, board |
+| `HarnessConfig` | `config/harness-<org>.yaml` | Yes | Constitution + skills per stack |
+| `ScaffoldConfig` | `config/scaffold-<org>.yaml` | Yes | Cookiecutter sources per repo |
+| `ServiceCatalog` | `config/service-catalog-<org>.yaml` | Yes | Service map (day-1 meta only) |
+
+On Day 1 only the meta repo is live.  App repos are placed as YAML comments in
+`governance.yaml`, `scaffold.yaml`, and `service-catalog.yaml` and promoted
+incrementally.
+
+---
+
+## Programme
+
+**File:** `config/programme.yaml`
 
 ```yaml
 apiVersion: launchpad/v1
-kind: <KindName>
+kind: Programme
+programme: STRATUM                # Human name of the initiative
+programme_slug: stratum           # Lowercase machine id; auto-derived if omitted
+org: Sandvik-Common               # GitHub org slug (exact spelling)
+meta_repo: stratum-meta           # Control-plane repo name
+workspace: ~/Workspace/stratum    # Local parent dir for clones (supports ~)
+forge:
+  provider: github                # Only "github" is supported in v0.5.10
 ```
 
-| kind | Purpose |
-|------|---------|
-| `OrgConfig` | Repos, labels, teams |
-| `GitflowConfig` | Branch/merge/PR policy, teams, repo profiles |
-| `HarnessConfig` | Rules submodule + prayog-skills pins; `meta:` block for PM harness; optional per-repo `scaffold` cookiecutter overrides |
-| `PlatformManifest` | Ordered `setup-platform` steps |
-| `VerifyManifest` | Post-bootstrap checks |
-| `ProjectConfig` | GitHub Project board + fields |
-| `WorkManifest` | `seed-work` — epic + wave issues |
-| `WikiConfig` | `publish-wiki` — wiki source dir, org, repo |
-| `ServiceCatalog` | Repo → team, branch_code, owns/depends_on (PM skills, strict branches) |
-| `OnboardingSpec` | `onboard plan` / `onboard apply` — tenant bootstrap intent |
+**Rules:**
+- `programme_slug` must match `~/.config/launchpad/clients.yaml` `id` field.
+- `forge.provider: gitlab` is **rejected** with a clear error (planned v0.6).
 
-Gitflow and project configs include `apiVersion` and `kind` — see [`examples/tenant-meta/config/`](../examples/tenant-meta/config/).
+---
 
-## OnboardingSpec
+## GovernanceConfig
 
-Authoritative input for `launchpad onboard plan` and `launchpad onboard apply`. Lives beside the tenant workspace (e.g. `~/Workspace/handson/kola/onboarding.yaml`), not inside meta until you optionally commit it after apply.
-
-Example: [`examples/onboarding-kola.yaml`](../examples/onboarding-kola.yaml) (`apex-common` org + `kola-*` repos) · GitLab stub: [`examples/onboarding-kola-gitlab.yaml`](../examples/onboarding-kola-gitlab.yaml)
-
-| Field | Purpose |
-|-------|---------|
-| `client_id` | Registry id (`~/.config/launchpad/clients.yaml`) |
-| `project_slug` | Programme slug (defaults to `client_id`; drives repo naming) |
-| `repo_prefix` | Repo name prefix (defaults to `project_slug`; repos become `<prefix>-<suffix>`) |
-| `forge.type` | `github` \| `gitlab` |
-| `org` / `meta_repo` | Forge org + meta repo name (org ≠ project — e.g. `apex-common` + `kola-meta`) |
-| `paths.workspace` | Parent dir; meta = `workspace/meta_repo` |
-| `repos` | App repos for bootstrap (meta excluded). Each entry may use `name` (full) or `suffix` (with `repo_prefix`). Or `repos: { prefix, apps: [...] }` |
-| `rules` | Private `*-rules` repos + initial tags |
-| `gitflow` | Branch naming / CI switches for generated gitflow YAML |
-| `registry` | Patch local client registry on apply |
-| `provision` | Post-scaffold hooks (`run_setup_platform`, `run_doctor`) |
-
-## Work manifest 1:1 rule (waves)
-
-One wave ID → one board issue → one feature PR → one merge.
-
-## Scaffold profiles (`launchpad scaffold-app` / `scaffold-meta`)
-
-Generates app repos from cookiecutter templates. Meta layout uses `tenant-meta-foundation` ([drivestream-lab/tenant-meta-foundation](https://github.com/drivestream-lab/tenant-meta-foundation)).
-
-| Profile | Template (default) | Harness `repos.<name>.profile` |
-|---------|-------------------|--------------------------------|
-| `python-backend` | `gh:drivestream-lab/python-fastapi-foundation` or local sibling | `python-backend` |
-| `tenant-meta` | `gh:drivestream-lab/tenant-meta-foundation` or `LAUNCHPAD_META_FOUNDATION` | (meta harness uses `meta.profile: meta-pm`) |
-| `frontend` | planned `nextjs-bff-foundation` | `frontend` |
-
-### HarnessConfig `meta` block
+**File:** `config/governance-<org>.yaml`
 
 ```yaml
-meta:
-  profile: meta-pm
+apiVersion: launchpad/v1
+kind: GovernanceConfig
+org: Sandvik-Common
+
+stack_profiles:             # Optional — starter set is always merged in
+  go-backend: Go microservice   # Extend with custom stacks without kit changes
+
+teams:
+  - name: platform-core
+    description: Platform owners
+    privacy: closed         # "closed" | "secret"
+
+repos:
+  stratum-meta:
+    stack: meta-pm          # Required. Must be a key in stack_profiles.
+    teams: [platform-core]  # Required. At least one team from teams[].
+    visibility: private     # "private" | "public" | "internal"
+    description: Control-plane
+
+policy:
+  default_branch: main
+  require_pr_reviews: 1
+
+project_board:
+  enabled: true
+  name: STRATUM Board
+```
+
+**Rules:**
+- `repos.<name>.stack` must exist in `stack_profiles` (starter + custom).
+- `repos.<name>.teams` must reference declared team names — prevents typos.
+
+---
+
+## Starter Stack Registry
+
+These stacks are always available without any configuration.
+
+| Stack | Default use |
+|---|---|
+| `meta-pm` | Programme management & ADR meta repo |
+| `python-backend` | Python / FastAPI microservice |
+| `nextjs-frontend` | Next.js frontend or BFF |
+| `terraform-iac` | Terraform infrastructure-as-code |
+
+To add a new stack: add an entry to `stack_profiles` in `governance-<org>.yaml`.
+No kit-code changes required.  See [docs/stacks.md](stacks.md).
+
+---
+
+## HarnessConfig
+
+**File:** `config/harness-<org>.yaml`
+
+```yaml
+apiVersion: launchpad/v1
+kind: HarnessConfig
+org: Sandvik-Common
 
 profiles:
+  python-backend:
+    constitution:
+      repo: python-services-rules   # Rules submodule repo slug
+      org: drivestream-lab          # Optional; defaults to drivestream-lab
+      ref: v2.1.0                   # Required. Pin to a tag.
+    skills:
+      - repo: python-agent-skills
+        ref: v1.0.0
+
   meta-pm:
-    agent_skills:
-      repo: drivestream-lab/prayog-skills
-      url: https://github.com/drivestream-lab/prayog-skills.git
-      ref: v0.3.1
-      profile: meta-pm
-    community_skills:
-      - source: github/awesome-copilot
-        skill: prd
-    agents_template: templates/AGENTS.meta.md
-    pin_template: templates/harness-pin.meta.yaml
+    constitution:
+      repo: meta-governance-rules
+      ref: v1.0.0
+
+# Per-repo profile overrides.
+# If omitted, a repo's harness_profile defaults to its stack from governance.yaml.
+repos:
+  special-repo: python-backend
 ```
 
-Optional per-repo overrides in `HarnessConfig`:
+**Resolution order:** `repos.<name>` → `repo.stack` from governance → no harness.
+
+---
+
+## ScaffoldConfig
+
+**File:** `config/scaffold-<org>.yaml`
+
+Scaffold is **optional** and entirely **YAML-driven**.  The kit passes `context`
+fields free-form to cookiecutter — no allowlists, no kit-owned key validation.
+Template owners evolve their `cookiecutter.json` without Launchpad changes.
 
 ```yaml
+apiVersion: launchpad/v1
+kind: ScaffoldConfig
+org: Sandvik-Common
+
+meta:
+  enabled: true
+  engine: cookiecutter
+  template: gh:drivestream-lab/tenant-meta-foundation  # gh: | git+https:// | /local/path
+  ref: v1.0.0
+  context:                          # Free-form — passed directly to cookiecutter
+    project_name: STRATUM
+    programme_slug: stratum
+    github_org: Sandvik-Common
+
 repos:
-  example-api:
-    profile: python-backend
-    service_name: Example API
-    scaffold:
-      has_postgres: "yes"
-      has_redis: "yes"      # profile default; omit if default OK
-      has_kafka: "yes"
-      has_internal_api: "yes"
+  stratum-platform-core:
+    enabled: true
+    engine: cookiecutter
+    template: gh:drivestream-lab/python-fastapi-foundation
+    ref: v2.0.0
+    context:
+      project_name: stratum-platform-core
+      has_kafka: true
+      has_postgres: true
 ```
 
-All keys: `auth_mode`, `has_postgres`, `has_redis`, `has_kafka`, `has_s3`, `has_cratedb`, `has_emqx`, `has_telemetry`, `has_internal_api`, `default_port`. See [greenfield-app-repo.md](../playbook/greenfield-app-repo.md).
+**Template shorthand:**
+- `gh:<org>/<repo>` → `https://github.com/<org>/<repo>`
+- `git+https://...` → arbitrary git URL
+- `/absolute/path` → local template directory
+
+**Rules:**
+- `enabled: true` requires both `template` and `ref`.
+- `enabled: false` (or omitted): all other fields are ignored and scaffold is skipped.
+
+---
 
 ## ServiceCatalog
 
-Lives at `config/service-catalog-{org}.yaml` in tenant meta (same convention as `gitflow-{org}.yaml`, `harness-{org}.yaml`). Maintained by Launchpad — do not hand-author the full file from scratch.
+**File:** `config/service-catalog-<org>.yaml`
 
-| Command | When |
-|---------|------|
-| `onboard apply` | Initial catalog from OnboardingSpec repos |
-| `sync-catalog --apply` | Merge from gitflow after adding repos (preserves curated fields) |
-| `setup-platform --apply` | Final platform step writes/updates catalog |
+The catalog is **required**.  On Day 1 only the meta repo is a `live` entry.
 
-| Field (per service) | Purpose |
-|---------------------|---------|
-| `name` | Repo name (key for merge) |
-| `repo` | `{org}/{name}` |
-| `team` | Engineering team slug from gitflow profile |
-| `branch_code` | `{COMPONENT}` in `feature/INIT-{COMPONENT}-{NUMBER}-{slug}` |
-| `description` | Human summary for PM/dev skills |
-| `owns` | Capabilities this service provides (curate manually) |
-| `depends_on` | Other service names (curate manually) |
+```yaml
+apiVersion: launchpad/v1
+kind: ServiceCatalog
+org: Sandvik-Common
 
-Optional OnboardingSpec repo fields: `branch_code`, `owns`, `depends_on` — seeded on first generate only; later edits in meta are preserved by `sync-catalog`.
+services:
+  stratum-meta:
+    stack: meta-pm
+    description: Control-plane for STRATUM
+    status: live              # "live" | "planned" | "deprecated"
+    teams: [platform-core]
+    links:
+      repo: https://github.com/Sandvik-Common/stratum-meta
+
+  # ─── Day-N examples (uncomment when the repo is live) ───────────────────
+  #
+  # stratum-platform-core:
+  #   stack: python-backend
+  #   description: Core platform microservice
+  #   status: planned
+  #   teams: [platform-core]
+```
+
+---
+
+## Forge providers
+
+| Provider | Status |
+|---|---|
+| `github` | Supported in v0.5.10 |
+| `gitlab` | Planned (v0.6) — rejected with a clear error if used |
+
+All provider-specific logic lives in `launchpad/forge/providers/`.  Adding a
+new provider requires only implementing the `ForgeProvider` protocol there.
+
+---
+
+## Naming contract
+
+| Concept | Example | Notes |
+|---|---|---|
+| `programme` | `STRATUM` | Human name — used in board titles, docs |
+| `programme_slug` | `stratum` | Machine id — must be `[a-z][a-z0-9-]+` |
+| `org` | `Sandvik-Common` | GitHub org — exact spelling |
+| `meta_repo` | `stratum-meta` | Control-plane repo in the org |
+| `stack` | `python-backend` | Key in `stack_profiles`; drives harness profile |
+| repo slug | `stratum-platform-core` | GitHub repo name in the org |

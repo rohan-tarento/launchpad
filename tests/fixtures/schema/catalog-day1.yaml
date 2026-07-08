@@ -1,0 +1,32 @@
+apiVersion: launchpad/v1
+kind: ServiceCatalog
+org: Sandvik-Common
+
+services:
+  stratum-meta:
+    stack: meta-pm
+    description: Control-plane for STRATUM programme
+    status: live
+    teams: [platform-core]
+    links:
+      repo: https://github.com/Sandvik-Common/stratum-meta
+
+  # ─── Day-N examples (remove the '#' when the repo is live) ──────────────
+  #
+  # stratum-platform-core:
+  #   stack: python-backend
+  #   description: Core platform microservice
+  #   status: planned
+  #   teams: [platform-core]
+  #
+  # stratum-hitl-web:
+  #   stack: nextjs-frontend
+  #   description: Human-in-the-loop web UI
+  #   status: planned
+  #   teams: [hitl-dev]
+  #
+  # stratum-infra:
+  #   stack: terraform-iac
+  #   description: Terraform modules for STRATUM infrastructure
+  #   status: planned
+  #   teams: [platform-core]

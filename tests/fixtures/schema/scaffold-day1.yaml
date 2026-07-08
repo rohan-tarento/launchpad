@@ -1,0 +1,19 @@
+apiVersion: launchpad/v1
+kind: ScaffoldConfig
+
+# Day 1: meta scaffold disabled until you're ready.
+# Enable it and fill in template + ref + context before running:
+#   launchpad apply-scaffold --meta --apply
+org: Sandvik-Common
+
+meta:
+  enabled: false
+  engine: cookiecutter
+  # template: gh:drivestream-lab/tenant-meta-foundation
+  # ref: v1.0.0
+  # context:
+  #   project_name: STRATUM
+  #   programme_slug: stratum
+  #   github_org: Sandvik-Common
+
+repos: {}

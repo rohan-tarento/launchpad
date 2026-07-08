@@ -1,0 +1,27 @@
+apiVersion: launchpad/v1
+kind: GovernanceConfig
+
+# Day N: one app repo added after meta is live.
+org: Sandvik-Common
+
+stack_profiles: {}
+
+teams:
+  - name: platform-core
+    description: Platform owners
+    privacy: closed
+  - name: hitl-dev
+    description: HITL application developers
+    privacy: closed
+
+repos:
+  stratum-meta:
+    stack: meta-pm
+    teams: [platform-core]
+    visibility: private
+
+  stratum-platform-core:
+    stack: python-backend
+    teams: [platform-core]
+    visibility: private
+    description: Core platform microservice

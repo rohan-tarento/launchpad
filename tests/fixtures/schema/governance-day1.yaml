@@ -1,0 +1,28 @@
+apiVersion: launchpad/v1
+kind: GovernanceConfig
+
+# Day 1: meta repo only.  App repos are added incrementally on Day N.
+org: Sandvik-Common
+
+stack_profiles: {}  # starter set merged in automatically (meta-pm, python-backend, nextjs-frontend, terraform-iac)
+
+teams:
+  - name: platform-core
+    description: Platform owners
+    privacy: closed
+
+repos:
+  stratum-meta:
+    stack: meta-pm
+    teams: [platform-core]
+    visibility: private
+    description: Control-plane for STRATUM
+
+policy:
+  default_branch: main
+  require_pr_reviews: 1
+  dismiss_stale_reviews: true
+
+project_board:
+  enabled: true
+  name: STRATUM Board

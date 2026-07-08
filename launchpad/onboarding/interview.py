@@ -1,233 +1,399 @@
-"""Interactive Q&A to build OnboardingSpec."""
+"""Greenfield onboard interview — 4 questions, auto-applies locally.
+
+Flow:
+  1. Ask: programme name (human, e.g. "STRATUM")
+  2. Derive programme_slug, show it, confirm or override
+  3. Ask: GitHub org (exact spelling, e.g. "Sandvik-Common")
+  4. Ask: workspace path (where meta repo will be cloned)
+
+After the 4 questions:
+  • Creates <workspace>/<slug>-meta/config/ with all 5 YAML files
+  • Patches ~/.config/launchpad/clients.yaml
+  • Writes env.d/<slug>.env stub with GitHub PAT instructions
+  • Prints a single NEXT: step
+"""
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 from typing import Any, Callable, TextIO
 
+import yaml
+
+from launchpad.clients import CLIENTS_FILE, CONFIG_DIR, ENV_D_DIR
 from launchpad.onboarding.errors import OnboardingError
-from launchpad.onboarding.naming import (
-    default_meta_repo_name,
-    normalize_registry_id,
-    validate_registry_id,
-)
-from launchpad.onboarding.paths import default_spec_path, default_workspace_parent
-from launchpad.onboarding.spec import normalize_spec, save_onboarding_spec
-from launchpad.platform_repos import DEFAULT_RULES_REF, platform_rules_repo
+from launchpad.schema.governance import STARTER_STACKS
+
+_SLUG_RE = re.compile(r"^[a-z][a-z0-9-]{0,62}$")
 
 
-def _prompt(
+# ─── Prompt helpers ─────────────────────────────────────────────────────────
+
+
+def _ask(
     label: str,
     default: str = "",
     *,
-    required: bool = False,
+    required: bool = True,
     input_fn: Callable[[str], str] | None = None,
-    stream: TextIO = sys.stdout,
+    out: TextIO = sys.stdout,
 ) -> str:
     reader = input_fn or input
-    suffix = f" [{default}]" if default else ""
+    hint = f" [{default}]" if default else ""
     while True:
-        value = reader(f"{label}{suffix}: ").strip()
+        value = reader(f"  {label}{hint}: ").strip()
         if not value:
             if default:
                 return default
             if required:
-                stream.write("  (required)\n")
+                out.write("    (required)\n")
                 continue
             return ""
         return value
 
 
-def _prompt_registry_id(
+def _ask_slug(
     label: str,
     default: str = "",
     *,
-    field: str = "client_id",
     input_fn: Callable[[str], str] | None = None,
-    stream: TextIO = sys.stdout,
+    out: TextIO = sys.stdout,
 ) -> str:
     reader = input_fn or input
     while True:
-        suffix = f" [{default}]" if default else ""
-        value = reader(f"{label}{suffix}: ").strip() or default
+        hint = f" [{default}]" if default else ""
+        value = reader(f"  {label}{hint}: ").strip() or default
         if not value:
-            stream.write("  (required)\n")
+            out.write("    (required)\n")
             continue
-        try:
-            return validate_registry_id(value, field=field)
-        except OnboardingError as exc:
-            stream.write(f"  {exc}\n")
-
-
-def _prompt_yes_no(label: str, default: bool = True, *, input_fn: Callable[[str], str] | None = None) -> bool:
-    reader = input_fn or input
-    hint = "Y/n" if default else "y/N"
-    while True:
-        value = reader(f"{label} [{hint}]: ").strip().lower()
-        if not value:
-            return default
-        if value in ("y", "yes"):
-            return True
-        if value in ("n", "no"):
-            return False
-
-
-def _parse_repo_suffixes(raw: str, default_profile: str) -> list[dict[str, Any]]:
-    repos: list[dict[str, Any]] = []
-    for part in raw.split(","):
-        suffix = part.strip().lstrip("-")
-        if not suffix:
+        if not _SLUG_RE.match(value):
+            out.write("    Must be lowercase [a-z][a-z0-9-]+\n")
             continue
-        repos.append(
-            {
-                "suffix": suffix,
-                "profile": default_profile,
-                "description": suffix,
-                "private": True,
-            }
-        )
-    return repos
+        return value
 
 
-def build_spec_from_interview(
+def _derive_slug(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
+
+# ─── 5-YAML renderer ────────────────────────────────────────────────────────
+
+
+def _render_programme(slug: str, programme: str, org: str, workspace: str, meta_repo: str) -> str:
+    return f"""\
+apiVersion: launchpad/v1
+kind: Programme
+programme: {programme}
+programme_slug: {slug}
+org: {org}
+meta_repo: {meta_repo}
+workspace: {workspace}
+forge:
+  provider: github
+"""
+
+
+def _render_governance(org: str, meta_repo: str) -> str:
+    stacks_block = "\n".join(f"  # {k}: {v}" for k, v in STARTER_STACKS.items())
+    return f"""\
+apiVersion: launchpad/v1
+kind: GovernanceConfig
+
+# Day 1: meta repo only.
+# Add app repos incrementally (Day N) by uncommenting / adding repo blocks.
+org: {org}
+
+stack_profiles:
+  # Starter stacks are always available — list here for reference only.
+{stacks_block}
+  #
+  # Add custom stacks:
+  # go-backend: Go microservice
+
+teams:
+  - name: platform-core
+    description: Platform owners
+    privacy: closed
+
+repos:
+  {meta_repo}:
+    stack: meta-pm
+    teams: [platform-core]
+    visibility: private
+    description: Control-plane for {org}
+
+policy:
+  default_branch: main
+  require_pr_reviews: 1
+  dismiss_stale_reviews: true
+
+project_board:
+  enabled: true
+  name: "{org} Board"
+"""
+
+
+def _render_harness(org: str) -> str:
+    return f"""\
+apiVersion: launchpad/v1
+kind: HarnessConfig
+org: {org}
+
+# One profile entry per stack you use.
+# constitution.ref must be a pinned tag — change it here to upgrade rules.
+profiles:
+  meta-pm:
+    constitution:
+      repo: meta-governance-rules
+      # org: drivestream-lab  # optional override
+      ref: v1.0.0             # pin to a tag
+    skills: []
+
+  python-backend:
+    constitution:
+      repo: python-services-rules
+      ref: v2.1.0
+    skills:
+      - repo: python-agent-skills
+        ref: v1.0.0
+
+  # nextjs-frontend:
+  #   constitution:
+  #     repo: nextjs-frontend-rules
+  #     ref: v1.0.0
+  #   skills: []
+
+  # terraform-iac:
+  #   constitution:
+  #     repo: terraform-rules
+  #     ref: v1.0.0
+  #   skills: []
+
+# Per-repo harness_profile overrides (optional).
+# If absent, a repo's harness_profile defaults to its stack from governance.yaml.
+repos: {{}}
+"""
+
+
+def _render_scaffold(org: str) -> str:
+    return f"""\
+apiVersion: launchpad/v1
+kind: ScaffoldConfig
+
+# Scaffold is optional and entirely YAML-driven.
+# Enable a block and fill in template + ref + context, then run:
+#   launchpad apply-scaffold --meta --apply
+org: {org}
+
+meta:
+  enabled: false
+  engine: cookiecutter
+  # template: gh:drivestream-lab/tenant-meta-foundation
+  # ref: v1.0.0
+  # context:
+  #   project_name: {org}
+  #   programme_slug: <slug>
+  #   github_org: {org}
+
+# App repos — add a block for each repo when you are ready to scaffold.
+repos: {{}}
+
+  # Example (copy-paste and uncomment):
+  # <repo-name>:
+  #   enabled: true
+  #   engine: cookiecutter
+  #   template: gh:drivestream-lab/python-fastapi-foundation
+  #   ref: v2.0.0
+  #   context:
+  #     project_name: <repo-name>
+  #     has_kafka: false
+  #     has_postgres: true
+"""
+
+
+def _render_catalog(org: str, meta_repo: str) -> str:
+    return f"""\
+apiVersion: launchpad/v1
+kind: ServiceCatalog
+
+# Required — at least one service must be listed.
+# Day 1: only the meta repo is live.
+# Promote app repos from 'planned' to 'live' once they are scaffolded.
+org: {org}
+
+services:
+  {meta_repo}:
+    stack: meta-pm
+    description: Control-plane for {org}
+    status: live
+    teams: [platform-core]
+    links:
+      repo: https://github.com/{org}/{meta_repo}
+
+  # ─── Day-N examples (uncomment when the repo is live) ───────────────────
+  #
+  # <slug>-platform-core:
+  #   stack: python-backend
+  #   description: Core platform microservice
+  #   status: planned
+  #   teams: [platform-core]
+  #
+  # <slug>-web:
+  #   stack: nextjs-frontend
+  #   description: Web UI
+  #   status: planned
+  #   teams: [platform-core]
+  #
+  # <slug>-infra:
+  #   stack: terraform-iac
+  #   description: Terraform infrastructure modules
+  #   status: planned
+  #   teams: [platform-core]
+"""
+
+
+# ─── Registry helpers ────────────────────────────────────────────────────────
+
+
+def _patch_clients_yaml(slug: str, meta_path: Path) -> None:
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    if CLIENTS_FILE.is_file():
+        with CLIENTS_FILE.open(encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+    else:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+    clients: list[dict[str, Any]] = data.get("clients") or []
+    if not isinstance(clients, list):
+        clients = []
+
+    entry = {"id": slug, "path": str(meta_path), "forge": "github"}
+    clients = [c for c in clients if not (isinstance(c, dict) and c.get("id") == slug)]
+    clients.append(entry)
+    data["clients"] = clients
+
+    with CLIENTS_FILE.open("w", encoding="utf-8") as f:
+        yaml.safe_dump(data, f, sort_keys=False, default_flow_style=False)
+
+
+def _write_env_stub(slug: str, org: str, meta_path: Path) -> Path:
+    ENV_D_DIR.mkdir(parents=True, exist_ok=True)
+    path = ENV_D_DIR / f"{slug}.env"
+    if path.is_file():
+        return path
+    path.write_text(
+        f"# {slug} factory secrets\n"
+        f"# ─────────────────────────────────────────────────────────────────\n"
+        f"# 1. Create a GitHub PAT with these scopes:\n"
+        f"#      repo, admin:org, project, delete_repo\n"
+        f"#    (GitHub → Settings → Developer settings → Personal access tokens → Fine-grained)\n"
+        f"# 2. Paste the token below (replace github_pat_REPLACE_ME)\n"
+        f"# 3. Save, then run:  chmod 600 {path}\n"
+        f"# ─────────────────────────────────────────────────────────────────\n"
+        f"GITHUB_TOKEN=github_pat_REPLACE_ME\n"
+        f"\n"
+        f"# GitHub org:  {org}\n"
+        f"# Meta repo:   https://github.com/{org}/{slug}-meta\n"
+        f"\n"
+        f"# export LAUNCHPAD_TENANT_ROOT={meta_path}\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o600)
+    return path
+
+
+# ─── Public entry point ──────────────────────────────────────────────────────
+
+
+def run_interview(
     *,
     input_fn: Callable[[str], str] | None = None,
-    stream: TextIO = sys.stdout,
-) -> dict[str, Any]:
-    """Collect answers and return normalized OnboardingSpec."""
-    reader = input_fn or input
-    stream.write("\n=== launchpad onboard interview ===\n\n")
-    stream.write(
-        "Org vs project: GitHub org (e.g. apex-common) hosts programme repos "
-        "(e.g. kola-meta, kola-api).\n"
-        "client_id / project_slug are lowercase local names — not the org slug.\n\n"
+    out: TextIO = sys.stdout,
+) -> None:
+    """Run the 4-question interview, write config files, patch registry, print NEXT."""
+    out.write("\n")
+    out.write("╔══════════════════════════════════════════╗\n")
+    out.write("║   launchpad — onboard interview          ║\n")
+    out.write("╚══════════════════════════════════════════╝\n")
+    out.write("\n")
+    out.write("This sets up your programme locally in 4 questions.\n")
+    out.write("All config files are created in your meta repo.\n\n")
+
+    # Q1: Programme name
+    programme = _ask("Programme name  (e.g. STRATUM)", input_fn=input_fn, out=out)
+
+    # Q2: Confirm slug (auto-derived)
+    derived = _derive_slug(programme)
+    out.write(f"\n  Auto-derived slug: {derived}\n")
+    slug = _ask_slug(
+        "Programme slug  (confirm or override)",
+        derived,
+        input_fn=input_fn,
+        out=out,
     )
 
-    project_slug = _prompt_registry_id(
-        "Project slug (programme name, lowercase)",
-        "kola",
-        field="project_slug",
-        input_fn=reader,
-        stream=stream,
-    )
-    client_id = _prompt_registry_id(
-        "Client id (~/.config/launchpad registry)",
-        project_slug,
-        field="client_id",
-        input_fn=reader,
-        stream=stream,
-    )
-    display_name = _prompt("Display name", project_slug.upper(), input_fn=reader, stream=stream)
+    # Q3: GitHub org
+    out.write("\n  GitHub org — the exact organisation slug on GitHub.\n")
+    out.write("  Example: Sandvik-Common, acme-corp, my-startup\n")
+    org = _ask("GitHub org", input_fn=input_fn, out=out)
 
-    forge_raw = _prompt("Forge type (github/gitlab)", "github", input_fn=reader, stream=stream)
-    forge_type = forge_raw.lower()
-    if forge_type not in ("github", "gitlab"):
-        forge_type = "github"
+    # Q4: Workspace
+    default_ws = str(Path("~/Workspace").expanduser())
+    out.write(f"\n  Parent directory where your meta repo will live.\n")
+    workspace = _ask("Workspace path", default_ws, input_fn=input_fn, out=out)
 
-    org = _prompt(
-        "Forge org / group slug (GitHub org — exact spelling, e.g. apex-common)",
-        required=True,
-        input_fn=reader,
-        stream=stream,
-    )
-    repo_prefix = _prompt_registry_id(
-        "Repo prefix (<prefix>-<suffix> repo names)",
-        project_slug,
-        field="repo_prefix",
-        input_fn=reader,
-        stream=stream,
-    )
-    meta_repo = _prompt(
-        "Meta repo name",
-        default_meta_repo_name(repo_prefix=repo_prefix, project_slug=project_slug),
-        input_fn=reader,
-        stream=stream,
-    )
-    workspace = _prompt(
-        "Workspace path",
-        str(default_workspace_parent()),
-        input_fn=reader,
-        stream=stream,
-    )
+    meta_repo = f"{slug}-meta"
+    meta_path = Path(workspace).expanduser().resolve() / meta_repo
+    config_dir = meta_path / "config"
 
-    backend_raw = _prompt(
-        "Backend repo suffixes (comma-separated; omit prefix — e.g. platform-core,edge-agent)",
-        "api",
-        input_fn=reader,
-        stream=stream,
-    )
-    repos = _parse_repo_suffixes(backend_raw, "backend")
+    out.write("\n")
+    out.write("─" * 50 + "\n")
+    out.write(f"  programme:       {programme}\n")
+    out.write(f"  slug:            {slug}\n")
+    out.write(f"  org:             {org}\n")
+    out.write(f"  meta repo:       {meta_repo}\n")
+    out.write(f"  local path:      {meta_path}\n")
+    out.write("─" * 50 + "\n\n")
 
-    frontend_raw = reader(
-        "Frontend/BFF repo suffixes (comma-separated, or empty): "
-    ).strip()
-    if frontend_raw:
-        repos.extend(_parse_repo_suffixes(frontend_raw, "frontend"))
+    # Write config files
+    config_dir.mkdir(parents=True, exist_ok=True)
 
-    if not repos:
-        raise ValueError("at least one app repo is required")
-
-    rules_python_repo = _prompt(
-        "Python rules repo (org/name)",
-        platform_rules_repo("python"),
-        input_fn=reader,
-        stream=stream,
-    )
-    rules_python_ref = _prompt("Python rules initial tag", DEFAULT_RULES_REF, input_fn=reader, stream=stream)
-
-    rules: dict[str, Any] = {
-        "python": {"repo": rules_python_repo, "initial_ref": rules_python_ref},
+    files: dict[str, str] = {
+        "programme.yaml": _render_programme(slug, programme, org, workspace, meta_repo),
+        f"governance-{org}.yaml": _render_governance(org, meta_repo),
+        f"harness-{org}.yaml": _render_harness(org),
+        f"scaffold-{org}.yaml": _render_scaffold(org),
+        f"service-catalog-{org}.yaml": _render_catalog(org, meta_repo),
     }
-    if any(r["profile"] == "frontend" for r in repos):
-        rules["frontend"] = {
-            "repo": _prompt(
-                "Frontend rules repo (org/name)",
-                platform_rules_repo("frontend"),
-                input_fn=reader,
-                stream=stream,
-            ),
-            "initial_ref": _prompt("Frontend rules initial tag", DEFAULT_RULES_REF, input_fn=reader, stream=stream),
-        }
 
-    strict = _prompt_yes_no("Strict branch naming (INIT/feature/…)?", True, input_fn=reader)
-    register = _prompt_yes_no("Register in ~/.config/launchpad/clients.yaml?", True, input_fn=reader)
-    set_default = False
-    if register:
-        set_default = _prompt_yes_no("Set as default client?", False, input_fn=reader)
+    for filename, content in files.items():
+        fpath = config_dir / filename
+        if not fpath.exists():
+            fpath.write_text(content, encoding="utf-8")
+            out.write(f"  ✔  {fpath.relative_to(meta_path)}\n")
+        else:
+            out.write(f"  –  {fpath.relative_to(meta_path)}  (already exists, skipped)\n")
 
-    raw: dict[str, Any] = {
-        "apiVersion": "launchpad/v1",
-        "kind": "OnboardingSpec",
-        "client_id": client_id,
-        "project_slug": project_slug,
-        "repo_prefix": repo_prefix,
-        "display_name": display_name,
-        "forge": {"type": forge_type},
-        "org": org,
-        "meta_repo": meta_repo,
-        "paths": {"workspace": workspace, "spec": "onboarding.yaml"},
-        "repos": repos,
-        "rules": rules,
-        "gitflow": {
-            "require_ci": True,
-            "branch_naming": True,
-            "with_templates": True,
-            "branch_naming_mode": "strict" if strict else "standard",
-        },
-        "project": {"name": f"{display_name} Engineering"},
-        "registry": {
-            "register_client": register,
-            "set_default": set_default,
-            "secrets_stub": register,
-        },
-        "provision": {"run_setup_platform": False, "run_doctor": True},
-    }
-    return normalize_spec(raw)
+    # Patch registry
+    _patch_clients_yaml(slug, meta_path)
+    out.write(f"\n  ✔  ~/.config/launchpad/clients.yaml  (id: {slug})\n")
 
+    env_path = _write_env_stub(slug, org, meta_path)
+    out.write(f"  ✔  {env_path}  (PAT stub)\n")
 
-def run_interview(*, output: Path | None = None, input_fn: Callable[[str], str] | None = None) -> Path:
-    spec = build_spec_from_interview(input_fn=input_fn)
-    out = output or default_spec_path()
-    save_onboarding_spec(out, spec)
-    return out.resolve()
+    out.write("\n")
+    out.write("╔══════════════════════════════════════════════════════════════╗\n")
+    out.write("║  NEXT:                                                       ║\n")
+    out.write("╠══════════════════════════════════════════════════════════════╣\n")
+    out.write(f"║  1. Open:  {str(env_path):<50}  ║\n")
+    out.write( "║     Replace github_pat_REPLACE_ME with your GitHub PAT      ║\n")
+    out.write(f"║     Scopes: repo, admin:org, project                        ║\n")
+    out.write( "║                                                              ║\n")
+    out.write(f"║  2. chmod 600 {str(env_path):<47}  ║\n")
+    out.write( "║                                                              ║\n")
+    out.write(f"║  3. launchpad --client {slug} doctor                         ║\n")
+    out.write("╚══════════════════════════════════════════════════════════════╝\n")
+    out.write("\n")

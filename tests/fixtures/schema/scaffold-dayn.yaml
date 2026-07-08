@@ -1,0 +1,24 @@
+apiVersion: launchpad/v1
+kind: ScaffoldConfig
+org: Sandvik-Common
+
+meta:
+  enabled: true
+  engine: cookiecutter
+  template: gh:drivestream-lab/tenant-meta-foundation
+  ref: v1.0.0
+  context:
+    project_name: STRATUM
+    programme_slug: stratum
+    github_org: Sandvik-Common
+
+repos:
+  stratum-platform-core:
+    enabled: true
+    engine: cookiecutter
+    template: gh:drivestream-lab/python-fastapi-foundation
+    ref: v2.0.0
+    context:
+      project_name: stratum-platform-core
+      has_kafka: true
+      has_postgres: true
