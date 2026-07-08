@@ -10,6 +10,7 @@ Usage:
 
 from __future__ import annotations
 
+import shutil
 import sys
 from pathlib import Path
 
@@ -17,19 +18,95 @@ from launchpad.schema import SchemaError
 from launchpad.schema.harness import HarnessProfile, load_harness
 from launchpad.schema.governance import load_governance
 
+# Maps v0.5.10 stack names → CODEOWNERS template filename in templates/
+_CODEOWNERS_MAP: dict[str, str] = {
+    "python-backend":  "CODEOWNERS.python-backend",
+    "nextjs-frontend": "CODEOWNERS.nextjs-frontend",
+    "meta-pm":         "CODEOWNERS.meta-pm",
+    "data-platform":   "CODEOWNERS.data-platform",
+    "terraform-iac":   "CODEOWNERS.meta-pm",   # fallback until dedicated template exists
+}
+
+# Maps v0.5.10 stack names → harness-pin template filename in templates/
+_HARNESS_PIN_MAP: dict[str, str] = {
+    "python-backend":  "harness-pin.python-backend.yaml",
+    "nextjs-frontend": "harness-pin.nextjs-frontend.yaml",
+    "meta-pm":         "harness-pin.meta.yaml",
+    "data-platform":   "harness-pin.data-platform.yaml",
+    "terraform-iac":   "harness-pin.python-backend.yaml",  # fallback
+}
+
 
 def _find_config(config_dir: Path, pattern: str) -> Path | None:
     matches = list(config_dir.glob(pattern))
     return matches[0] if matches else None
 
 
+def _kit_templates_dir() -> Path:
+    """Resolve the kit's templates/ directory (sibling of launchpad package)."""
+    return Path(__file__).resolve().parent.parent.parent / "templates"
+
+
+def _resolve_kit_template(filename: str) -> Path | None:
+    """Return path to a template file, or None if not found."""
+    path = _kit_templates_dir() / filename
+    return path if path.is_file() else None
+
+
+def _seed_codeowners(repo_path: Path, stack: str, org: str, *, apply: bool) -> None:
+    """Write .github/CODEOWNERS from the stack-matched kit template."""
+    tpl_name = _CODEOWNERS_MAP.get(stack, "CODEOWNERS.meta-pm")
+    tpl_path = _resolve_kit_template(tpl_name)
+
+    if tpl_path is None:
+        print(f"  WARN: CODEOWNERS template '{tpl_name}' not found — skipping CODEOWNERS seed")
+        return
+
+    dest = repo_path / ".github" / "CODEOWNERS"
+
+    if not apply:
+        print(f"    [dry-run] CODEOWNERS  ← {tpl_name}  →  .github/CODEOWNERS")
+        print(f"              (replace 'example-org' → '{org}')")
+        return
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    content = tpl_path.read_text(encoding="utf-8").replace("example-org", org)
+    dest.write_text(content, encoding="utf-8")
+    print(f"  ✔  CODEOWNERS seeded from {tpl_name} (org: {org})")
+
+
+def _seed_harness_pin(repo_path: Path, stack: str, *, apply: bool) -> None:
+    """Write .harness-pin.yaml from the stack-matched kit template."""
+    tpl_name = _HARNESS_PIN_MAP.get(stack, "harness-pin.python-backend.yaml")
+    tpl_path = _resolve_kit_template(tpl_name)
+
+    if tpl_path is None:
+        print(f"  WARN: harness-pin template '{tpl_name}' not found — skipping")
+        return
+
+    dest = repo_path / ".harness-pin.yaml"
+
+    if not apply:
+        print(f"    [dry-run] harness-pin ← {tpl_name}  →  .harness-pin.yaml")
+        return
+
+    if dest.is_file():
+        print(f"  SKIP: .harness-pin.yaml already exists (edit manually to upgrade)")
+        return
+
+    shutil.copy(tpl_path, dest)
+    print(f"  ✔  .harness-pin.yaml seeded from {tpl_name}")
+
+
 def _apply_harness_to_repo(
     repo_path: Path,
     profile: HarnessProfile,
+    stack: str,
+    org: str,
     *,
     apply: bool = False,
 ) -> None:
-    """Pin constitution submodule and seed agent skills into repo_path."""
+    """Pin constitution submodule, seed agent skills, CODEOWNERS, and harness-pin."""
     con = profile.constitution
     submodule_url = con.submodule_url
     submodule_dest = repo_path / ".cursor" / "rules"
@@ -38,6 +115,8 @@ def _apply_harness_to_repo(
         print(f"    [dry-run] constitution submodule: {submodule_url}@{con.ref}")
         for skill in profile.skills:
             print(f"    [dry-run] skill: https://github.com/{skill.org}/{skill.repo}@{skill.ref}")
+        _seed_codeowners(repo_path, stack, org, apply=False)
+        _seed_harness_pin(repo_path, stack, apply=False)
         return
 
     # Constitution submodule
@@ -90,6 +169,10 @@ def _apply_harness_to_repo(
             subprocess.run(["git", "-C", str(skill_dest), "checkout", skill.ref], capture_output=True)
         print(f"  ✔  skill: {skill_url}@{skill.ref or 'HEAD'}")
 
+    # CODEOWNERS and harness-pin template seed
+    _seed_codeowners(repo_path, stack, org, apply=True)
+    _seed_harness_pin(repo_path, stack, apply=True)
+
 
 def run_apply_harness(
     *,
@@ -121,6 +204,8 @@ def run_apply_harness(
     except SchemaError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
+
+    org = gov.org
 
     try:
         prog_path = cdir / "programme.yaml"
@@ -167,7 +252,7 @@ def run_apply_harness(
         else:
             return 1
 
-    _apply_harness_to_repo(repo_path, profile, apply=apply)
+    _apply_harness_to_repo(repo_path, profile, stack, org, apply=apply)
 
     if not apply:
         print()

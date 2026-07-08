@@ -254,7 +254,7 @@ def render_harness_config(ctx: OnboardingContext) -> str:
         "python-backend": _harness_profile(
             ctx,
             "python-backend",
-            "templates/harness-pin.yaml",
+            "templates/harness-pin.python-backend.yaml",
             "python",
         ),
     }
@@ -262,7 +262,7 @@ def render_harness_config(ctx: OnboardingContext) -> str:
         profiles["frontend"] = _harness_profile(
             ctx,
             "frontend",
-            "templates/harness-pin.frontend.yaml",
+            "templates/harness-pin.nextjs-frontend.yaml",
             "frontend",
         )
     if any(r["profile"] == "data_platform" for r in ctx.spec["repos"]):

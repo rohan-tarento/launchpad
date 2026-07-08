@@ -158,14 +158,14 @@ def all_template_renders(ctx: OnboardingContext) -> dict[str, str]:
     out: dict[str, str] = {
         "templates/README.md": _templates_readme(ctx),
         "templates/AGENTS.md": _agents(ctx, "python"),
-        "templates/CODEOWNERS.backend": _codeowners(ctx, "backend"),
-        "templates/CODEOWNERS.platform": _codeowners(ctx, "platform"),
-        "templates/harness-pin.yaml": _harness_pin(ctx, "python-backend", "python"),
+        "templates/CODEOWNERS.python-backend": _codeowners(ctx, "backend"),
+        "templates/CODEOWNERS.meta-pm": _codeowners(ctx, "platform"),
+        "templates/harness-pin.python-backend.yaml": _harness_pin(ctx, "python-backend", "python"),
         "templates/pull_request_template.md": _pr_template(ctx),
     }
     if any(r["profile"] == "frontend" for r in ctx.spec["repos"]):
-        out["templates/CODEOWNERS.frontend"] = _codeowners(ctx, "frontend")
-        out["templates/harness-pin.frontend.yaml"] = _harness_pin(ctx, "frontend", "frontend")
+        out["templates/CODEOWNERS.nextjs-frontend"] = _codeowners(ctx, "frontend")
+        out["templates/harness-pin.nextjs-frontend.yaml"] = _harness_pin(ctx, "frontend", "frontend")
     if any(r["profile"] == "data_platform" for r in ctx.spec["repos"]):
         rules_key = "data_platform" if "data_platform" in ctx.spec["rules"] else "python"
         out["templates/CODEOWNERS.data-platform"] = _codeowners(ctx, "data_platform")

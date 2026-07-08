@@ -72,9 +72,16 @@ def _install_templates_local(
         return
 
     codeowners_map = {
-        "backend": "CODEOWNERS.backend",
-        "frontend": "CODEOWNERS.frontend",
-        "platform": "CODEOWNERS.platform",
+        # v0.5.10 stack names (canonical)
+        "python-backend": "CODEOWNERS.python-backend",
+        "nextjs-frontend": "CODEOWNERS.nextjs-frontend",
+        "meta-pm": "CODEOWNERS.meta-pm",
+        "data-platform": "CODEOWNERS.data-platform",
+        "terraform-iac": "CODEOWNERS.meta-pm",       # fallback until dedicated template exists
+        # legacy aliases (pre-v0.5.10)
+        "backend": "CODEOWNERS.python-backend",
+        "frontend": "CODEOWNERS.nextjs-frontend",
+        "platform": "CODEOWNERS.meta-pm",
         "data_platform": "CODEOWNERS.data-platform",
     }
     workflows = dest / ".github" / "workflows"

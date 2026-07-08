@@ -562,7 +562,7 @@ def sync_harness_app(
 
     print(f"[harness] sync-app {repo_name} profile={entry['profile_name']} dry_run={dry_run}")
 
-    pin_tpl_name = str(profile.get("pin_template", "templates/harness-pin.yaml"))
+    pin_tpl_name = str(profile.get("pin_template", "templates/harness-pin.python-backend.yaml"))
     agents_tpl_name = str(profile.get("agents_template", "templates/AGENTS.md"))
     try:
         pin_tpl = resolve_template(pin_tpl_name)

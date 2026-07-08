@@ -45,17 +45,17 @@ def _template_files(spec: dict) -> list[str]:
     files = [
         "templates/README.md",
         "templates/AGENTS.md",
-        "templates/CODEOWNERS.backend",
-        "templates/CODEOWNERS.platform",
-        "templates/harness-pin.yaml",
+        "templates/CODEOWNERS.python-backend",
+        "templates/CODEOWNERS.meta-pm",
+        "templates/harness-pin.python-backend.yaml",
         "templates/pull_request_template.md",
     ]
     repos = spec["repos"]
     if any(r["profile"] == "frontend" for r in repos):
         files.extend(
             [
-                "templates/CODEOWNERS.frontend",
-                "templates/harness-pin.frontend.yaml",
+                "templates/CODEOWNERS.nextjs-frontend",
+                "templates/harness-pin.nextjs-frontend.yaml",
             ]
         )
     if any(r["profile"] == "data_platform" for r in repos):
