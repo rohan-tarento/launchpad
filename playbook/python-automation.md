@@ -140,9 +140,6 @@ launchpad apply-scaffold --repo example-api --apply
 launchpad apply-harness --repo example-api --apply
 launchpad status --repo example-api
 
-# Work manifests (optional — multi-repo backlog)
-launchpad seed-work --config work/INIT-<id>.yaml --dry-run
-launchpad seed-work --config work/INIT-<id>.yaml --apply
 ```
 
 ### YAML kinds (`config/`)
@@ -155,7 +152,7 @@ launchpad seed-work --config work/INIT-<id>.yaml --apply
 | `scaffold-{org}.yaml` | `ScaffoldConfig` | `apply-scaffold` |
 | `service-catalog-{org}.yaml` | `ServiceCatalog` | `status`, `status` |
 
-Backlog: `work/*.yaml` with `kind: WorkManifest` — not in platform YAML.
+Backlog: `work/*.yaml` with `kind: WorkManifest` — documentation format for multi-repo bulk seeding; v0.5.10 has no `seed-work` CLI (use `gh issue create` per wave).
 
 Harness commands (no GitHub API required, work without PAT):
 

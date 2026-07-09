@@ -32,7 +32,6 @@ Repos in factory config: **<client>-meta**, **example-api**.
 launchpad doctor
 launchpad init-client --meta --apply
 launchpad status --meta
-launchpad seed-work --config work/INIT-<id>.yaml --apply
 ```
 
 Config SSOT: `config/*-<org>.yaml` (skeleton ships `*-example.yaml` until you rename)

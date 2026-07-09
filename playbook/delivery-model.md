@@ -9,7 +9,7 @@ PRD delivery_model + wave table
   → repo spec (mirror wave IDs; may add PRE* gates)
   → dev: /spec-implementation-plan §9 WorkManifest YAML   ← on spec branch, before spec merge
   → spec PR merge
-  → gh issue create (single repo) OR seed-work (multi-repo bulk)   ← after spec merge
+  → gh issue create per wave from plan §9   ← after spec merge
   → feature branch PR per wave → merge → wave Done
   → INIT closure when all units + success criteria pass
 ```
@@ -90,7 +90,7 @@ After **all** wave issues are Done:
 | Declare `delivery_model` + waves in PRD | ✓ | review |
 | Spec PR + `/spec-draft` | — | ✓ |
 | `/spec-implementation-plan` §9 | — | ✓ (on spec branch) |
-| Board seed after spec merge | — | ✓ (`gh issue create` per wave; optional `seed-work`) |
+| Board seed after spec merge | — | ✓ (`gh issue create` per wave from plan §9) |
 | Implement wave PRs | — | ✓ |
 | Close epic | ✓ | verify S-criteria |
 
@@ -106,12 +106,11 @@ Dev runs `/spec-implementation-plan` **while spec PR is open**. Plan §9 emits W
 |------|--------|
 | **Dev** | Runs `/spec-implementation-plan`; owns §9 YAML content |
 | **Dev** | Seeds board **after spec PR merge** |
-| **PM** | Does **not** author manifest before spec merge; may merge `work/*.yaml` in meta if dev uses bulk path |
+| **PM** | Does **not** author manifest before spec merge; may merge archived `work/*.yaml` in meta for traceability |
 
 | Path | When | Who |
 |------|------|-----|
-| `gh issue create` | Default — single-repo initiatives | Dev — from §9 YAML |
-| `launchpad seed-work` | Optional — multi-repo bulk | Dev copies §9 → `work/INIT-*.yaml`; PM may merge file in meta |
+| `gh issue create` | Default — all initiatives | Dev — from §9 YAML on spec branch |
 
 Do not hand-write wave manifests — dev generates them via `/spec-implementation-plan` §9.
 

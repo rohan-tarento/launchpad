@@ -1,5 +1,5 @@
 # Placeholder CI — replace with repo-specific lint/test (Python, Next.js, etc.).
-# Job name must stay "ci" for options.require_ci in gitflow YAML.
+# Job name must stay "ci" when enabling as a required branch-protection check.
 
 name: ci
 

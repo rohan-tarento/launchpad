@@ -56,7 +56,7 @@ Process: [delivery-workflow.md](delivery-workflow.md) · [delivery-model.md](del
 1. PRD in **<client>-meta** `prd/INIT-*.md` — declares `delivery_model` + wave table when `waves`
 2. Eng opens spec PR per repo: `product/INIT-*.md` + feasibility + TDD + plan — **no `src/`**
 3. Spec PR merge to **`develop`**
-4. Dev seeds board: `gh issue create` per wave (optional `seed-work` multi-repo)
+4. Dev seeds board: `gh issue create` per wave from plan §9
 5. Dev implements from **product** + **as-built** — not from meta PRD alone
 
 ### INIT spec (`product/INIT-*.md`) — mandatory sections

@@ -91,6 +91,40 @@ def _seed_harness_pin(repo_path: Path, tpl_name: str, *, apply: bool) -> None:
     print(f"  ✔  harness-pin  ← {tpl_name}")
 
 
+def _remove_legacy_cursor_skills(repo_path: Path, *, apply: bool) -> None:
+    """Remove pre-v0.5.10 `.cursor/skills` submodule if present."""
+    legacy_rel = ".cursor/skills"
+    legacy = repo_path / ".cursor" / "skills"
+    gitmodules = repo_path / ".gitmodules"
+    in_gitmodules = gitmodules.is_file() and legacy_rel in gitmodules.read_text()
+
+    if not in_gitmodules and not legacy.is_dir():
+        return
+
+    if not apply:
+        print(f"    [dry-run] remove legacy {legacy_rel} submodule")
+        return
+
+    import subprocess
+
+    if in_gitmodules:
+        subprocess.run(
+            ["git", "submodule", "deinit", "-f", legacy_rel],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+        )
+        subprocess.run(
+            ["git", "rm", "-rf", legacy_rel],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+        )
+    if legacy.is_dir():
+        shutil.rmtree(legacy, ignore_errors=True)
+    print(f"  ✔  removed legacy {legacy_rel}")
+
+
 def _apply_harness_to_repo(
     repo_path: Path,
     profile: HarnessProfile,
@@ -113,7 +147,7 @@ def _apply_harness_to_repo(
         else:
             print(f"    [dry-run] constitution: (none — no .cursor/rules submodule for this profile)")
         for skill in profile.skills:
-            print(f"    [dry-run] skill: https://github.com/{skill.org}/{skill.repo}@{skill.ref}")
+            print(f"    [dry-run] skill: .agents/skills/{skill.repo} ← https://github.com/{skill.org}/{skill.repo}@{skill.ref}")
         _seed_codeowners(repo_path, profile.codeowners_template, org, apply=False)
         _seed_harness_pin(repo_path, profile.harness_pin_template, apply=False)
         return
@@ -156,11 +190,14 @@ def _apply_harness_to_repo(
     else:
         print(f"  –  constitution: (none — meta/config repo, no rules submodule)")
 
-    # Skills
+    # Skills — SSOT path is .agents/skills/ (not .cursor/skills)
+    _remove_legacy_cursor_skills(repo_path, apply=True)
+
     for skill in profile.skills:
         skill_url = f"https://github.com/{skill.org}/{skill.repo}"
-        skill_path_rel = f".cursor/skills/{skill.repo}"
+        skill_path_rel = f".agents/skills/{skill.repo}"
         skill_dest = repo_path / skill_path_rel
+        (repo_path / ".agents" / "skills").mkdir(parents=True, exist_ok=True)
         if not skill_dest.is_dir():
             subprocess.run(
                 ["git", "submodule", "add", "--force", skill_url, skill_path_rel],
@@ -169,7 +206,7 @@ def _apply_harness_to_repo(
             )
         if skill.ref:
             subprocess.run(["git", "-C", str(skill_dest), "checkout", skill.ref], capture_output=True)
-        print(f"  ✔  skill: {skill_url}@{skill.ref or 'HEAD'}")
+        print(f"  ✔  skill: .agents/skills/{skill.repo} ← {skill_url}@{skill.ref or 'HEAD'}")
 
     # CODEOWNERS and harness-pin — filenames come from YAML profile
     _seed_codeowners(repo_path, profile.codeowners_template, org, apply=True)

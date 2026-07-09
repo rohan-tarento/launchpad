@@ -148,9 +148,7 @@ Create one GitHub Issue per wave using gh issue create:
 - id W1 → depends_on W0
 Use §9 body text for issue bodies. Label: init-example-002.
 
-Optional multi-repo bulk: copy §9 to work/INIT-EXAMPLE-002.yaml in meta, then:
-launchpad seed-work --config work/INIT-EXAMPLE-002.yaml --dry-run
-launchpad seed-work --config work/INIT-EXAMPLE-002.yaml --apply
+Optional: archive §9 in <client>-meta/work/INIT-EXAMPLE-002.yaml for traceability (PM merges meta PR).
 ```
 
 ---

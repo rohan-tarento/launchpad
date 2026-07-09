@@ -1,5 +1,6 @@
 # INIT-EXAMPLE-001 — synthetic wave manifest (documentation only)
-#   launchpad seed-work --config work/INIT-EXAMPLE-001.yaml --dry-run
+# Example WorkManifest — archive / documentation only (v0.5.10).
+# Board seeding: gh issue create per wave from plan §9 (see playbook/delivery-workflow.md).
 
 apiVersion: launchpad/v1
 kind: WorkManifest
@@ -40,7 +41,7 @@ epic:
   body: |
     ## Objective
 
-    Synthetic epic for launchpad `seed-work` dry-run documentation.
+    Synthetic epic for WorkManifest documentation (archive format).
 
 work:
   - id: W0

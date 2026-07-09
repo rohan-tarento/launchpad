@@ -6,6 +6,6 @@
 |------|--------|
 | Home | This page |
 | How we ship | PM ↔ dev handoff, branches, board |
-| PM workflow | PRD, prayog-skills, seed-work |
+| PM workflow | PRD, prayog-skills, `gh issue create` per wave |
 
-Publish with `launchpad publish-wiki` (when configured for your forge).
+Publish via wiki git remote — see [playbook/wiki-setup.md](../../playbook/wiki-setup.md).

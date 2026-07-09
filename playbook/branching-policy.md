@@ -27,7 +27,7 @@ Random branch names (`my-test`, `john-fix`, `tmp`) are **not** allowed.
 | `fix/` | `develop` (or `main` for prod fix flow) | `fix/registry-404-mapping` |
 | `hotfix/` | `main` (then backport to `develop`) | `hotfix/compose-image-pin` |
 | `release/` | `main` (optional) | `release/2026.06.0` |
-| `chore/` | `develop` | `chore/setup-gitflow-enforcement` |
+| `chore/` | `develop` | `chore/gitflow-policy-enforcement` |
 
 **Protected long-lived:** `main`, `develop` — never used as feature branch names.
 
@@ -57,7 +57,7 @@ This segment is set once when the PRD is created and never changed. It is used v
 | **standard** | Bootstrap / chore-heavy work | `feature/<any-valid-slug>` |
 | **strict** | Product INIT (recommended) | `feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug}` |
 
-Switch to `strict` in `gitflow-{org}.yaml` when the org begins product INIT delivery.
+Switch to `strict` in `governance-{org}.yaml` (branch naming policy) when the org begins product INIT delivery.
 
 ### Spec pipeline branches (chore/)
 
@@ -95,9 +95,9 @@ branch — committed before the PR is marked ready for review.
 
 | Layer | Blocks | Script |
 |-------|--------|--------|
-| **Ruleset** `branch-naming-standard` | Push/create of badly named branches (`creation` + `update`) | `options.branch_naming: true` in gitflow YAML |
-| **Workflow** `policy-branch-name` | PR to `develop` with bad head ref | `options.with_templates` + `options.require_ci` in gitflow YAML |
-| **Workflow** `policy-merge-source` | PR to `main` not from `develop` / `release/*` / `hotfix/*` | already deployed |
+| **Ruleset** `branch-naming-standard` | Push/create of badly named branches (`creation` + `update`) | Deploy manually — see [github-enforcement.md](github-enforcement.md) |
+| **Workflow** `policy-branch-name` | PR to `develop` with bad head ref | Copy kit template; enable as required check |
+| **Workflow** `policy-merge-source` | PR to `main` not from `develop` / `release/*` / `hotfix/*` | Copy kit template; enable as required check |
 
 Docs alone are not enough — use ruleset + workflows together.
 

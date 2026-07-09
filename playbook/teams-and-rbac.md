@@ -55,10 +55,10 @@ See [github-enforcement.md](github-enforcement.md) and [branching-policy.md](bra
 Requires `GITHUB_TOKEN` in `~/.config/launchpad/env.d/<client-id>.env` — [python-automation.md](python-automation.md).
 
 ```bash
-launchpad init-client --meta --config config/governance-example-org.yaml --apply
-# or individual steps:
-launchpad init-client --config config/governance-example-org.yaml --apply
-launchpad init-client --config config/governance-example-org.yaml --apply
+launchpad init-client --meta --dry-run
+launchpad init-client --meta --apply
+# Day N per app repo:
+launchpad init-client --repo example-api --apply
 ```
 
 Add members to **`pm-team`** and dev teams in GitHub UI after team creation.

@@ -16,8 +16,8 @@ Use when closing the **first factory bootstrap** epic for a new tenant (repos, t
 
 ## Pilot app harness (`example-api` or first app repo)
 
-- [ ] `launchpad apply-harness --apply` merged
-- [ ] `launchpad status` passes
+- [ ] `launchpad apply-harness --repo <name> --apply` merged
+- [ ] `launchpad status --repo <name>` passes
 - [ ] Rules submodule + prayog-skills pin documented in harness config
 - [ ] `/pre-implement` and `/verify` audition pass — [skills-audition.md](skills-audition.md)
 
@@ -27,7 +27,7 @@ Use when closing the **first factory bootstrap** epic for a new tenant (repos, t
 
 - Every app repo on the board
 - First product PRD / product INIT
-- Full CI gate on `main` (enable `options.require_ci` after workflow PRs land)
+- Full CI gate on `main` (enable workflow required checks after policy workflow PRs land)
 
 ---
 

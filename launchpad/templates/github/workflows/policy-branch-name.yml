@@ -1,5 +1,5 @@
-# Reference template — launchpad setup-gitflow generates repo workflows from gitflow YAML.
-# Required check name: policy-branch-name (enable via options.require_ci in gitflow YAML)
+# Reference template — copy into repo .github/workflows/; tune for governance policy.
+# Required check name: policy-branch-name (enable when CI gate is ready)
 #
 # Complements GitHub ruleset branch_name_pattern (blocks push of bad names).
 # See playbook/branching-policy.md

@@ -2,7 +2,7 @@
 
 **Published wiki:** tenant <client>-meta/wiki  
 **Source files:** `wiki/*.md` in this repo  
-**Publish:** `launchpad publish-wiki --apply` (see [wiki-setup.md](wiki-setup.md))
+**Publish:** manual wiki git clone (see [wiki-setup.md](wiki-setup.md))
 
 Wiki pages are **navigation only**. Commands, field tables, and checklists live in **<client>-meta** playbook — link below; do not copy blocks into wiki.
 

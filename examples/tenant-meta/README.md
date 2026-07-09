@@ -62,8 +62,8 @@ All commands are **dry-run by default** — pass `--apply` to execute.
 | `prd/` | Product requirements (`INIT-*.md`) after PM sign-off |
 | `planning/` | Pre-build narratives — not app-repo SSOT |
 | `programs/` | Programme overviews |
-| `work/` | `WorkManifest` YAML → `launchpad seed-work` |
-| `wiki/` | Published to GitHub Wiki via `launchpad publish-wiki` |
+| `work/` | `WorkManifest` YAML archive (traceability; board seed via `gh issue create`) |
+| `wiki/` | Published to GitHub Wiki via wiki git remote — see [wiki-setup.md](../../playbook/wiki-setup.md) |
 | `playbook/` | Client-specific playbook deltas (kit playbook is the SSOT) |
 | `templates/` | Client-specific template overrides (kit defaults apply otherwise) |
 

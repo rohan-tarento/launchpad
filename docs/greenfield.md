@@ -1,4 +1,4 @@
-# Greenfield Operator Guide (v0.5.10)
+# Greenfield Operator Guide (v0.5.11)
 
 This guide walks a new operator through standing up a programme from zero.
 We use **STRATUM** (org: `Sandvik-Common`) as the running example.
@@ -49,7 +49,7 @@ Any time — Readiness check
 - GitHub PAT with scopes: `repo`, `admin:org`, `project`, `delete_repo`
 - `launchpad` installed:
   ```
-  pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.10"
+  pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"
   ```
 
 ### Run the interview

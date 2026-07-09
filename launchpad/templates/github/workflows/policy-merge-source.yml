@@ -1,5 +1,5 @@
-# Reference template — launchpad setup-gitflow generates repo workflows from gitflow YAML.
-# Required check name: policy-merge-source (enable via options.require_ci in gitflow YAML)
+# Reference template — copy into repo .github/workflows/; tune for governance policy.
+# Required check name: policy-merge-source (enable when CI gate is ready)
 
 name: policy-merge-source
 

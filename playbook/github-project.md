@@ -57,50 +57,37 @@ Set **As-built** before **In review**.
 
 ## Issue types (org — color on board)
 
-Defined in `config/governance-example-org.yaml` under `issue_types`.
+Configure in GitHub org settings (factory PAT needs org **Issue types: Read and write**).
 
 | Role | GitHub Type | When |
 |------|-------------|------|
-| `epic` | Epic or **Feature** (org-specific) | Manifest `epic:` block |
-| `task` | Task | Default for `work:` items |
+| `epic` | Epic or **Feature** (org-specific) | Parent initiative |
+| `task` | Task | Default for wave work items |
 
-Set `issue_types.roles.epic` to your org’s parent/initiative type name (e.g. some enterprises use **Feature**, not Epic).
+Set your org's parent/initiative type name (e.g. some enterprises use **Feature**, not Epic).
 
 **Project table:** add **Type** column; enable **Show hierarchy** for parent/child tree.
 
-Factory PAT needs org **Issue types: Read and write**. Preflight: `launchpad status --meta`.
+Preflight: `launchpad status --meta`.
 
 ---
 
-## Automation
+## Automation (v0.5.10)
+
+`init-client` creates the org project board (when `project_board.enabled: true` in `governance-<org>.yaml`) and links each repo:
 
 ```bash
-launchpad bootstrap-project --config config/governance-example-org.yaml --dry-run
-launchpad bootstrap-project --config config/governance-example-org.yaml --apply
-```
-
-Or as part of platform setup:
-
-```bash
+launchpad init-client --meta --dry-run
 launchpad init-client --meta --apply
 ```
 
-Config: `config/governance-example-org.yaml` — columns, fields, repos, **team board access**.
+Config: `config/governance-<org>.yaml` — `project_board.name`, `project_board.enabled`.
+
+**Manual setup (today):** Status columns, custom fields, single-select options, issue types, and team board access are configured in the GitHub Projects UI after the board exists. v0.5.10 does not sync column/field definitions from YAML.
 
 ### Team access (board visibility)
 
-Repo team grants (`init-client`) do **not** grant access to the org project board. Set `team_access` in `project-<org>.yaml` (with `includes.org` so team slugs resolve):
-
-```yaml
-includes:
-  org: org-<org>.yaml
-team_access:
-  default_role: WRITER    # all org teams — view and edit board items
-```
-
-`bootstrap-project --apply` calls GitHub `updateProjectV2Collaborators` for each team. Roles: `READER`, `WRITER`, `ADMIN`. Set `team_access: false` to skip.
-
-Idempotent: safe to re-run; updates Status + single-select field options and creates missing fields.
+Repo team grants (`init-client`) do **not** grant access to the org project board. Add teams as project collaborators in GitHub → Project → Settings → Manage access. Roles: `READER`, `WRITER`, `ADMIN`.
 
 ---
 
@@ -112,10 +99,4 @@ Idempotent: safe to re-run; updates Status + single-select field options and cre
 | `example-api` | Python pilot service |
 | `example-registry` | Python backend — device/signal platform |
 
-Extend `project-<org>.yaml` when more repos join the program board, then run:
-
-```bash
-launchpad bootstrap-project --config config/governance-example-org.yaml --apply
-```
-
-`bootstrap-project` syncs **Status** columns and **single-select** field options (e.g. Codebase, As-built) from config.
+Add repos to `governance-<org>.yaml`, then run `launchpad init-client --repo <name> --apply` to link new repos to the board.

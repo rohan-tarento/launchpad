@@ -1,24 +1,18 @@
-# Work manifests
+# Work manifests (`work/`)
 
-`WorkManifest` YAML files drive backlog seeding onto a GitHub project board.
+`WorkManifest` YAML files document epic + wave structure for an INIT. They are **archived in meta for traceability** — not consumed by a factory CLI in v0.5.10.
+
+## Board seeding (v0.5.10)
+
+After spec PR merge, dev seeds the board with **`gh issue create` per wave** from `/spec-implementation-plan` §9:
 
 ```bash
-launchpad seed-work --config work/INIT-EXAMPLE-001.yaml --dry-run
-launchpad seed-work --config work/INIT-EXAMPLE-001.yaml --apply
+# Example — one issue per wave (titles/bodies from plan §9)
+gh issue create --title "[INIT-EXAMPLE-001 W0] ..." --body-file w0-body.md --label initiative
 ```
 
-## When to use
+See [playbook/delivery-workflow.md](../../playbook/delivery-workflow.md).
 
-After PRD sign-off, the dev team authors a `WorkManifest` (typically via the
-`/spec-implementation-plan` agent skill in an app repo).  The PM reviews and
-runs `seed-work` to create the issues and project items.
+## Archive format
 
-## Naming
-
-`INIT-<id>.yaml` — one file per product initiative.  Use the same `initiative`
-ID throughout (PRD, spec paths, branch names, issue titles).
-
-## See also
-
-- [playbook/sdd-workflow.md](../../playbook/sdd-workflow.md) — full SDD workflow
-- [INIT-EXAMPLE-001.yaml](./INIT-EXAMPLE-001.yaml) — annotated example
+`INIT-EXAMPLE-001.yaml` is a **synthetic example** of the WorkManifest shape. Dev may copy §9 into `work/INIT-*.yaml` and open a meta PR for audit trail; PM merges when present.

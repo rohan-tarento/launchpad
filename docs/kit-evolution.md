@@ -120,18 +120,14 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 
 ---
 
-## Current release line (v0.5.10 — greenfield refactor)
+## Current release line (v0.5.11)
 
-**v0.5.10** introduces the greenfield refactor:
+**v0.5.11** — doc drift fix + harness skills path:
 
-- **5-YAML config model** (`programme`, `governance`, `harness`, `scaffold`, `service-catalog`)
-- **5-command CLI** (`onboard interview`, `init-client`, `apply-scaffold`, `apply-harness`, `status`)
-- **GitHub-only** (GitLab planned v0.6)
-- **Scaffold fully YAML-driven** — `cookiecutter` templates defined in `scaffold-<org>.yaml`
-- **`onboard interview`** — 4 questions, auto-writes all 5 YAMLs + registry + PAT stub
-- **Stack registry** — named stacks (`python-backend`, `nextjs-frontend`, `terraform-iac`, `meta-pm`)
-- **ForgeProvider protocol** — extensible for future forge types
-- **Idempotent** — all commands are dry-run by default, re-runnable after config fixes
-- **No `--all` flag** — `--meta` or `--repo <name>` required for all commands
+- Align playbook, docs, examples, and templates with the v0.5.10 5-command CLI (remove stale `setup-gitflow`, `seed-work`, `bootstrap-project`, etc.)
+- **`apply-harness`** seeds agent skills under **`.agents/skills/`** (removes legacy `.cursor/skills` submodule)
+- Wiki publish documented as manual git flow (no `publish-wiki` CLI)
 
-Tenants adopt by pinning `0.5.10` in `.launchpad-version` and installing from that tag.
+**v0.5.10** introduced the greenfield refactor (5-YAML model, 5-command CLI, GitHub-only).
+
+Tenants adopt by pinning `0.5.11` in `.launchpad-version` and installing from that tag.

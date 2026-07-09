@@ -169,7 +169,7 @@ git push
 launchpad status --repo example-api
 ```
 
-Reports any mismatches between `.harness-pin.yaml` and `harness-<org>.yaml`. Fix config then re-run `apply-harness --apply`.
+Reports any mismatches between `.harness-pin.yaml` and `harness-<org>.yaml`. Fix config then re-run `apply-harness --repo example-api --apply`.
 
 ---
 
@@ -190,7 +190,7 @@ make test
 | Step | Owner | Action |
 |------|-------|--------|
 | Spec PR | **Dev** | Branch `chore/INIT-*-spec-example-api`; run `/spec-draft` → `/spec-implementation-plan` |
-| Wave issues | **Dev** | `gh issue create` per wave from §9, or `seed-work` manifest |
+| Wave issues | **Dev** | `gh issue create` per wave from §9 |
 | W0+ | Dev | Feature PRs on foundation |
 
 See [delivery-workflow.md](delivery-workflow.md).

@@ -20,12 +20,22 @@ GitHub creates the `.wiki.git` repository only after the **first wiki page** exi
 
 ## Publish / update all pages
 
+v0.5.10 has no `publish-wiki` CLI command. Publish manually via the wiki git remote:
+
 ```bash
-cd <client>-meta
-launchpad publish-wiki --apply
+cd /tmp
+git clone https://github.com/<org>/<client>-meta.wiki.git
+cd <client>-meta.wiki
+
+# Copy pages from your meta repo checkout
+cp ~/Workspace/<slug>/<client>-meta/wiki/*.md .
+
+git add .
+git commit -m "docs: sync wiki from wiki/"
+git push origin master   # or main — GitHub wikis vary
 ```
 
-Uses `config/wiki-<org>.yaml` (`WikiConfig`) when present. Clones `<client>-meta.wiki.git`, copies `wiki/*.md`, commits, and pushes.
+Alternatively edit pages in the GitHub Wiki UI.
 
 ---
 
@@ -57,11 +67,11 @@ Wiki pages link into **playbook/** on `develop`. When playbook text changes:
 
 ```bash
 git pull origin develop
-launchpad publish-wiki --apply    # syncs wiki/*.md only — playbook links update on GitHub automatically
+# Re-publish wiki/*.md via wiki git clone (see above)
 ```
 
 ## Exit criteria (M4 Done)
 
 - [ ] tenant <client>-meta/wiki shows Home + 4 child pages  
-- [ ] `launchpad publish-wiki --apply` succeeds  
+- [ ] Wiki git push succeeds (or pages updated in GitHub UI)  
 - [ ] Board task **M4** → Done

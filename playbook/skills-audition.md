@@ -55,13 +55,14 @@ Run verify for one feature area per tests/README.md.
 
 ---
 
-## 3. seed-work (operator — not a skill)
+## 3. Board seed (operator — not a skill)
 
 ```bash
-launchpad seed-work --config work/INIT-<id>.yaml --dry-run
+# After spec PR merge — one issue per wave from plan §9
+gh issue create --title "[INIT-EXAMPLE-001 W0] ..." --body-file w0-body.md
 ```
 
-**Pass if:** epic + tasks match manifest; board fields populated after apply.
+**Pass if:** epic + wave issues exist on the board with required project fields populated.
 
 ---
 

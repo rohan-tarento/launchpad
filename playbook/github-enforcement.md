@@ -2,83 +2,93 @@
 
 Policy docs describe intent. **These mechanisms enforce it.**
 
-**Single source of truth:** `config/gitflow-<org>.yaml` (`kind: GitflowConfig`). Branch naming, merge policy, PR rules, CI gates, and automation switches live there — **not** on the CLI.
+**Single source of truth (v0.5.10):** `config/governance-<org>.yaml` (`kind: GovernanceConfig`). Teams, repos, branch policy (`policy:` block), and project board live there — **not** on the CLI.
 
-## Layers
+---
+
+## What `init-client` automates today
+
+| Step | Action |
+|------|--------|
+| Teams | Create teams from `teams:` block |
+| Repos | Create repos from `repos:` block |
+| Access | Grant repo teams from each repo's `teams:` list |
+| Gitflow | Set `policy.default_branch`; apply PR review protection |
+| Board | Create org project (`project_board:`) and link repos |
+
+```bash
+launchpad init-client --meta --dry-run      # preview Day 1
+launchpad init-client --meta --apply
+launchpad init-client --repo <name> --apply # Day N per app repo
+```
+
+Config is resolved from `--client <id>` → `clients.yaml` → `config/` (no `--config` flag).
+
+### Policy fields (`governance-<org>.yaml`)
+
+```yaml
+policy:
+  default_branch: main
+  require_pr_reviews: 1
+  dismiss_stale_reviews: true
+```
+
+Edit policy in YAML, PR to meta, re-run `init-client --apply` — idempotent.
+
+---
+
+## Advanced enforcement (manual / reference templates)
+
+v0.5.10 does **not** yet automate rulesets, workflow seeding, or `develop` branch creation. Tenants deploy these from kit reference templates under [`launchpad/templates/github/workflows/`](../launchpad/templates/github/workflows/):
+
+| Template | Purpose |
+|----------|---------|
+| `policy-branch-name.yml` | Validates branch names on PRs to `develop` |
+| `policy-merge-source.yml` | Restricts merge sources into `main` |
+| `ci.yml` | Lint/test gate |
+
+Copy into each repo's `.github/workflows/`, tune for your org, and enable as required checks when ready. See [branching-policy.md](branching-policy.md) for naming rules and rollout phases.
+
+---
+
+## Enforcement layers (target state)
 
 | Layer | Enforces |
 |-------|----------|
 | **Teams** | Who may push to `develop` vs `main`; merge rules — [delivery-workflow.md](delivery-workflow.md) |
-| **Branch protection** | PR required, reviews (`protection` in gitflow YAML) |
-| **Ruleset** `branch-naming-standard` | Only allowed branch name patterns (when `options.branch_naming: true`) |
-| **`policy-branch-name` workflow** | PRs to `develop` — generated from `branch_naming` + `merge_policy.develop` |
-| **`policy-merge-source` workflow** | `main` accepts only allowed sources — generated from `merge_policy.main` |
-| **`ci` workflow** | Lint/test; required when `options.require_ci: true` |
+| **Branch protection** | PR required, reviews (`policy` in governance YAML) |
+| **Ruleset** `branch-naming-standard` | Allowed branch name patterns (manual deploy) |
+| **`policy-branch-name` workflow** | PRs to `develop` — head ref validation |
+| **`policy-merge-source` workflow** | `main` accepts only allowed sources |
+| **`ci` workflow** | Lint/test; required check when enabled |
 | **CODEOWNERS** | Review routing per profile |
 | **QA manifest** | Deploy mix (not git) — documented in tenant `qa/` directory per org (not in launchpad kit) |
 
-## Factory CLI
-
-All bootstrap uses **`launchpad`** + `GITHUB_TOKEN`. See [python-automation.md](python-automation.md).
-
-| Command | Purpose |
-|---------|---------|
-| `init-client` | Ensure repos + labels exist (OrgConfig + gitflow union, includes meta) |
-| `init-client` | Create org teams |
-| `init-client` | Seed `main`, create `develop`, set default branch `develop` |
-| `init-client` | Reconcile GitHub to `governance-<org>.yaml` |
-| `bootstrap-project` | Project board + fields |
-
-```bash
-launchpad init-client --config config/gitflow-<org>.yaml --apply
-launchpad init-client --config config/gitflow-<org>.yaml --apply
-```
-
-Only `--config`, `--apply` / `--dry-run`, `--org`, and `--repo` (debug filter) are valid. Policy is never passed on the command line.
-
-## Gitflow YAML sections
-
-| Section | Controls |
-|---------|----------|
-| `teams` / `repos` | Who merges `develop` per repo; `main` → `release-managers` |
-| `options.require_ci` | Require `ci`, `policy-branch-name` (develop), `policy-merge-source` (main) |
-| `options.branch_naming` | Create `branch-naming-standard` ruleset |
-| `options.with_templates` | Copy workflows + CODEOWNERS into local clones under `options.workspace` |
-| `options.seed_empty` | Seed empty repos on `main` during `init-client` (default: true) |
-| `options.init_empty` | Deprecated alias for `seed_empty` |
-| `branch_naming` | Prefixes, `mode` (standard/strict), exceptions |
-| `protection` | Review count, stale dismiss, enforce admins per branch |
-| `merge_policy` | Allowed PR sources to `develop` / `main` (workflow content) |
+---
 
 ## Branch protection (via API)
 
-`init-client` uses GitHub **branch protection** API on existing repos:
+`init-client` uses GitHub **branch protection** API on the default branch:
 
-- **`main`**: PR required, reviews from `protection.main`, **push restricted to `release-managers`**
-- **`develop` (app repos)**: PR required, **push restricted to profile dev team**; **`pm-team` has Write for handoff branches but is not in merge restrictions**
-- **`develop` (<client>-meta)**: **push restricted to `pm-team`**; dev teams get **read (pull)** on meta
+- PR required
+- Reviews from `policy.require_pr_reviews` (default: 1)
+- Stale review dismissal from `policy.dismiss_stale_reviews` (default: true)
 
-When `options.require_ci: true` (after workflow PRs are merged):
+**GitHub Team plan** is required for branch protection on private repos. See [bootstrap-prerequisites.md](bootstrap-prerequisites.md).
 
-- **`develop`**: `ci`, `policy-branch-name`
-- **`main`**: `ci`, `policy-merge-source`
+### Typical rollout
 
-Typical rollout in gitflow YAML:
+1. Bootstrap with `init-client --apply` — default branch + basic protection
+2. Merge workflow PRs (policy-branch-name, policy-merge-source, ci) into each repo
+3. Enable those workflows as required checks in branch protection (GitHub UI or API)
 
-1. Bootstrap with `require_ci: false`, `with_templates: true` — merge workflow PRs
-2. Set `require_ci: true` — re-run `init-client --apply`
-
-### Branch naming ruleset
-
-Set `options.branch_naming: true` in gitflow YAML. Creates repo ruleset `branch-naming-standard` using `branch_naming.allowed_prefixes` and `exceptions`. Idempotent — safe to re-run.
-
-## Workflow templates
-
-When `options.with_templates: true`, Launchpad generates `policy-branch-name.yml` and `policy-merge-source.yml` from gitflow YAML (not hand-edited). Base reference: [`templates/github/workflows/`](../templates/github/workflows/).
+---
 
 ## After setup
 
-1. Add people to teams in GitHub → Organization → Teams  
-2. Run `ci` on a test PR to `develop`  
-3. Set `options.require_ci: true` in gitflow YAML and re-run `init-client --apply`  
-4. Open test PR `develop` → `main`; confirm only **release-managers** can merge  
+1. Add people to teams in GitHub → Organization → Teams
+2. Run `ci` on a test PR to `develop`
+3. Enable workflow required checks when workflows are merged
+4. Open test PR `develop` → `main`; confirm **release-managers** can merge
+
+See [teams-and-rbac.md](teams-and-rbac.md) and [python-automation.md](python-automation.md).

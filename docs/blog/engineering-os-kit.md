@@ -1,6 +1,15 @@
 # We Didn't Need Better Agents. We Needed a Better Repo.
 
-> **Note:** This post describes the pre-v0.5.10 design. The v0.5.10 greenfield refactor introduced the 5-YAML config model and 5-command CLI. See [docs/greenfield.md](../greenfield.md) for the current guide.
+> **Note:** This post was written during the pre-v0.5.10 era. Concepts below (SDD, harness, factory) still apply. **Commands and config layout changed in v0.5.10** — use [docs/greenfield.md](../greenfield.md) as the current runbook.
+>
+> | Pre-v0.5.10 (this post) | v0.5.10 (current) |
+> |---------------------------|-------------------|
+> | `onboard plan` / `onboard apply` | `onboard interview` |
+> | `setup-platform`, `bootstrap-org`, `setup-gitflow` | `init-client --meta` / `--repo <name>` |
+> | `scaffold-meta`, `scaffold-app` | `apply-scaffold --meta` / `--repo <name>` |
+> | `sync-harness-app`, `check-harness` | `apply-harness`, `status` |
+> | `seed-work` | `gh issue create` per wave from plan §9 |
+> | `gitflow-<org>.yaml` | `governance-<org>.yaml` (+ 4 other YAML kinds) |
 
 **A technical post on specification-driven development, harness engineering, and why we packaged our delivery model as a kit — not a platform.**
 
@@ -114,7 +123,7 @@ agent_skills:
 
 Three layers stay separate: **MDC rules** = coding constitution; **`AGENTS.md`** = router (lists which skills); **`.agents/skills/`** = prayog procedures. Do not duplicate skill catalogs in rules repos — only the harness pin and `AGENTS.md` name them.
 
-`sync-harness-app` writes the pin, `AGENTS.md`, the rules submodule, and seeds skills into `.agents/skills/` (gitignored; reproducible from the pin). `verify-harness-app` checks the repo still matches tenant config.
+`apply-harness` writes the pin, the rules submodule, and seeds skills into `.agents/skills/` (reproducible from harness YAML). `status --repo` checks the repo still matches tenant config.
 
 ### PM skills vs dev skills (don't mix lanes)
 
@@ -134,27 +143,13 @@ Docs alone lose to deadline pressure. We automate the boring enforcement:
 | Mechanism | What it enforces |
 |-----------|------------------|
 | **Teams + branch protection** | Who merges `develop` vs `main` |
-| **Gitflow YAML** | Branch naming, merge policy, PR rules, CI gates |
-| **Rulesets + workflows** | `policy-branch-name`, `policy-merge-source` |
-| **Work manifests** | `seed-work` → epic + waves on the project board |
+| **Governance YAML** (`governance-<org>.yaml`) | Teams, repos, branch policy, project board |
+| **Rulesets + workflows** | `policy-branch-name`, `policy-merge-source` (kit templates; manual deploy in v0.5.10) |
+| **Board seeding** | `gh issue create` per wave from plan §9 |
 
-Critical design choice: **gitflow policy is YAML-authoritative**. The CLI does not take `--require-ci` or `--branch-naming` flags. You edit `gitflow-<org>.yaml`, PR it to meta, re-run `setup-gitflow --apply`. Policy changes are versioned like code.
+Critical design choice: **policy is YAML-authoritative**. The CLI does not take `--require-ci` or `--branch-naming` flags. You edit `governance-<org>.yaml`, PR it to meta, re-run `init-client --apply`. Policy changes are versioned like code.
 
-Typical rollout:
-
-```yaml
-# Phase 1 — bootstrap
-options:
-  with_templates: true
-  branch_naming: true
-  require_ci: false
-
-# Phase 2 — after workflow PRs merge
-options:
-  require_ci: true
-```
-
-Factory is GitHub-first today; GitLab covers `seed-work` + labels. Honest scope beats fake parity.
+Factory is **GitHub-only** in v0.5.10. GitLab is planned (v0.6). Honest scope beats fake parity.
 
 ---
 
@@ -172,14 +167,14 @@ Factory is GitHub-first today; GitLab covers `seed-work` + labels. Honest scope 
    PRDs, manifests      specs, code        *.mdc constitution
    factory YAML         harness pin
          │                   │
-         └──── seed-work ────┘
+         └──── gh issue create ─┘
                     │
                     ▼
               GitHub board
          (INIT, codebase, verify cmd)
 ```
 
-The **kit** (`launchpad` repo) never contains customer PRDs. **Rules** are public OSS in `drivestream-lab/*-rules`; the **tenant** (`<client>-meta`) holds factory config and PRDs. You install Launchpad once per machine; copy [`examples/tenant-meta`](https://github.com/drivestream-lab/launchpad/tree/main/examples/tenant-meta) per customer, or use `launchpad onboard plan` / `onboard apply` for the guided path.
+The **kit** (`launchpad` repo) never contains customer PRDs. **Rules** are public OSS in `drivestream-lab/*-rules`; the **tenant** (`<client>-meta`) holds factory config and PRDs. You install Launchpad once per machine via `pipx install` from a git tag, or run `launchpad onboard interview` for the guided Day-0 setup.
 
 ---
 
@@ -188,9 +183,9 @@ The **kit** (`launchpad` repo) never contains customer PRDs. **Rules** are publi
 | | Greenfield | Brownfield |
 |---|------------|------------|
 | **Fit** | Strong — you're installing the OS | Partial — you're retrofitting rails |
-| **Meta** | Copy skeleton, rename org | Often exists; add factory YAML + playbook |
-| **App repos** | `bootstrap-org` creates them | Already exist; `sync-harness-app` + spec layout graft |
-| **Git policy** | `setup-gitflow --apply` | Same, but team habits lag enforcement |
+| **Meta** | `onboard interview` or copy skeleton | Often exists; add 5 YAML kinds + playbook |
+| **App repos** | `init-client --repo` creates them | Already exist; `apply-harness` + spec layout graft |
+| **Git policy** | `init-client --apply` | Same, but team habits lag enforcement |
 | **Spec debt** | Low if you start with SDD | High — as-built backfill is manual |
 
 Launchpad **productizes the pattern**. It does not auto-migrate ten years of tribal knowledge. Brownfield success still needs a spec audit, harness retrofit, and patience.
@@ -211,21 +206,20 @@ That's the right trade for a consultancy / platform team: ship **repeatable scaf
 
 ---
 
-## Monday-morning checklist (new customer)
+## Monday-morning checklist (new customer — v0.5.10)
 
-If this post is useful, here's the compressed runbook:
+If this post is useful, here's the compressed runbook. Full detail: [greenfield.md](../greenfield.md).
 
-1. **Clone Launchpad** — `pip install -e .` or `pipx install -e .` from source
-2. **Tenant meta** — copy [`examples/tenant-meta`](https://github.com/drivestream-lab/launchpad/tree/main/examples/tenant-meta), *or* `launchpad onboard plan` / `onboard apply` + `scaffold-meta`
-3. **Edit `config/*.yaml`** — org, repos, gitflow, harness, project
-4. **Client registry + token** — `~/.config/launchpad/clients.yaml` and `env.d/<client>.env`
-5. **Push meta** — factory doesn't create your meta repo
-6. **`launchpad setup-platform --apply`** — repos, teams, gitflow, board
-7. **Clone app repos as siblings** → **`launchpad scaffold-app`** (new) or **`sync-harness-app`** (existing)
-8. **First INIT** — PRD in `prd/`, manifest in `work/`, `seed-work --apply`
-9. **Dev** — spec handoff PRs, then `feature/INIT-*` implementation PRs with verify
+1. **Install Launchpad** — `pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"`
+2. **Day 0** — `launchpad onboard interview` (writes 5 YAMLs + client registry + PAT stub)
+3. **Token** — set `GITHUB_TOKEN` in `~/.config/launchpad/env.d/<slug>.env`
+4. **Day 1 meta** — `launchpad init-client --meta --apply`
+5. **Scaffold + harness** — `apply-scaffold --meta --apply` (optional), `apply-harness --meta --apply`, `status --meta`
+6. **Day N apps** — edit governance + scaffold YAMLs; `init-client --repo <name> --apply`, `apply-scaffold`, `apply-harness`
+7. **First INIT** — PRD in `prd/`; dev seeds board with `gh issue create` per wave from plan §9
+8. **Dev** — spec handoff PRs, then `feature/INIT-*` implementation PRs with verify
 
-Full walkthrough: [setup-guide.md](https://github.com/drivestream-lab/launchpad/blob/main/docs/setup-guide.md) in the repo.
+Full walkthrough: [setup-guide.md](../setup-guide.md) · [greenfield.md](../greenfield.md)
 
 ---
 
@@ -234,7 +228,7 @@ Full walkthrough: [setup-guide.md](https://github.com/drivestream-lab/launchpad/
 1. **Agents amplify repo design.** Bad layout → bad outcomes at scale.
 2. **SDD separates intent (`product/`) from reality (`as-built/`).** Skipping as-built is how agents hallucinate features.
 3. **Harness engineering pins constitution + skills.** Reproducibility beats "works on my laptop."
-4. **Factory automation makes policy cheap to replay** — YAML gitflow, manifests, board fields.
+4. **Factory automation makes policy cheap to replay** — YAML governance, board fields, harness pins.
 5. **Ship a kit, not a platform** — institutional memory you copy per customer beats a monolith nobody owns.
 
 ---
@@ -243,9 +237,9 @@ Full walkthrough: [setup-guide.md](https://github.com/drivestream-lab/launchpad/
 
 We're using Launchpad on new engagements and converging brownfield repos toward the same layout. Likely follow-ups:
 
-- Brownfield migration playbook (spec audit, incremental gitflow)
-- GitLab factory parity
-- Stronger verify hooks between `verify-platform` and `seed-work`
+- Brownfield migration playbook (spec audit, incremental governance)
+- GitLab factory parity (v0.6)
+- Bulk board seeding CLI (successor to legacy `seed-work`)
 
 If you're building multi-client agent-assisted delivery, steal the pattern. The repos are public:
 

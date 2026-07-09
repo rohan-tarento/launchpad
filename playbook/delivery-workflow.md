@@ -115,7 +115,7 @@ Spec PR merge means: **requirements clear, engineering ready to build.** Feasibi
 | Question | Answer |
 |----------|--------|
 | Who **writes** wave manifest content? | **Dev** — `/spec-implementation-plan` §9 on spec branch |
-| Who **merges** `work/INIT-*.yaml` into meta? | **PM** — only if dev uses optional multi-repo bulk path (`launchpad seed-work`) |
+| Who **merges** `work/INIT-*.yaml` into meta? | **PM** — only if dev archives §9 manifest in meta for traceability |
 | Is manifest required **before spec merge**? | **No** |
 | When is board seeded? | **After spec PR merge** — `gh issue create` per wave from §9 |
 
@@ -148,7 +148,7 @@ See [delivery-model.md](delivery-model.md).
 
 ### Meta PR — work manifest (optional, post-spec-merge)
 
-Only when dev uses multi-repo bulk seeding: copy §9 YAML → `work/INIT-*.yaml`; PM may merge in meta before `launchpad seed-work --apply`.
+Optional: copy §9 YAML → `work/INIT-*.yaml` in meta for traceability (PM may merge the archive file). Board seeding is always `gh issue create` per wave — v0.5.10 has no `seed-work` CLI.
 
 ### Implementation PR (dev merges)
 
@@ -196,8 +196,7 @@ Only when dev uses multi-repo bulk seeding: copy §9 YAML → `work/INIT-*.yaml`
 
 ### Eng — after spec PR merge
 
-- [ ] Seed board: `gh issue create` per wave from plan §9 (single repo)
-- [ ] Optional multi-repo: copy §9 → `work/INIT-*.yaml` → `launchpad seed-work`
+- [ ] Seed board: `gh issue create` per wave from plan §9
 
 ### Eng — per wave
 
@@ -290,11 +289,11 @@ PRD authorship, PM findings decisions, PM product answers, domain SME, PE Approv
 ## GitHub setup
 
 ```bash
-launchpad init-client --config config/governance-example-org.yaml --apply
-launchpad init-client --org example-org --apply
+launchpad init-client --meta --apply
+launchpad init-client --repo example-api --apply
 ```
 
-Config: [`examples/tenant-meta/config/governance-example-org.yaml`](../examples/tenant-meta/config/governance-example-org.yaml)
+Config: [`examples/tenant-meta/config/governance-example-org.yaml`](../examples/tenant-meta/config/governance-example-org.yaml) (resolved via `--client <id>` → `clients.yaml`)
 
 ---
 

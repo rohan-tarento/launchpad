@@ -1,6 +1,6 @@
 # Bootstrap prerequisites (v0.5.10)
 
-Before `launchpad init-client --apply` and `seed-work` succeed end-to-end.
+Before `launchpad init-client --apply` succeeds end-to-end.
 
 Full PAT setup: **[python-automation.md](python-automation.md)**.
 
@@ -65,7 +65,6 @@ launchpad apply-scaffold --repo <name> --apply
 launchpad apply-harness --repo <name> --apply
 launchpad status --repo <name>
 
-# Optional work manifests
-launchpad seed-work --config work/INIT-<id>.yaml --dry-run
-launchpad seed-work --config work/INIT-<id>.yaml --apply
+# Board seeding (after spec merge) — use gh per wave from plan §9
+# See playbook/delivery-workflow.md
 ```
