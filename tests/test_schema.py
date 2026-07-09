@@ -151,8 +151,10 @@ class TestHarnessSchema:
         h = load_harness(FIXTURES / "harness-day1.yaml")
         assert h.profiles["meta-pm"].codeowners_template == "CODEOWNERS.meta-pm"
         assert h.profiles["meta-pm"].harness_pin_template == "harness-pin.meta.yaml"
+        assert h.profiles["meta-pm"].constitution is None  # meta-pm has no rules submodule
         assert h.profiles["python-backend"].codeowners_template == "CODEOWNERS.python-backend"
         assert h.profiles["python-backend"].harness_pin_template == "harness-pin.python-backend.yaml"
+        assert h.profiles["python-backend"].constitution is not None
 
     def test_template_fields_convention_default(self):
         """If codeowners_template / harness_pin_template are absent, convention applies."""
@@ -190,6 +192,17 @@ class TestHarnessSchema:
     def test_missing_org_raises(self):
         with pytest.raises(SchemaError, match="missing required field 'org'"):
             HarnessSchema({"profiles": {}})
+
+    def test_constitution_optional(self):
+        """Profile without constitution key is valid — meta/config repos."""
+        raw = {
+            "org": "acme",
+            "profiles": {
+                "meta-pm": {"skills": []}
+            },
+        }
+        h = HarnessSchema(raw)
+        assert h.profiles["meta-pm"].constitution is None
 
     def test_constitution_missing_ref_raises(self):
         raw = {

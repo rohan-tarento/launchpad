@@ -4,9 +4,7 @@ org: Sandvik-Common
 
 profiles:
   meta-pm:
-    constitution:
-      repo: meta-governance-rules
-      ref: v1.0.0
+    # constitution omitted — meta repos have no .cursor/rules submodule
     skills: []
     codeowners_template: CODEOWNERS.meta-pm
     harness_pin_template: harness-pin.meta.yaml

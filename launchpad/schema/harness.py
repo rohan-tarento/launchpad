@@ -3,14 +3,18 @@
 File: config/harness-<org>.yaml
 Kind: HarnessConfig
 
-A harness = a pinned constitution (rules submodule) + optional agent skills +
+A harness = an optional constitution (rules submodule) + optional agent skills +
             CODEOWNERS and harness-pin skeleton templates.
+
+constitution is OPTIONAL — code repos (python-backend, nextjs-frontend) pin a
+rules submodule; planning/config repos (meta-pm) typically have no MDC rules and
+omit it.  apply-harness skips the submodule step when constitution is absent.
 
 Fields
 ------
 org             Must match programme.yaml org.
 profiles        Map of stack name → HarnessProfile.
-  constitution
+  constitution  Optional. Omit for repos that need no .cursor/rules submodule.
     repo        GitHub repo slug for rules (e.g. "python-services-rules").
     org         Optional override org; defaults to drivestream-lab.
     ref         Git ref (branch or tag, e.g. "v1.2.0").
@@ -81,12 +85,21 @@ class SkillRef:
 class HarnessProfile:
     def __init__(self, name: str, raw: dict[str, Any], *, path: str = "") -> None:
         self.name = name
-        constitution_raw = raw.get("constitution") or {}
-        if not isinstance(constitution_raw, dict):
+
+        # constitution is optional — omit for repos that need no .cursor/rules submodule.
+        # Code repos (python-backend, nextjs-frontend) set it; meta/config repos typically don't.
+        constitution_raw = raw.get("constitution")
+        if constitution_raw is not None and not isinstance(constitution_raw, dict):
             raise SchemaError(
-                f"profiles.{name!r}.constitution must be a mapping", path=path
+                f"profiles.{name!r}.constitution must be a mapping (or omitted entirely)",
+                path=path,
             )
-        self.constitution = ConstitutionRef(constitution_raw, profile=name, path=path)
+        self.constitution: ConstitutionRef | None = (
+            ConstitutionRef(constitution_raw, profile=name, path=path)
+            if constitution_raw
+            else None
+        )
+
         skills_raw = raw.get("skills") or []
         if not isinstance(skills_raw, list):
             raise SchemaError(f"profiles.{name!r}.skills must be a list", path=path)

@@ -93,55 +93,60 @@ def _apply_harness_to_repo(
 ) -> None:
     """Pin constitution submodule, seed agent skills, CODEOWNERS, and harness-pin.
 
-    Template filenames for CODEOWNERS and harness-pin are read from the
-    profile (harness-<org>.yaml), not from any hardcoded map in Python.
+    constitution is optional — profiles without one (e.g. meta-pm) skip the
+    submodule step entirely and only seed CODEOWNERS + harness-pin.
+    Template filenames come from the profile YAML, not hardcoded Python maps.
     """
-    con = profile.constitution
-    submodule_url = con.submodule_url
     submodule_dest = repo_path / ".cursor" / "rules"
 
     if not apply:
-        print(f"    [dry-run] constitution submodule: {submodule_url}@{con.ref}")
+        if con:
+            print(f"    [dry-run] constitution submodule: {con.submodule_url}@{con.ref}")
+        else:
+            print(f"    [dry-run] constitution: (none — no .cursor/rules submodule for this profile)")
         for skill in profile.skills:
             print(f"    [dry-run] skill: https://github.com/{skill.org}/{skill.repo}@{skill.ref}")
         _seed_codeowners(repo_path, profile.codeowners_template, org, apply=False)
         _seed_harness_pin(repo_path, profile.harness_pin_template, apply=False)
         return
 
-    # Constitution submodule
     import subprocess
 
-    submodule_dest.parent.mkdir(parents=True, exist_ok=True)
-    if not (repo_path / ".git").is_dir():
-        print(f"  WARN: {repo_path} is not a git repo — cannot add submodule", file=sys.stderr)
-        return
+    # Constitution submodule — skip entirely if profile has none
+    if con:
+        submodule_dest.parent.mkdir(parents=True, exist_ok=True)
+        if not (repo_path / ".git").is_dir():
+            print(f"  WARN: {repo_path} is not a git repo — cannot add submodule", file=sys.stderr)
+            return
 
-    gitmodules = repo_path / ".gitmodules"
-    submodule_path_rel = ".cursor/rules"
-    already_added = gitmodules.is_file() and submodule_url in gitmodules.read_text()
+        gitmodules = repo_path / ".gitmodules"
+        submodule_path_rel = ".cursor/rules"
+        already_added = gitmodules.is_file() and con.submodule_url in gitmodules.read_text()
 
-    if not already_added:
-        result = subprocess.run(
-            ["git", "submodule", "add", "--force", submodule_url, submodule_path_rel],
-            cwd=repo_path,
+        if not already_added:
+            result = subprocess.run(
+                ["git", "submodule", "add", "--force", con.submodule_url, submodule_path_rel],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode != 0:
+                print(f"  WARN: submodule add failed: {result.stderr.strip()}", file=sys.stderr)
+
+        # Pin to ref
+        subprocess.run(
+            ["git", "-C", str(submodule_dest), "fetch", "origin", con.ref],
             capture_output=True,
             text=True,
         )
-        if result.returncode != 0:
-            print(f"  WARN: submodule add failed: {result.stderr.strip()}", file=sys.stderr)
-
-    # Pin to ref
-    result = subprocess.run(
-        ["git", "-C", str(submodule_dest), "fetch", "origin", con.ref],
-        capture_output=True,
-        text=True,
-    )
-    subprocess.run(
-        ["git", "-C", str(submodule_dest), "checkout", con.ref],
-        capture_output=True,
-        text=True,
-    )
-    print(f"  ✔  constitution: {submodule_url}@{con.ref}")
+        subprocess.run(
+            ["git", "-C", str(submodule_dest), "checkout", con.ref],
+            capture_output=True,
+            text=True,
+        )
+        print(f"  ✔  constitution: {con.submodule_url}@{con.ref}")
+    else:
+        print(f"  –  constitution: (none — meta/config repo, no rules submodule)")
 
     # Skills
     for skill in profile.skills:

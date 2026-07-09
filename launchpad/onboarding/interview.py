@@ -153,10 +153,8 @@ org: {org}
 # Both fields are optional — omit to use the convention-based default.
 profiles:
   meta-pm:
-    constitution:
-      repo: meta-governance-rules
-      # org: drivestream-lab  # optional override
-      ref: v1.0.0             # pin to a tag
+    # constitution: omitted — meta repos hold config/planning docs, not code.
+    # No .cursor/rules submodule is needed here.
     skills: []
     codeowners_template: CODEOWNERS.meta-pm
     harness_pin_template: harness-pin.meta.yaml

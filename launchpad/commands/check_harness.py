@@ -63,7 +63,9 @@ def _check_harness_for_repo(
     if not repo_path.is_dir():
         return [f"Local clone not found: {repo_path}"]
 
-    issues.extend(_check_submodule(repo_path, ".cursor/rules", profile.constitution.ref))
+    # constitution is optional — skip submodule check when profile has none
+    if profile.constitution:
+        issues.extend(_check_submodule(repo_path, ".cursor/rules", profile.constitution.ref))
 
     for skill in profile.skills:
         skill_rel = f".cursor/skills/{skill.repo}"
@@ -149,7 +151,10 @@ def run_check_harness(
         print(f"  Fix: launchpad apply-harness {target_flag} --apply")
         return 1
 
-    print(f"  ✔  constitution  {profile.constitution.repo}@{profile.constitution.ref}")
+    if profile.constitution:
+        print(f"  ✔  constitution  {profile.constitution.repo}@{profile.constitution.ref}")
+    else:
+        print(f"  –  constitution  (none — meta/config repo)")
     for skill in profile.skills:
         print(f"  ✔  skill         {skill.repo}@{skill.ref or 'HEAD'}")
     print(f"  ✔  AGENTS.md")

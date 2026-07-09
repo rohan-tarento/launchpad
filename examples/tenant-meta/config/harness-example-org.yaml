@@ -20,10 +20,10 @@ org: example-org
 profiles:
   # ─── Meta repo profile ───────────────────────────────────────────────────
   meta-pm:
-    constitution:
-      repo: meta-governance-rules       # rules submodule repo on drivestream-lab
-      # org: drivestream-lab            # optional — defaults to drivestream-lab
-      ref: v1.0.0                       # pin to a tag
+    # constitution: omitted intentionally.
+    # Meta repos hold config YAMLs, planning docs, and ADRs — not application code.
+    # There are no MDC rules to enforce here, so no .cursor/rules submodule is needed.
+    # apply-harness skips the submodule step when constitution is absent.
     skills: []
     codeowners_template: CODEOWNERS.meta-pm
     harness_pin_template: harness-pin.meta.yaml
