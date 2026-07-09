@@ -26,6 +26,7 @@ Substitutes `example-org` → actual GitHub org from `programme.yaml` in CODEOWN
 | `CODEOWNERS.python-backend` | `python-backend` |
 | `CODEOWNERS.nextjs-frontend` | `nextjs-frontend` |
 | `CODEOWNERS.data-platform` | `data-platform` |
+| `CODEOWNERS.terraform-iac` | `terraform-iac` (Azure/AWS foundations) |
 | `CODEOWNERS.meta-pm` | `meta-pm` (meta repo) |
 
 ---
@@ -37,6 +38,7 @@ Substitutes `example-org` → actual GitHub org from `programme.yaml` in CODEOWN
 | `harness-pin.python-backend.yaml` | `python-backend` |
 | `harness-pin.nextjs-frontend.yaml` | `nextjs-frontend` |
 | `harness-pin.data-platform.yaml` | `data-platform` |
+| `harness-pin.terraform-iac.yaml` | `terraform-iac` |
 | `harness-pin.meta.yaml` | `meta-pm` (meta repo) |
 
 ---

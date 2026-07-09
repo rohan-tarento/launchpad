@@ -187,6 +187,10 @@ def _seed_harness_pin(
             "repo: drivestream-lab/nextjs-bff-rules",
             f"repo: {con.org}/{con.repo}",
         )
+        content = content.replace(
+            "repo: drivestream-lab/terraform-infra-rules",
+            f"repo: {con.org}/{con.repo}",
+        )
     if skill:
         content = content.replace("{{AGENT_SKILLS_REF}}", skill.ref or "HEAD")
         content = content.replace(

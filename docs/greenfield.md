@@ -1,4 +1,4 @@
-# Greenfield Operator Guide (v0.5.12)
+# Greenfield Operator Guide (v0.5.13)
 
 This guide walks a new operator through standing up a programme from zero.
 We use **KOLA** (org: `apex-common`) as the running example.
@@ -49,7 +49,7 @@ Any time — Readiness check
 - GitHub PAT with scopes: `repo`, `admin:org`, `project`, `delete_repo`
 - `launchpad` installed:
   ```
-  pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.12"
+  pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.13"
   ```
 
 ### Run the interview

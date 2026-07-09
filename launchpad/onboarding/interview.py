@@ -182,9 +182,11 @@ profiles:
 
   # terraform-iac:
   #   constitution:
-  #     repo: terraform-rules
-  #     ref: v1.0.0
-  #   skills: []
+  #     repo: terraform-infra-rules
+  #     ref: v0.1.2
+  #   skills:
+  #     - repo: prayog-skills
+  #       ref: v0.4.0
   #   codeowners_template: CODEOWNERS.terraform-iac
   #   harness_pin_template: harness-pin.terraform-iac.yaml
 

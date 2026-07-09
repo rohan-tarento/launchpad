@@ -120,7 +120,13 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 
 ---
 
-## Current release line (v0.5.12)
+## Current release line (v0.5.13)
+
+**v0.5.13** — terraform-iac harness templates:
+
+- Add **`CODEOWNERS.terraform-iac`** and **`harness-pin.terraform-iac.yaml`** (cloud-agnostic; pairs with `terraform-azure-foundation` / future `terraform-aws-foundation`)
+- **`apply-harness`** substitutes `terraform-infra-rules` in harness pin templates
+- Examples and docs updated for `terraform-infra-rules` + Azure foundation scaffold context
 
 **v0.5.12** — greenfield-tested factory fixes:
 
@@ -139,4 +145,4 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 
 **v0.5.10** introduced the greenfield refactor (5-YAML model, 5-command CLI, GitHub-only).
 
-Tenants adopt by pinning `0.5.12` in `.launchpad-version` and installing from that tag.
+Tenants adopt by pinning `0.5.13` in `.launchpad-version` and installing from that tag.

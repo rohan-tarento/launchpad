@@ -1,4 +1,4 @@
-# Setup guide (v0.5.12)
+# Setup guide (v0.5.13)
 
 End-to-end onboarding for a new programme.
 
@@ -45,7 +45,7 @@ For the full day-by-day walkthrough with a KOLA example, see **[greenfield.md](g
 ## Phase 1 — Install Launchpad (once per machine)
 
 ```bash
-pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.12"
+pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.13"
 launchpad --version
 ```
 

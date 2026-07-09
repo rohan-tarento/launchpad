@@ -256,7 +256,7 @@ cp .env.example .env && make setup && make check && make test
 |-------|---------------------|--------|
 | `python-backend` | `python-fastapi-foundation` | Implemented |
 | `nextjs-frontend` | `nextjs-bff-foundation` (planned) | Stub |
-| `terraform-iac` | (planned) | Not started |
+| `terraform-iac` | `terraform-azure-foundation` or `terraform-aws-foundation` (when published) | IaC repos |
 | `meta-pm` | `tenant-meta-foundation` | Meta repos only |
 
 ---
