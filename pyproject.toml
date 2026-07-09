@@ -29,4 +29,8 @@ where = ["."]
 include = ["launchpad*"]
 
 [tool.setuptools.package-data]
-launchpad = ["py.typed"]
+launchpad = [
+  "py.typed",
+  "templates/*",
+  "templates/**/*",
+]

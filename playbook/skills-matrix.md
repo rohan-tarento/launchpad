@@ -34,7 +34,7 @@ Install:
 
 ```bash
 launchpad apply-harness --meta --apply
-launchpad check-harness --meta
+launchpad status --meta
 ```
 
 Invoke: `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/prd-impact-map`

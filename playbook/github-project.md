@@ -68,7 +68,7 @@ Set `issue_types.roles.epic` to your org’s parent/initiative type name (e.g. s
 
 **Project table:** add **Type** column; enable **Show hierarchy** for parent/child tree.
 
-Factory PAT needs org **Issue types: Read and write**. Preflight: `launchpad check-harness --meta`.
+Factory PAT needs org **Issue types: Read and write**. Preflight: `launchpad status --meta`.
 
 ---
 

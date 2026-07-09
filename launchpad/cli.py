@@ -5,7 +5,7 @@ Public commands:
   init-client         Day-1 / Day-N GitHub setup (teams, repos, gitflow, board)
   apply-scaffold      Cookiecutter scaffold from scaffold-<org>.yaml
   apply-harness       Pin constitution + seed agent skills from harness-<org>.yaml
-  check-harness       Verify harness pins and submodule state
+  status              Readiness checklist + kit version + constitution drift check
   doctor              Preflight: token, config, version checks
   clients             List registered clients (~/.config/launchpad/clients.yaml)
   whoami              Verify GITHUB_TOKEN and print login
@@ -22,7 +22,12 @@ import sys
 from pathlib import Path
 
 from launchpad import __version__
-from launchpad.clients import ClientRegistryError, apply_client_context, format_clients_table
+from launchpad.clients import (
+    ClientRegistryError,
+    apply_client_context,
+    config_dir_for_client,
+    format_clients_table,
+)
 from launchpad.doctor import run as run_doctor
 from launchpad.github_client import GitHubClient, GitHubError
 from launchpad.onboarding.cli import add_onboard_parser
@@ -46,9 +51,29 @@ def _dry_run_from_args(args: argparse.Namespace) -> bool:
     return not getattr(args, "apply", False)
 
 
-def _config_dir(args: argparse.Namespace) -> Path | None:
+def _config_dir(args: argparse.Namespace) -> Path:
+    """Resolve config/ directory — always derived from clients.yaml.
+
+    Priority:
+      1. Explicit --config-dir flag  (escape hatch for scripts/testing)
+      2. Active client from LAUNCHPAD_CLIENT env (set by apply_client_context)
+         → reads path from clients.yaml, appends /config
+
+    Raises ClientRegistryError if no client can be resolved.
+    """
     raw = getattr(args, "config_dir", "") or ""
-    return Path(raw).expanduser().resolve() if raw else None
+    if raw:
+        return Path(raw).expanduser().resolve()
+
+    client_id = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
+    if not client_id:
+        raise ClientRegistryError(
+            "no client active — pass --client <id> or set a default in "
+            f"~/.config/launchpad/clients.yaml\n"
+            "  Run 'launchpad clients' to see registered programmes.\n"
+            "  First time? Run 'launchpad onboard interview'."
+        )
+    return config_dir_for_client(client_id)
 
 
 # ── Command handlers ──────────────────────────────────────────────────────────
@@ -104,16 +129,6 @@ def cmd_apply_harness(args: argparse.Namespace) -> int:
     )
 
 
-def cmd_check_harness(args: argparse.Namespace) -> int:
-    from launchpad.commands.check_harness import run_check_harness
-
-    return run_check_harness(
-        meta=args.meta,
-        repo_name=args.repo or "",
-        config_dir=_config_dir(args),
-    )
-
-
 def cmd_status(args: argparse.Namespace) -> int:
     from launchpad.commands.status import run_status
 
@@ -132,7 +147,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="launchpad",
         description=(
             "Launchpad factory automation (v0.5.10 · GitHub only).\n"
-            "Run from your <slug>-meta workspace, or use --client.\n"
+            "Pass --client <id> to select your programme (see: launchpad clients).\n"
             "All commands are dry-run by default — pass --apply to execute."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -174,7 +189,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_scope_flags(p)
     _add_apply_flags(p)
-    p.add_argument("--config-dir", default="", help="Path to config/ dir (default: ./config)")
+    p.add_argument("--config-dir", default="", help="Override config/ dir (default: derived from clients.yaml)")
     p.set_defaults(func=cmd_init_client)
 
     # ── apply-scaffold ────────────────────────────────────────────────────────
@@ -185,7 +200,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_scope_flags(p)
     _add_apply_flags(p)
     p.add_argument("--force", action="store_true", help="Overwrite existing scaffold output")
-    p.add_argument("--config-dir", default="", help="Path to config/ dir (default: ./config)")
+    p.add_argument("--config-dir", default="", help="Override config/ dir (default: derived from clients.yaml)")
     p.set_defaults(func=cmd_apply_scaffold)
 
     # ── apply-harness ─────────────────────────────────────────────────────────
@@ -195,17 +210,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_scope_flags(p)
     _add_apply_flags(p)
-    p.add_argument("--config-dir", default="", help="Path to config/ dir (default: ./config)")
+    p.add_argument("--config-dir", default="", help="Override config/ dir (default: derived from clients.yaml)")
     p.set_defaults(func=cmd_apply_harness)
-
-    # ── check-harness ─────────────────────────────────────────────────────────
-    p = sub.add_parser(
-        "check-harness",
-        help="Verify harness pins, submodule state, and AGENTS.md",
-    )
-    _add_scope_flags(p)
-    p.add_argument("--config-dir", default="", help="Path to config/ dir (default: ./config)")
-    p.set_defaults(func=cmd_check_harness)
 
     # ── status ────────────────────────────────────────────────────────────────
     p = sub.add_parser(
@@ -213,10 +219,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Programme readiness checklist + single best NEXT: command",
     )
     _add_scope_flags(p)
-    p.add_argument("--config-dir", default="", help="Path to config/ dir (default: ./config)")
+    p.add_argument("--config-dir", default="", help="Override config/ dir (default: derived from clients.yaml)")
     p.set_defaults(func=cmd_status)
 
     return parser
+
+
+# Commands that work before clients.yaml exists (bootstrap / utility)
+_CLIENT_EXEMPT_COMMANDS = {"doctor", "clients", "whoami", "onboard"}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -224,9 +234,22 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        apply_client_context(getattr(args, "client", "") or "")
+        client_id = apply_client_context(getattr(args, "client", "") or "")
     except ClientRegistryError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    # Commands that need a client error at _config_dir() time — but give a
+    # better message here upfront so the user doesn't see a stack trace.
+    command = getattr(args, "command", "") or ""
+    if client_id is None and command not in _CLIENT_EXEMPT_COMMANDS:
+        from launchpad.clients import CLIENTS_FILE
+        print(
+            f"ERROR: no client active — pass --client <id> or set 'default:' in {CLIENTS_FILE}\n"
+            f"  Run 'launchpad clients' to see registered programmes.\n"
+            f"  First time? Run 'launchpad onboard interview'.",
+            file=sys.stderr,
+        )
         return 1
 
     try:

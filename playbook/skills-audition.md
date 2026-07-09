@@ -137,4 +137,4 @@ Spec: 01  (or wave W1 of INIT-EXAMPLE-003)
 ## Exit
 
 - [ ] Dev bundle (§1–2, §4–8) scored **Y** on pilot repo
-- [ ] `launchpad check-harness --repo <pilot>` passes after harness migration PR
+- [ ] `launchpad status --repo <pilot>` passes after harness migration PR

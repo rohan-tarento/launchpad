@@ -42,7 +42,7 @@ launchpad apply-scaffold --meta --apply
 
 # Day 1: pin harness
 launchpad apply-harness --meta --apply
-launchpad check-harness --meta
+launchpad status --meta
 
 # Day N: app repos (edit governance + scaffold YAMLs first)
 launchpad init-client    --repo example-api --apply

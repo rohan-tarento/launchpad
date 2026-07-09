@@ -15,7 +15,7 @@ launchpad onboard interview          # Day 0  — 4 questions → 5 YAML files +
 launchpad init-client --meta         # Day 1  — meta repo on GitHub (teams, gitflow, board)
 launchpad apply-scaffold --meta      # Day 1  — scaffold from YAML (optional)
 launchpad apply-harness  --meta      # Day 1  — pin constitution + seed skills
-launchpad check-harness  --meta      # Any    — verify harness is correct
+launchpad status  --meta      # Any    — verify harness is correct
 ```
 
 All commands are **dry-run by default** — pass `--apply` to execute.
@@ -100,7 +100,7 @@ Creates team, repo, gitflow, project board.  Idempotent — safe to re-run.
 launchpad apply-scaffold --meta --apply
 
 launchpad apply-harness --meta --apply
-launchpad check-harness --meta
+launchpad status --meta
 ```
 
 ### Day N — Add an app repo
@@ -113,7 +113,7 @@ launchpad init-client --repo stratum-platform-core --apply
 launchpad apply-scaffold --repo stratum-platform-core --apply
 
 launchpad apply-harness --repo stratum-platform-core --apply
-launchpad check-harness --repo stratum-platform-core
+launchpad status --repo stratum-platform-core
 ```
 
 ### Any time — Readiness check

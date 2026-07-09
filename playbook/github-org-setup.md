@@ -31,7 +31,7 @@ Repos in factory config: **<client>-meta**, **example-api**.
 ```bash
 launchpad doctor
 launchpad init-client --meta --apply
-launchpad check-harness --meta
+launchpad status --meta
 launchpad seed-work --config work/INIT-<id>.yaml --apply
 ```
 

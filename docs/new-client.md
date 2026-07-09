@@ -29,7 +29,7 @@ Quick checklist. Full walkthrough: **[greenfield.md](greenfield.md)**.
 
 - [ ] Edit `config/harness-<org>.yaml`: set `constitution.ref` to a pinned tag
 - [ ] `launchpad apply-harness --meta --apply`
-- [ ] `launchpad check-harness --meta`
+- [ ] `launchpad status --meta`
 
 ### Day N — Add each app repo
 
@@ -38,7 +38,7 @@ Quick checklist. Full walkthrough: **[greenfield.md](greenfield.md)**.
 - [ ] Edit `config/scaffold-<org>.yaml`: add repo block if scaffolding
 - [ ] `launchpad apply-scaffold --repo <name> --apply`
 - [ ] `launchpad apply-harness --repo <name> --apply`
-- [ ] `launchpad check-harness --repo <name>`
+- [ ] `launchpad status --repo <name>`
 - [ ] Edit `config/service-catalog-<org>.yaml`: promote repo from `planned` → `live`
 
 ---

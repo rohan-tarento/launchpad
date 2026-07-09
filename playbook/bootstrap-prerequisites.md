@@ -57,13 +57,13 @@ launchpad init-client --meta --dry-run
 launchpad init-client --meta --apply
 launchpad apply-scaffold --meta --apply
 launchpad apply-harness --meta --apply
-launchpad check-harness --meta
+launchpad status --meta
 
 # Day N (repeat per repo)
 launchpad init-client --repo <name> --apply
 launchpad apply-scaffold --repo <name> --apply
 launchpad apply-harness --repo <name> --apply
-launchpad check-harness --repo <name>
+launchpad status --repo <name>
 
 # Optional work manifests
 launchpad seed-work --config work/INIT-<id>.yaml --dry-run

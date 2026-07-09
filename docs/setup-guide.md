@@ -130,7 +130,7 @@ Edit `config/harness-<org>.yaml`: set `constitution.ref` to a pinned tag.
 
 ```bash
 launchpad apply-harness --meta --apply
-launchpad check-harness --meta
+launchpad status --meta
 ```
 
 ---
@@ -144,7 +144,7 @@ For each app repo:
 3. Edit `config/scaffold-<org>.yaml` — add repo block
 4. `launchpad apply-scaffold --repo <name> --apply`
 5. `launchpad apply-harness --repo <name> --apply`
-6. `launchpad check-harness --repo <name>`
+6. `launchpad status --repo <name>`
 7. Edit `config/service-catalog-<org>.yaml` — promote from `planned` → `live`
 
 ---
@@ -173,7 +173,7 @@ See [playbook/delivery-workflow.md](../playbook/delivery-workflow.md).
 | Gitflow + board | ✓ `init-client` | |
 | Scaffold app repo | ✓ `apply-scaffold` | |
 | Pin harness | ✓ `apply-harness` | |
-| Verify harness | ✓ `check-harness` | |
+| Verify harness | ✓ `status` | |
 | Create issues | `seed-work` (WorkManifest) | `gh issue create` per wave |
 
 ---

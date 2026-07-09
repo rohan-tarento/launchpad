@@ -20,7 +20,7 @@ Three layers — do not skip or reorder:
 │ 1. init-client --repo   GitHub repo + team + gitflow + board  │
 │ 2. apply-scaffold       cookiecutter foundation code          │
 │ 3. apply-harness        rules submodule + AGENTS.md + skills  │
-│ 4. check-harness        verify pins match config              │
+│ 4. status        verify pins match config              │
 ├──────────────────────────────────────────────────────────────┤
 │ 5. spec handoff PR      docs/specification/product/INIT-*     │
 │ 6. wave PRs (W0…)       business logic on top of foundation   │
@@ -166,7 +166,7 @@ git push
 ## Step 4 — Verify harness
 
 ```bash
-launchpad check-harness --repo example-api
+launchpad status --repo example-api
 ```
 
 Reports any mismatches between `.harness-pin.yaml` and `harness-<org>.yaml`. Fix config then re-run `apply-harness --apply`.
@@ -218,7 +218,7 @@ git add -A && git commit -m "chore: scaffold example-api" && git push -u origin 
 # 3. Harness
 cd ../<slug>-meta
 launchpad apply-harness --repo example-api --apply
-launchpad check-harness --repo example-api
+launchpad status --repo example-api
 
 # 4. Harness commit in app repo
 cd ../example-api
@@ -240,7 +240,7 @@ cp .env.example .env && make setup && make check && make test
 - [ ] `apply-scaffold --repo <name> --apply` — foundation code in place
 - [ ] Foundation committed and pushed to `develop`
 - [ ] `apply-harness --repo <name> --apply` — pins + AGENTS.md
-- [ ] `check-harness --repo <name>` green
+- [ ] `status --repo <name>` green
 - [ ] Harness committed and pushed
 - [ ] `make setup && make check && make test` green
 - [ ] `service-catalog-<org>.yaml` — repo promoted from `planned` to `live`

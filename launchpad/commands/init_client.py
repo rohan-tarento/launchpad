@@ -169,13 +169,16 @@ def run_init_client(
     repo_name: str = "",
     apply: bool = False,
     dry_run: bool = True,
-    config_dir: Path | None = None,
+    config_dir: Path | None = None,  # None only in tests — main() always resolves via clients.yaml
 ) -> int:
     if not meta and not repo_name:
         print("ERROR: pass --meta or --repo <name>", file=sys.stderr)
         return 1
 
-    cdir = config_dir or (Path(".").resolve() / "config")
+    if config_dir is None:
+        # Should not reach here — main() blocks client-less commands early.
+        raise RuntimeError("config_dir not resolved — pass --client <id> or run launchpad onboard interview")
+    cdir = config_dir
 
     try:
         prog, gov, cat = _load_all_schemas(cdir)

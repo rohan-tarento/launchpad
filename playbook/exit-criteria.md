@@ -6,7 +6,7 @@ Use when closing the **first factory bootstrap** epic for a new tenant (repos, t
 
 ## Factory (`<client>-meta`)
 
-- [ ] `launchpad check-harness --meta` — all checks green
+- [ ] `launchpad status --meta` — all checks green
 - [ ] Engineering project board live with custom fields
 - [ ] Bootstrap work manifest seeded (if used)
 - [ ] Wiki published from `wiki/` (optional)
@@ -17,7 +17,7 @@ Use when closing the **first factory bootstrap** epic for a new tenant (repos, t
 ## Pilot app harness (`example-api` or first app repo)
 
 - [ ] `launchpad apply-harness --apply` merged
-- [ ] `launchpad check-harness` passes
+- [ ] `launchpad status` passes
 - [ ] Rules submodule + prayog-skills pin documented in harness config
 - [ ] `/pre-implement` and `/verify` audition pass — [skills-audition.md](skills-audition.md)
 

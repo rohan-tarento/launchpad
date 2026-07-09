@@ -115,7 +115,7 @@ All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub or 
 | `init-client` | Create GitHub teams, repo, gitflow, project board | `--meta` or `--repo <name>` |
 | `apply-scaffold` | Run cookiecutter template into repo | `--meta` or `--repo <name>` |
 | `apply-harness` | Pin constitution submodule, seed skills, write AGENTS.md | `--meta` or `--repo <name>` |
-| `check-harness` | Verify harness pins match config | `--meta` or `--repo <name>` |
+| `status` | Verify harness pins match config | `--meta` or `--repo <name>` |
 | `status` | Checklist + suggest next command | `--meta` |
 | `doctor` | Preflight checks (token, config, version pin) | — |
 | `whoami` | Verify token and print GitHub login | — |
@@ -132,13 +132,13 @@ launchpad init-client --meta --apply
 # Day 1 — scaffold + harness meta
 launchpad apply-scaffold --meta --apply
 launchpad apply-harness --meta --apply
-launchpad check-harness --meta
+launchpad status --meta
 
 # Day N — app repos (repeat per repo)
 launchpad init-client --repo example-api --apply
 launchpad apply-scaffold --repo example-api --apply
 launchpad apply-harness --repo example-api --apply
-launchpad check-harness --repo example-api
+launchpad status --repo example-api
 
 # Work manifests (optional — multi-repo backlog)
 launchpad seed-work --config work/INIT-<id>.yaml --dry-run
@@ -151,9 +151,9 @@ launchpad seed-work --config work/INIT-<id>.yaml --apply
 |------|-------------|---------|
 | `programme.yaml` | `Programme` | `init-client`, `doctor`, all commands |
 | `governance-{org}.yaml` | `GovernanceConfig` | `init-client` — teams, repos, stacks, board |
-| `harness-{org}.yaml` | `HarnessConfig` | `apply-harness`, `check-harness` |
+| `harness-{org}.yaml` | `HarnessConfig` | `apply-harness`, `status` |
 | `scaffold-{org}.yaml` | `ScaffoldConfig` | `apply-scaffold` |
-| `service-catalog-{org}.yaml` | `ServiceCatalog` | `status`, `check-harness` |
+| `service-catalog-{org}.yaml` | `ServiceCatalog` | `status`, `status` |
 
 Backlog: `work/*.yaml` with `kind: WorkManifest` — not in platform YAML.
 
@@ -162,7 +162,7 @@ Harness commands (no GitHub API required, work without PAT):
 ```bash
 launchpad apply-harness --repo example-api --dry-run
 launchpad apply-harness --repo example-api --apply
-launchpad check-harness --repo example-api
+launchpad status --repo example-api
 ```
 
 See [harness-pins.md](harness-pins.md).

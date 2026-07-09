@@ -29,8 +29,15 @@ def _find_config(config_dir: Path, pattern: str) -> Path | None:
 
 
 def _kit_templates_dir() -> Path:
-    """Resolve the kit's templates/ directory (sibling of launchpad package)."""
-    return Path(__file__).resolve().parent.parent.parent / "templates"
+    """Resolve the kit's templates/ directory (inside the launchpad package).
+
+    Works identically whether installed from local source or from a git tag:
+      __file__ = .../site-packages/launchpad/commands/apply_harness.py
+      .parent  = .../site-packages/launchpad/commands/
+      .parent  = .../site-packages/launchpad/
+      / "templates" = .../site-packages/launchpad/templates/
+    """
+    return Path(__file__).resolve().parent.parent / "templates"
 
 
 def _resolve_kit_template(filename: str) -> Path | None:
@@ -97,6 +104,7 @@ def _apply_harness_to_repo(
     submodule step entirely and only seed CODEOWNERS + harness-pin.
     Template filenames come from the profile YAML, not hardcoded Python maps.
     """
+    con = profile.constitution  # None when profile has no constitution (e.g. meta-pm)
     submodule_dest = repo_path / ".cursor" / "rules"
 
     if not apply:
@@ -173,14 +181,17 @@ def run_apply_harness(
     meta: bool = False,
     repo_name: str = "",
     apply: bool = False,
-    config_dir: Path | None = None,
+    config_dir: Path | None = None,  # None only in tests — main() always resolves via clients.yaml
     workspace: Path | None = None,
 ) -> int:
     if not meta and not repo_name:
         print("ERROR: pass --meta or --repo <name>", file=sys.stderr)
         return 1
 
-    cdir = config_dir or (Path(".").resolve() / "config")
+    if config_dir is None:
+        # Should not reach here — main() blocks client-less commands early.
+        raise RuntimeError("config_dir not resolved — pass --client <id> or run launchpad onboard interview")
+    cdir = config_dir
 
     harness_path = _find_config(cdir, "harness-*.yaml")
     if harness_path is None:
@@ -263,7 +274,7 @@ def run_apply_harness(
         print("║  NEXT:                                                       ║")
         print("╠══════════════════════════════════════════════════════════════╣")
         target_flag = "--meta" if meta else f"--repo {target}"
-        print(f"║  launchpad check-harness {target_flag:<35}  ║")
+        print(f"║  launchpad status {target_flag:<41}  ║")
         print("╚══════════════════════════════════════════════════════════════╝")
 
     return 0

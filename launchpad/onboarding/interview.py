@@ -322,9 +322,7 @@ def _write_env_stub(slug: str, org: str, meta_path: Path) -> Path:
         f"GITHUB_TOKEN=github_pat_REPLACE_ME\n"
         f"\n"
         f"# GitHub org:  {org}\n"
-        f"# Meta repo:   https://github.com/{org}/{slug}-meta\n"
-        f"\n"
-        f"# export LAUNCHPAD_TENANT_ROOT={meta_path}\n",
+        f"# Meta repo:   https://github.com/{org}/{slug}-meta\n",
         encoding="utf-8",
     )
     path.chmod(0o600)

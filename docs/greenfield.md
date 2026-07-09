@@ -21,7 +21,7 @@ Day 1 — Scaffold meta (optional)
 
 Day 1 — Pin meta harness
   launchpad apply-harness --meta --apply
-  launchpad check-harness --meta
+  launchpad status --meta
 
 Day N — Add an app repo
   # Edit governance-Sandvik-Common.yaml: add repo block
@@ -33,7 +33,7 @@ Day N — Scaffold the app repo
 
 Day N — Pin app repo harness
   launchpad apply-harness --repo stratum-platform-core --apply
-  launchpad check-harness --repo stratum-platform-core
+  launchpad status --repo stratum-platform-core
 
 Any time — Readiness check
   launchpad status --meta
@@ -161,16 +161,16 @@ launchpad apply-scaffold --meta --apply
 
 ```bash
 launchpad apply-harness --meta --apply
-launchpad check-harness --meta
+launchpad status --meta
 ```
 
 Output:
 ```
-check-harness  →  Sandvik-Common/stratum-meta  [profile: meta-pm]
+status  →  Sandvik-Common/stratum-meta  [profile: meta-pm]
   ✔  constitution  meta-governance-rules@v1.0.0
   ✔  AGENTS.md
 
-  check-harness: OK
+  status: OK
 ```
 
 ---
@@ -232,7 +232,7 @@ repos:
 ```bash
 launchpad apply-scaffold --repo stratum-platform-core --apply
 launchpad apply-harness --repo stratum-platform-core --apply
-launchpad check-harness --repo stratum-platform-core
+launchpad status --repo stratum-platform-core
 ```
 
 ### Step 5: Promote in service catalog
@@ -271,7 +271,7 @@ status  →  Sandvik-Common/stratum-meta
   [✔] Scaffold (meta)      (enabled)
   [✔] Harness pinned       (profile: meta-pm)
 
-NEXT: launchpad check-harness --meta
+NEXT: launchpad status --meta
 ```
 
 ---
@@ -292,7 +292,7 @@ Then re-run for each affected repo:
 
 ```bash
 launchpad apply-harness --repo stratum-platform-core --apply
-launchpad check-harness --repo stratum-platform-core
+launchpad status --repo stratum-platform-core
 ```
 
 ---

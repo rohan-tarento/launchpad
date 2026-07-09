@@ -1,12 +1,12 @@
-"""Preflight checks for launchpad on a tenant workspace (v0.5.10).
+"""Preflight checks for launchpad (v0.5.10).
 
 Checks:
-  • LAUNCHPAD_CLIENT / clients.yaml lookup
+  • clients.yaml exists and active client is resolvable
   • programme.yaml exists and is valid
-  • programme_slug matches clients.yaml id
-  • GITHUB_TOKEN is set and not a placeholder
-  • GitHub API reachable and token valid
-  • .launchpad-version matches installed version
+  • programme_slug matches the active client id
+  • env.d/<id>.env exists with a real GITHUB_TOKEN (not placeholder)
+  • GitHub API is reachable with the token
+  • .launchpad-version pin at meta root matches installed version
 """
 
 from __future__ import annotations
@@ -16,7 +16,14 @@ import sys
 from pathlib import Path
 
 from launchpad import __version__
-from launchpad.clients import ENV_D_DIR
+from launchpad.clients import (
+    ClientRegistryError,
+    ENV_D_DIR,
+    CLIENTS_FILE,
+    config_dir_for_client,
+    resolve_client_id,
+    resolve_client_path,
+)
 from launchpad.github_client import GitHubClient, GitHubError
 
 
@@ -30,31 +37,43 @@ def run(*, verbose: bool = False) -> int:
     print(f"launchpad {__version__}")
     print()
 
-    # ── Client context ──────────────────────────────────────────────────────
+    # ── Client / clients.yaml ────────────────────────────────────────────────
     client_id = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
-    if client_id:
-        env_file = ENV_D_DIR / f"{client_id}.env"
+    if not client_id:
+        # Try resolving without an explicit arg (picks up default: or sole client)
+        try:
+            client_id = resolve_client_id("") or ""
+        except ClientRegistryError:
+            client_id = ""
+
+    if not client_id:
+        errors.append(
+            f"no active client — pass --client <id> or set 'default:' in {CLIENTS_FILE}\n"
+            "  First time? Run: launchpad onboard interview"
+        )
+    else:
         print(f"client:  {client_id}")
+        env_file = ENV_D_DIR / f"{client_id}.env"
         if env_file.is_file():
             print(f"secrets: {env_file}")
         else:
-            warnings.append(f"env file not found: {env_file}  (run onboard interview)")
+            warnings.append(
+                f"env file not found: {env_file}\n"
+                f"  Create it with your GITHUB_TOKEN — run: launchpad onboard interview"
+            )
 
-    # ── Tenant root / programme.yaml ────────────────────────────────────────
-    tenant_root: Path | None = None
-    try:
-        from launchpad.config import tenant_root as _tenant_root
-        tenant_root = _tenant_root()
-        print(f"meta:    {tenant_root}")
-    except FileNotFoundError:
-        warnings.append(
-            "meta repo root not found — "
-            "set LAUNCHPAD_TENANT_ROOT, use --client <id>, or cd into <slug>-meta"
-        )
+    # ── Meta repo path / programme.yaml ─────────────────────────────────────
+    meta_path: Path | None = None
+    if client_id:
+        try:
+            meta_path = resolve_client_path(client_id)
+            print(f"meta:    {meta_path}")
+        except ClientRegistryError as exc:
+            errors.append(str(exc))
 
     programme_slug_from_yaml: str = ""
-    if tenant_root:
-        prog_path = tenant_root / "config" / "programme.yaml"
+    if meta_path:
+        prog_path = meta_path / "config" / "programme.yaml"
         if prog_path.is_file():
             try:
                 from launchpad.schema.programme import load_programme
@@ -62,39 +81,43 @@ def run(*, verbose: bool = False) -> int:
                 programme_slug_from_yaml = prog.programme_slug
                 print(f"programme: {prog.programme}  (slug: {prog.programme_slug}  org: {prog.org})")
 
-                # Cross-check slug vs clients.yaml id
                 if client_id and programme_slug_from_yaml and client_id != programme_slug_from_yaml:
                     warnings.append(
-                        f"LAUNCHPAD_CLIENT='{client_id}' does not match "
-                        f"programme_slug='{programme_slug_from_yaml}' in programme.yaml"
+                        f"client id '{client_id}' does not match "
+                        f"programme_slug '{programme_slug_from_yaml}' in programme.yaml\n"
+                        f"  Tip: the client id in clients.yaml should equal the programme_slug."
                     )
             except Exception as exc:
                 warnings.append(f"programme.yaml invalid: {exc}")
         elif verbose:
-            print("programme.yaml: not found (run onboard interview)")
+            print("programme.yaml: not found  (run: launchpad onboard interview)")
 
-        pin_path = tenant_root / ".launchpad-version"
+        pin_path = meta_path / ".launchpad-version"
         if pin_path.is_file():
             pin = pin_path.read_text().strip()
             print(f"pinned:  {pin}")
             if pin != __version__:
-                warnings.append(f"installed {__version__} != .launchpad-version pin {pin}")
-        else:
-            warnings.append("no .launchpad-version at meta root")
+                warnings.append(
+                    f"installed v{__version__} != .launchpad-version pin '{pin}'\n"
+                    f"  Update the pin or reinstall the matching version."
+                )
+        elif verbose:
+            print(".launchpad-version: not pinned  (optional — add it to lock kit version)")
 
-    # ── GitHub token ────────────────────────────────────────────────────────
+    # ── GitHub token ─────────────────────────────────────────────────────────
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""
     if not token:
-        env_hint = f"env.d/{client_id or '<slug>'}.env" if client_id else "env.d/<slug>.env"
+        env_hint = ENV_D_DIR / f"{client_id or '<slug>'}.env"
         errors.append(
-            f"GITHUB_TOKEN not set — "
-            f"add it to {ENV_D_DIR / (client_id or '<slug>') }.env and source it"
+            f"GITHUB_TOKEN not set\n"
+            f"  Add it to {env_hint} and make sure the env file is loaded.\n"
+            f"  The token is loaded automatically when you pass --client <id>."
         )
     elif token == _TOKEN_PLACEHOLDER:
         env_file_path = ENV_D_DIR / f"{client_id or 'unknown'}.env"
         errors.append(
-            f"GITHUB_TOKEN is still the placeholder — "
-            f"replace it in {env_file_path}"
+            f"GITHUB_TOKEN is still the placeholder value\n"
+            f"  Replace it with a real PAT in {env_file_path}"
         )
     else:
         print("GITHUB_TOKEN: set")

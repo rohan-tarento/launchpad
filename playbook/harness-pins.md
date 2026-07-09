@@ -92,7 +92,7 @@ From the `<slug>-meta` config directory:
 ```bash
 launchpad apply-harness --repo example-api --dry-run
 launchpad apply-harness --repo example-api --apply
-launchpad check-harness --repo example-api
+launchpad status --repo example-api
 ```
 
 Config: `config/harness-<org>.yaml`
@@ -107,7 +107,7 @@ Short harness-only path (repo already exists with code):
 2. Ensure clone lives next to `<slug>-meta` in the workspace.
 3. `launchpad apply-harness --repo <name> --apply`
 4. Commit pin, `AGENTS.md`, rules submodule, `.gitignore` (`.agents/`).
-5. `launchpad check-harness --repo <name>` before opening PR.
+5. `launchpad status --repo <name>` before opening PR.
 
 ---
 
@@ -118,7 +118,7 @@ PM workspace — no rules submodule. Installs prayog PM skills + community `prd`
 ```bash
 launchpad apply-harness --meta --dry-run
 launchpad apply-harness --meta --apply
-launchpad check-harness --meta
+launchpad status --meta
 ```
 
 Commit `.harness-pin.yaml`, `skills-lock.json`, `AGENTS.md` — **not** `.agents/skills/` (gitignored).

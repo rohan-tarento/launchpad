@@ -125,7 +125,7 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 **v0.5.10** introduces the greenfield refactor:
 
 - **5-YAML config model** (`programme`, `governance`, `harness`, `scaffold`, `service-catalog`)
-- **5-command CLI** (`onboard interview`, `init-client`, `apply-scaffold`, `apply-harness`, `check-harness`)
+- **5-command CLI** (`onboard interview`, `init-client`, `apply-scaffold`, `apply-harness`, `status`)
 - **GitHub-only** (GitLab planned v0.6)
 - **Scaffold fully YAML-driven** — `cookiecutter` templates defined in `scaffold-<org>.yaml`
 - **`onboard interview`** — 4 questions, auto-writes all 5 YAMLs + registry + PAT stub
