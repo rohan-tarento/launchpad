@@ -57,7 +57,7 @@ Set **As-built** before **In review**.
 
 ## Issue types (org — color on board)
 
-Defined in `config/project-example.yaml` under `issue_types`.
+Defined in `config/governance-example-org.yaml` under `issue_types`.
 
 | Role | GitHub Type | When |
 |------|-------------|------|
@@ -68,28 +68,28 @@ Set `issue_types.roles.epic` to your org’s parent/initiative type name (e.g. s
 
 **Project table:** add **Type** column; enable **Show hierarchy** for parent/child tree.
 
-Factory PAT needs org **Issue types: Read and write**. Preflight: `launchpad verify-platform`.
+Factory PAT needs org **Issue types: Read and write**. Preflight: `launchpad status --meta`.
 
 ---
 
 ## Automation
 
 ```bash
-launchpad bootstrap-project --config config/project-example.yaml --dry-run
-launchpad bootstrap-project --config config/project-example.yaml --apply
+launchpad bootstrap-project --config config/governance-example-org.yaml --dry-run
+launchpad bootstrap-project --config config/governance-example-org.yaml --apply
 ```
 
 Or as part of platform setup:
 
 ```bash
-launchpad setup-platform --apply
+launchpad init-client --meta --apply
 ```
 
-Config: `config/project-example.yaml` — columns, fields, repos, **team board access**.
+Config: `config/governance-example-org.yaml` — columns, fields, repos, **team board access**.
 
 ### Team access (board visibility)
 
-Repo team grants (`setup-gitflow`) do **not** grant access to the org project board. Set `team_access` in `project-<org>.yaml` (with `includes.org` so team slugs resolve):
+Repo team grants (`init-client`) do **not** grant access to the org project board. Set `team_access` in `project-<org>.yaml` (with `includes.org` so team slugs resolve):
 
 ```yaml
 includes:
@@ -115,7 +115,7 @@ Idempotent: safe to re-run; updates Status + single-select field options and cre
 Extend `project-<org>.yaml` when more repos join the program board, then run:
 
 ```bash
-launchpad bootstrap-project --config config/project-example.yaml --apply
+launchpad bootstrap-project --config config/governance-example-org.yaml --apply
 ```
 
 `bootstrap-project` syncs **Status** columns and **single-select** field options (e.g. Codebase, As-built) from config.

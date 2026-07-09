@@ -23,15 +23,15 @@ All bootstrap uses **`launchpad`** + `GITHUB_TOKEN`. See [python-automation.md](
 
 | Command | Purpose |
 |---------|---------|
-| `bootstrap-org` | Ensure repos + labels exist (OrgConfig + gitflow union, includes meta) |
-| `bootstrap-teams` | Create org teams |
-| `seed-repos` | Seed `main`, create `develop`, set default branch `develop` |
-| `setup-gitflow` | Reconcile GitHub to `gitflow-*.yaml` |
+| `init-client` | Ensure repos + labels exist (OrgConfig + gitflow union, includes meta) |
+| `init-client` | Create org teams |
+| `init-client` | Seed `main`, create `develop`, set default branch `develop` |
+| `init-client` | Reconcile GitHub to `governance-<org>.yaml` |
 | `bootstrap-project` | Project board + fields |
 
 ```bash
-launchpad seed-repos --config config/gitflow-<org>.yaml --apply
-launchpad setup-gitflow --config config/gitflow-<org>.yaml --apply
+launchpad init-client --config config/gitflow-<org>.yaml --apply
+launchpad init-client --config config/gitflow-<org>.yaml --apply
 ```
 
 Only `--config`, `--apply` / `--dry-run`, `--org`, and `--repo` (debug filter) are valid. Policy is never passed on the command line.
@@ -44,7 +44,7 @@ Only `--config`, `--apply` / `--dry-run`, `--org`, and `--repo` (debug filter) a
 | `options.require_ci` | Require `ci`, `policy-branch-name` (develop), `policy-merge-source` (main) |
 | `options.branch_naming` | Create `branch-naming-standard` ruleset |
 | `options.with_templates` | Copy workflows + CODEOWNERS into local clones under `options.workspace` |
-| `options.seed_empty` | Seed empty repos on `main` during `seed-repos` (default: true) |
+| `options.seed_empty` | Seed empty repos on `main` during `init-client` (default: true) |
 | `options.init_empty` | Deprecated alias for `seed_empty` |
 | `branch_naming` | Prefixes, `mode` (standard/strict), exceptions |
 | `protection` | Review count, stale dismiss, enforce admins per branch |
@@ -52,7 +52,7 @@ Only `--config`, `--apply` / `--dry-run`, `--org`, and `--repo` (debug filter) a
 
 ## Branch protection (via API)
 
-`setup-gitflow` uses GitHub **branch protection** API on existing repos:
+`init-client` uses GitHub **branch protection** API on existing repos:
 
 - **`main`**: PR required, reviews from `protection.main`, **push restricted to `release-managers`**
 - **`develop` (app repos)**: PR required, **push restricted to profile dev team**; **`pm-team` has Write for handoff branches but is not in merge restrictions**
@@ -66,7 +66,7 @@ When `options.require_ci: true` (after workflow PRs are merged):
 Typical rollout in gitflow YAML:
 
 1. Bootstrap with `require_ci: false`, `with_templates: true` — merge workflow PRs
-2. Set `require_ci: true` — re-run `setup-gitflow --apply`
+2. Set `require_ci: true` — re-run `init-client --apply`
 
 ### Branch naming ruleset
 
@@ -80,5 +80,5 @@ When `options.with_templates: true`, Launchpad generates `policy-branch-name.yml
 
 1. Add people to teams in GitHub → Organization → Teams  
 2. Run `ci` on a test PR to `develop`  
-3. Set `options.require_ci: true` in gitflow YAML and re-run `setup-gitflow --apply`  
+3. Set `options.require_ci: true` in gitflow YAML and re-run `init-client --apply`  
 4. Open test PR `develop` → `main`; confirm only **release-managers** can merge  

@@ -1,14 +1,14 @@
-# Bootstrap prerequisites
+# Bootstrap prerequisites (v0.5.10)
 
-Before `launchpad setup-platform --apply` and `seed-work` succeed end-to-end.
+Before `launchpad init-client --apply` and `seed-work` succeed end-to-end.
 
-Full PAT setup + operator sequence: **[python-automation.md](python-automation.md)**.
+Full PAT setup: **[python-automation.md](python-automation.md)**.
 
 ---
 
 ## 1. Fine-grained PAT (factory)
 
-Create a token scoped to your org per [`python-automation.md`](python-automation.md).
+Create a token scoped to your org per [python-automation.md](python-automation.md).
 
 **Required organization permissions:**
 
@@ -19,13 +19,12 @@ Create a token scoped to your org per [`python-automation.md`](python-automation
 | Members | Read and write |
 | Projects | Read and write |
 
-**Repository access:** All repositories (recommended). If selecting specific repos, include at least `<client>-meta` and all app repos — a PAT that omits them returns 404 on repo API calls.
+**Repository access:** All repositories (recommended). If selecting specific repos, include `<slug>-meta` and all app repos — a PAT that omits them returns 404 on repo API calls.
 
 **Required repository permissions:**
 
 | Permission | Access |
 |------------|--------|
-| Actions | Read and write |
 | Administration | Read and write |
 | Contents | Read and write |
 | Issues | Read and write |
@@ -36,7 +35,7 @@ Create a token scoped to your org per [`python-automation.md`](python-automation
 
 ## 2. Branch protection requires GitHub Team plan
 
-Branch protection rulesets (gitflow enforcement) require **GitHub Team** plan or higher. On free orgs:
+Branch protection rules require **GitHub Team** plan or higher. On free orgs:
 
 | Option | Action |
 |--------|--------|
@@ -52,9 +51,21 @@ Configure client registry once — [multi-laptop.md](../docs/multi-laptop.md). T
 ```bash
 launchpad doctor
 launchpad whoami
-launchpad setup-platform --dry-run
-launchpad setup-platform --apply
-launchpad verify-platform
+
+# Day 1
+launchpad init-client --meta --dry-run
+launchpad init-client --meta --apply
+launchpad apply-scaffold --meta --apply
+launchpad apply-harness --meta --apply
+launchpad status --meta
+
+# Day N (repeat per repo)
+launchpad init-client --repo <name> --apply
+launchpad apply-scaffold --repo <name> --apply
+launchpad apply-harness --repo <name> --apply
+launchpad status --repo <name>
+
+# Optional work manifests
 launchpad seed-work --config work/INIT-<id>.yaml --dry-run
 launchpad seed-work --config work/INIT-<id>.yaml --apply
 ```

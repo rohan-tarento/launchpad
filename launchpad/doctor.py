@@ -1,4 +1,13 @@
-"""Preflight checks for launchpad on a tenant workspace."""
+"""Preflight checks for launchpad (v0.5.10).
+
+Checks:
+  • clients.yaml exists and active client is resolvable
+  • programme.yaml exists and is valid
+  • programme_slug matches the active client id
+  • env.d/<id>.env exists with a real GITHUB_TOKEN (not placeholder)
+  • GitHub API is reachable with the token
+  • .launchpad-version pin at meta root matches installed version
+"""
 
 from __future__ import annotations
 
@@ -7,12 +16,18 @@ import sys
 from pathlib import Path
 
 from launchpad import __version__
-from launchpad.clients import ENV_D_DIR
-from launchpad.config import discover_tenant_config, load_yaml, tenant_root
-from launchpad.paths import kit_root
-from launchpad.forge import forge_from_mapping, gitlab_host_from_mapping
-from launchpad.adapters.gitlab.client import GitLabClient, GitLabError
+from launchpad.clients import (
+    ClientRegistryError,
+    ENV_D_DIR,
+    CLIENTS_FILE,
+    config_dir_for_client,
+    resolve_client_id,
+    resolve_client_path,
+)
 from launchpad.github_client import GitHubClient, GitHubError
+
+
+_TOKEN_PLACEHOLDER = "github_pat_REPLACE_ME"
 
 
 def run(*, verbose: bool = False) -> int:
@@ -20,107 +35,107 @@ def run(*, verbose: bool = False) -> int:
     warnings: list[str] = []
 
     print(f"launchpad {__version__}")
-    print("")
+    print()
 
+    # ── Client / clients.yaml ────────────────────────────────────────────────
     client_id = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
-    if client_id:
+    if not client_id:
+        # Try resolving without an explicit arg (picks up default: or sole client)
+        try:
+            client_id = resolve_client_id("") or ""
+        except ClientRegistryError:
+            client_id = ""
+
+    if not client_id:
+        errors.append(
+            f"no active client — pass --client <id> or set 'default:' in {CLIENTS_FILE}\n"
+            "  First time? Run: launchpad onboard interview"
+        )
+    else:
+        print(f"client:  {client_id}")
         env_file = ENV_D_DIR / f"{client_id}.env"
-        print(f"client: {client_id}")
         if env_file.is_file():
             print(f"secrets: {env_file}")
         else:
-            warnings.append(f"no secrets file: {env_file}")
-        print("")
+            warnings.append(
+                f"env file not found: {env_file}\n"
+                f"  Create it with your GITHUB_TOKEN — run: launchpad onboard interview"
+            )
 
-    try:
-        root = tenant_root()
-        print(f"tenant root: {root}")
-    except FileNotFoundError as exc:
-        print(f"tenant root: NOT FOUND ({exc})")
-        errors.append(
-            "set LAUNCHPAD_TENANT_ROOT, use launchpad --client <id>, or cd into <client>-meta"
-        )
-        root = None
-
-    pin = (root / ".launchpad-version").read_text().strip() if root and (root / ".launchpad-version").is_file() else ""
-    if pin:
-        print(f"pinned launchpad: {pin}")
-        if pin != __version__:
-            warnings.append(f"installed {__version__} != tenant pin {pin}")
-    elif root:
-        warnings.append("no .launchpad-version at tenant root")
-
-    forge_type = "github"
-    gitlab_host = "https://gitlab.com"
-    if root:
+    # ── Meta repo path / programme.yaml ─────────────────────────────────────
+    meta_path: Path | None = None
+    if client_id:
         try:
-            org_path = discover_tenant_config("org")
-            cfg = load_yaml(org_path)
-            forge_type = forge_from_mapping(cfg)
-            gitlab_host = gitlab_host_from_mapping(cfg)
-            print(f"forge: {forge_type}")
-        except (FileNotFoundError, ValueError):
-            pass
+            meta_path = resolve_client_path(client_id)
+            print(f"meta:    {meta_path}")
+        except ClientRegistryError as exc:
+            errors.append(str(exc))
 
-    if forge_type == "gitlab":
-        gl_token = os.environ.get("GITLAB_TOKEN") or os.environ.get("GITLAB_PRIVATE_TOKEN")
-        if gl_token:
-            print("GITLAB_TOKEN: set")
+    programme_slug_from_yaml: str = ""
+    if meta_path:
+        prog_path = meta_path / "config" / "programme.yaml"
+        if prog_path.is_file():
             try:
-                with GitLabClient(dry_run=False, host=gitlab_host) as client:
-                    print(f"gitlab user: {client.whoami()}")
-            except GitLabError as exc:
-                errors.append(f"gitlab API: {exc}")
-        else:
-            warnings.append("GITLAB_TOKEN not set (required for gitlab forge)")
-    else:
-        token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
-        if token:
-            print("GITHUB_TOKEN: set")
-            try:
-                with GitHubClient(dry_run=False) as client:
-                    login = client.whoami()
-                print(f"github user: {login}")
-            except GitHubError as exc:
-                errors.append(f"github API: {exc}")
-        else:
-            warnings.append("GITHUB_TOKEN not set (required for github forge)")
+                from launchpad.schema.programme import load_programme
+                prog = load_programme(prog_path)
+                programme_slug_from_yaml = prog.programme_slug
+                print(f"programme: {prog.programme}  (slug: {prog.programme_slug}  org: {prog.org})")
 
-    if root:
-        for kind in ("platform", "org", "harness"):
-            try:
-                path = discover_tenant_config(kind)
-                print(f"config {kind}: {path.name}")
-            except (FileNotFoundError, ValueError) as exc:
-                if verbose:
-                    print(f"config {kind}: skip ({exc})")
-                elif kind == "platform":
-                    warnings.append(f"platform config: {exc}")
-
-        tenant_playbook = root / "playbook"
-        try:
-            kit_playbook = kit_root() / "playbook"
-            if tenant_playbook.is_dir() and kit_playbook.is_dir():
-                dupes = sorted(
-                    p.name
-                    for p in tenant_playbook.glob("*.md")
-                    if p.name != "README.md" and (kit_playbook / p.name).is_file()
-                )
-                if dupes:
+                if client_id and programme_slug_from_yaml and client_id != programme_slug_from_yaml:
                     warnings.append(
-                        "tenant playbook duplicates kit (link to launchpad instead): "
-                        + ", ".join(dupes)
+                        f"client id '{client_id}' does not match "
+                        f"programme_slug '{programme_slug_from_yaml}' in programme.yaml\n"
+                        f"  Tip: the client id in clients.yaml should equal the programme_slug."
                     )
-        except FileNotFoundError:
-            pass
+            except Exception as exc:
+                warnings.append(f"programme.yaml invalid: {exc}")
+        elif verbose:
+            print("programme.yaml: not found  (run: launchpad onboard interview)")
 
-    print("")
+        pin_path = meta_path / ".launchpad-version"
+        if pin_path.is_file():
+            pin = pin_path.read_text().strip()
+            print(f"pinned:  {pin}")
+            if pin != __version__:
+                warnings.append(
+                    f"installed v{__version__} != .launchpad-version pin '{pin}'\n"
+                    f"  Update the pin or reinstall the matching version."
+                )
+        elif verbose:
+            print(".launchpad-version: not pinned  (optional — add it to lock kit version)")
+
+    # ── GitHub token ─────────────────────────────────────────────────────────
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""
+    if not token:
+        env_hint = ENV_D_DIR / f"{client_id or '<slug>'}.env"
+        errors.append(
+            f"GITHUB_TOKEN not set\n"
+            f"  Add it to {env_hint} and make sure the env file is loaded.\n"
+            f"  The token is loaded automatically when you pass --client <id>."
+        )
+    elif token == _TOKEN_PLACEHOLDER:
+        env_file_path = ENV_D_DIR / f"{client_id or 'unknown'}.env"
+        errors.append(
+            f"GITHUB_TOKEN is still the placeholder value\n"
+            f"  Replace it with a real PAT in {env_file_path}"
+        )
+    else:
+        print("GITHUB_TOKEN: set")
+        try:
+            with GitHubClient(dry_run=False) as client:
+                login = client.whoami()
+            print(f"github user: {login}")
+        except GitHubError as exc:
+            errors.append(f"GitHub API error: {exc}")
+
+    print()
     for w in warnings:
-        print(f"WARN: {w}")
+        print(f"WARN:  {w}")
     for e in errors:
         print(f"ERROR: {e}", file=sys.stderr)
 
     if errors:
         return 1
+
     print("doctor: OK")
     return 0

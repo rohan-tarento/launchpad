@@ -1,6 +1,6 @@
-# Python factory automation (PAT)
+# Factory automation (v0.5.10)
 
-All **org bootstrap** runs through **one CLI**: Python + `GITHUB_TOKEN`.
+All **org bootstrap** runs through **one CLI**: `launchpad` + `GITHUB_TOKEN`.
 
 Developers still use **`gh`** for day-to-day git and PRs — that is separate from the factory.
 
@@ -11,11 +11,10 @@ Developers still use **`gh`** for day-to-day git and PRs — that is separate fr
 ```bash
 launchpad clients
 launchpad doctor
-launchpad verify-platform
-launchpad setup-platform --dry-run
+launchpad init-client --meta --dry-run
 ```
 
-Secrets live in **`~/.config/launchpad/env.d/<client-id>.env`** (not in `<client>-meta/.env`).
+Secrets live in **`~/.config/launchpad/env.d/<slug>.env`** (not in `<slug>-meta/.env`).
 
 **Legacy / CI:** `export GITHUB_TOKEN=...` or `LAUNCHPAD_TENANT_ROOT=...` in the shell.
 
@@ -23,11 +22,11 @@ Secrets live in **`~/.config/launchpad/env.d/<client-id>.env`** (not in `<client
 
 ## Create a PAT (step by step)
 
-Use a **fine-grained PAT** scoped to **example-org**.
+Use a **fine-grained PAT** scoped to your org.
 
 ### 1. Open token settings
 
-1. Log in to GitHub as an account that can **administer** `example-org`.
+1. Log in to GitHub as an account that can **administer** your org.
 2. Click your **profile photo** (top right) → **Settings**.
 3. Left sidebar → **Developer settings** (bottom).
 4. **Personal access tokens** → **Fine-grained tokens**.
@@ -37,61 +36,50 @@ Use a **fine-grained PAT** scoped to **example-org**.
 
 | Field | Value |
 |-------|--------|
-| Token name | `<client>-meta-factory` (or similar) |
+| Token name | `<slug>-meta-factory` (or similar) |
 | Expiration | 90 days (or your org policy) |
-| Description | Optional — e.g. “<client>-meta factory bootstrap” |
 
 ### 3. Resource owner
 
-| Field | Value |
-|-------|--------|
-| Resource owner | **`example-org`** (the org — not your personal account) |
-
-This limits the token to example-org repos only.
+Set to **your GitHub org** (not your personal account). This limits the token to org repos only.
 
 ### 4. Repository access
 
-Choose **All repositories** in `example-org`, or select at least **<client>-meta** and **example-api**.
+Choose **All repositories** in your org, or at minimum `<slug>-meta` and all app repos.
 
 ### 5. Repository permissions
 
 | Permission | Access | Why |
 |------------|--------|-----|
-| **Administration** | Read and write | Branch protection, rulesets |
-| **Contents** | Read and write | `seed-repos` seeds empty repos on `main` |
+| **Administration** | Read and write | Branch protection |
+| **Contents** | Read and write | Seed branches on init |
 | **Metadata** | Read | Required by GitHub API |
-| **Issues** | Read and write | Create labels |
+| **Issues** | Read and write | Labels + issue templates |
+| **Pull requests** | Read and write | PR templates |
+| **Workflows** | Read and write | Seed CI workflows |
 
 ### 6. Organization permissions
 
 | Permission | Access | Why |
 |------------|--------|-----|
 | **Administration** | Read and write | Create repos and teams |
-| **Issue types** | **Read and write** | **Required** — `verify-platform`, create **Epic** type, `seed-work` |
+| **Issue types** | **Read and write** | Create Epic type on project board |
 | **Members** | Read and write | Team ↔ repo access grants |
 | **Projects** | Read and write | Project board bootstrap |
 
-> **Common mistake:** `verify-platform` fails on Issue types API if **Issue types** is missing or set to “No access”. That is separate from **Administration**.
+> **Common mistake:** Issue types API fails if **Issue types** is missing or set to "No access". This is separate from **Administration**.
 
-#### Edit an existing factory token
-
-1. GitHub → **Settings** → **Developer settings** → **Fine-grained tokens**
-2. Open `<client>-meta-factory` (or your token name)
-3. Scroll to **Organization permissions** → **example-org**
-4. Set **Issue types** → **Read and write**
-5. **Update token** → copy new value into `~/.config/launchpad/env.d/<client-id>.env` → `launchpad verify-platform`
-
-### 7. Generate and store secrets
+### 7. Generate and store
 
 1. Click **Generate token**.
-2. Copy the token **once** (starts with `github_pat_…`).
+2. Copy the token once (starts with `github_pat_…`).
 3. Save in your machine client registry (never commit):
 
 ```bash
 mkdir -p ~/.config/launchpad/env.d
-cp examples/env.d/client.env.example ~/.config/launchpad/env.d/<client-id>.env
-# Edit <client-id>.env — paste GITHUB_TOKEN=github_pat_…
-chmod 600 ~/.config/launchpad/env.d/<client-id>.env
+cp examples/env.d/client.env.example ~/.config/launchpad/env.d/<slug>.env
+# Edit <slug>.env — paste GITHUB_TOKEN=github_pat_…
+chmod 600 ~/.config/launchpad/env.d/<slug>.env
 launchpad whoami
 ```
 
@@ -100,9 +88,9 @@ Also add the tenant path in `~/.config/launchpad/clients.yaml` — see [multi-la
 | File | Committed? | Purpose |
 |------|------------|---------|
 | `examples/env.d/client.env.example` | Yes (in launchpad repo) | Template — copy to `~/.config/launchpad/env.d/` |
-| `env.d/<client-id>.env` | **No** (on your machine only) | Your real `GITHUB_TOKEN` |
+| `env.d/<slug>.env` | **No** (on your machine only) | Your real `GITHUB_TOKEN` |
 
-Do **not** store factory tokens in `<client>-meta/.env`. Keep a backup in your password manager.
+Do **not** store factory tokens in `<slug>-meta/.env`. Keep a backup in your password manager.
 
 ### Classic PAT (fallback)
 
@@ -113,104 +101,93 @@ If fine-grained tokens are blocked by org policy, use **Classic** → **Generate
 - `project`
 - `read:org`
 
-Scope the classic token to **example-org** only; prefer fine-grained when possible.
+Prefer fine-grained when possible.
 
 ---
 
-## Commands
+## Commands (v0.5.10 — 5-command surface)
 
-All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub.
+All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub or disk.
 
-| Command | Purpose |
-|---------|---------|
-| `whoami` | Verify token and print GitHub login |
-| `setup-platform` | **Platform baseline** from `PlatformManifest` YAML |
-| `verify-platform` | **Ready for backlog?** from `VerifyManifest` YAML |
-| `verify-factory` | Alias for `verify-platform` |
-| `bootstrap-org` | Repos + labels (`org-*.yaml` + gitflow union, includes meta) |
-| `bootstrap-teams` | Teams (`org-*.yaml`) |
-| `seed-repos` | Seed `main`, create `develop`, default branch `develop` (`gitflow-*.yaml`) |
-| `clone-repos` | Clone/link all gitflow repos on `develop` under workspace parent (`gitflow-*.yaml`) |
-| `setup-gitflow` | Branch protection + rulesets (`gitflow-*.yaml`) |
-| `bootstrap-project` | Board + fields + issue types (`project-*.yaml`) |
-| `seed-work` | Backlog from `WorkManifest` (`work/*.yaml`) |
-| `seed-issues` | Alias for `seed-work` |
-| `sync-harness-app` | Pin rules submodule, seed prayog-skills dev bundle, `.harness-pin.yaml`, `AGENTS.md` |
-| `scaffold` | Generate app repo from profile cookiecutter (`python-backend`, …) — [greenfield-app-repo.md](greenfield-app-repo.md) |
-| `verify-harness-app` | Check harness pins and submodules in app repos |
-| `publish-wiki` | Publish `wiki/*.md` to GitHub Wiki (`WikiConfig` YAML) |
-| `clients` | List configured clients from `~/.config/launchpad/clients.yaml` |
+| Command | Purpose | Scope |
+|---------|---------|-------|
+| `onboard interview` | 4 questions → writes 5 YAMLs + registry + PAT stub | local only |
+| `init-client` | Create GitHub teams, repo, gitflow, project board | `--meta` or `--repo <name>` |
+| `apply-scaffold` | Run cookiecutter template into repo | `--meta` or `--repo <name>` |
+| `apply-harness` | Pin constitution submodule, seed skills, write AGENTS.md | `--meta` or `--repo <name>` |
+| `status` | Verify harness pins match config | `--meta` or `--repo <name>` |
+| `status` | Checklist + suggest next command | `--meta` |
+| `doctor` | Preflight checks (token, config, version pin) | — |
+| `whoami` | Verify token and print GitHub login | — |
+| `clients` | List configured programmes | — |
 
 ```bash
-# After env.d/<client-id>.env is configured (see multi-laptop.md):
+# Day 0 — local setup (no PAT needed)
+launchpad onboard interview
 
-# Platform (repos + teams + gitflow + board + verify)
-launchpad setup-platform \
-  --config config/platform-example.yaml \
-  --dry-run
-launchpad setup-platform \
-  --config config/platform-example.yaml \
-  --apply
+# Day 1 — meta on GitHub
+launchpad init-client --meta --dry-run
+launchpad init-client --meta --apply
 
-launchpad verify-platform \
-  --config config/verify-platform-example.yaml
+# Day 1 — scaffold + harness meta
+launchpad apply-scaffold --meta --apply
+launchpad apply-harness --meta --apply
+launchpad status --meta
 
-# Backlog (WorkManifest per initiative — copy from /spec-implementation-plan §9; optional seed-work)
+# Day N — app repos (repeat per repo)
+launchpad init-client --repo example-api --apply
+launchpad apply-scaffold --repo example-api --apply
+launchpad apply-harness --repo example-api --apply
+launchpad status --repo example-api
+
+# Work manifests (optional — multi-repo backlog)
 launchpad seed-work --config work/INIT-<id>.yaml --dry-run
 launchpad seed-work --config work/INIT-<id>.yaml --apply
-
-# Individual steps (debug / partial re-run)
-launchpad bootstrap-org --config config/org-example.yaml --apply
-launchpad bootstrap-teams --config config/org-example.yaml --apply
-launchpad seed-repos --config config/gitflow-example.yaml --apply
-launchpad setup-gitflow --config config/gitflow-example.yaml --apply
-launchpad bootstrap-project --config config/project-example.yaml --apply
 ```
 
 ### YAML kinds (`config/`)
 
-| File | `kind` | Used by |
-|------|--------|---------|
-| `org-{org}.yaml` | `OrgConfig` | `bootstrap-org`, `bootstrap-teams` |
-| `gitflow-{org}.yaml` | `GitflowConfig` | `seed-repos`, `setup-gitflow` — **authoritative** for branch naming, merge policy, PR rules, CI gates |
-| `project-{org}.yaml` | `ProjectConfig` | `bootstrap-project`, `seed-work` (fields) |
-| `platform-{org}.yaml` | `PlatformManifest` | `setup-platform` |
-| `verify-platform-{org}.yaml` | `VerifyManifest` | `verify-platform` |
-| `harness-{org}.yaml` | `HarnessConfig` | `sync-harness-app`, `verify-harness-app` |
+| File | Schema kind | Used by |
+|------|-------------|---------|
+| `programme.yaml` | `Programme` | `init-client`, `doctor`, all commands |
+| `governance-{org}.yaml` | `GovernanceConfig` | `init-client` — teams, repos, stacks, board |
+| `harness-{org}.yaml` | `HarnessConfig` | `apply-harness`, `status` |
+| `scaffold-{org}.yaml` | `ScaffoldConfig` | `apply-scaffold` |
+| `service-catalog-{org}.yaml` | `ServiceCatalog` | `status`, `status` |
 
-Backlog: `work/*.yaml` with `kind: WorkManifest` — **not** in platform YAML.
+Backlog: `work/*.yaml` with `kind: WorkManifest` — not in platform YAML.
 
-Harness (no GitHub API — works without PAT):
+Harness commands (no GitHub API required, work without PAT):
 
 ```bash
-launchpad sync-harness-app --repo example-api --dry-run
-launchpad sync-harness-app --repo example-api --apply
-launchpad verify-harness-app --repo example-api
+launchpad apply-harness --repo example-api --dry-run
+launchpad apply-harness --repo example-api --apply
+launchpad status --repo example-api
 ```
 
 See [harness-pins.md](harness-pins.md).
 
-`seed-work --apply` requires `verify-platform` (applied) to pass.
-
-Help: `launchpad --help` or `launchpad setup-platform --help`.
-
-Do **not** set `options.seed_empty: false` on repos that already have history.
+Help: `launchpad --help` or `launchpad init-client --help`.
 
 ---
 
 ## What stays manual
 
 - Add people to teams (GitHub UI)
-- Push **<client>-meta** to `main`
-- Open / merge workflow PRs (`options.with_templates: true` copies files to local clones)
-- Set `options.require_ci: true` in gitflow YAML after workflows exist, then re-run `setup-gitflow --apply`
+- Push `<slug>-meta` to `main` after scaffolding
+- Open / merge workflow PRs after templates are seeded
 
 ---
 
 ## Package layout
 
 ```
-launchpad/                  ← CLI package (pip install -e . or bin/launchpad)
-examples/tenant-meta/       ← tenant skeleton to copy per client
+launchpad/                  ← CLI package
+  commands/                 ← 5-command implementations
+  forge/                    ← GitHub ForgeProvider
+  onboarding/               ← interview flow
+  schema/                   ← 5-YAML validators
+examples/tenant-meta/       ← tenant skeleton (example-org)
 playbook/                   ← process SSOT
+docs/                       ← schema, greenfield guide, stacks
 ```

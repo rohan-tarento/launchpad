@@ -1,3 +1,0 @@
----
-name: spec-technical-review
----

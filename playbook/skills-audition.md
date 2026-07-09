@@ -4,7 +4,7 @@ Score skills before marking harness or PM pipeline ready. Lab sample prompts: [l
 
 **PM skills** install from [skills-matrix.md](skills-matrix.md) (`prayog-skills` + community `prd`) — not committed in git.
 
-**Dev skills** install via `launchpad sync-harness-app --repo <name> --apply` — commit `skills-lock.json`.
+**Dev skills** install via `launchpad apply-harness --repo <name> --apply` — commit `skills-lock.json`.
 
 ---
 
@@ -137,4 +137,4 @@ Spec: 01  (or wave W1 of INIT-EXAMPLE-003)
 ## Exit
 
 - [ ] Dev bundle (§1–2, §4–8) scored **Y** on pilot repo
-- [ ] `launchpad verify-harness-app --repo <pilot>` passes after harness migration PR
+- [ ] `launchpad status --repo <pilot>` passes after harness migration PR

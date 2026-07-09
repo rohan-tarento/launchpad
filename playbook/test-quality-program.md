@@ -4,7 +4,7 @@ Guidance for **unit vs verify** discipline in Python (or similar) app repos afte
 
 **Example initiative:** `INIT-EXAMPLE-001` — see [work/INIT-EXAMPLE-001.yaml](../examples/tenant-meta/work/INIT-EXAMPLE-001.yaml).
 
-**Prerequisite:** `launchpad verify-harness-app --repo <app>` passes.
+**Prerequisite:** `launchpad status --repo <app>` passes.
 
 ---
 

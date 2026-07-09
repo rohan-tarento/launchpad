@@ -14,14 +14,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install
-        run: pip install .
+        run: pip install ".[dev]" 2>/dev/null || pip install .
+
       - name: CLI smoke
         run: |
+          launchpad --version
           launchpad --help
           launchpad doctor || true
+
       - name: Import package
         run: python -c "from launchpad import __version__; print(__version__)"
+
       - name: Version matches pyproject.toml
         run: |
           python -c "
@@ -31,4 +36,24 @@ jobs:
           expected = tomllib.loads(Path('pyproject.toml').read_text())['project']['version']
           assert __version__ == expected, f'__version__={__version__!r} != pyproject {expected!r}'
           print(f'version OK: {__version__}')
+          "
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Schema unit tests
+        run: pytest tests/test_schema.py -v
+
+      - name: Schema smoke — example config validates
+        run: |
+          python -c "
+          from launchpad.schema import load_programme, load_governance, load_harness, load_scaffold, load_catalog
+          from pathlib import Path
+          cfg = Path('examples/tenant-meta/config')
+          load_programme(cfg / 'programme.yaml')
+          load_governance(cfg / 'governance-example-org.yaml')
+          load_harness(cfg / 'harness-example-org.yaml')
+          load_scaffold(cfg / 'scaffold-example-org.yaml')
+          load_catalog(cfg / 'service-catalog-example-org.yaml')
+          print('Example configs: OK')
           "

@@ -7,7 +7,7 @@ Agent skills and factory commands for Example engineering. **PM pipeline skills*
 
 Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`** (global).
 
-**Dev + PM skills SSOT:** [prayog-skills](https://github.com/drivestream-lab/prayog-skills) @ harness pin. App repos: [`sync-harness-app`](harness-pins.md).
+**Dev + PM skills SSOT:** [prayog-skills](https://github.com/drivestream-lab/prayog-skills) @ harness pin. App repos: [`apply-harness`](harness-pins.md).
 
 ---
 
@@ -15,7 +15,7 @@ Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`*
 
 | Who | Open in Cursor | Skills |
 |-----|----------------|--------|
-| **PM / PO** | `<client>-meta` | `prd` + prayog PM bundle via `sync-harness-meta` |
+| **PM / PO** | `<client>-meta` | `prd` + prayog PM bundle via `apply-harness --meta` |
 | **Developer** | app repo | prayog dev bundle — `/spec-draft` through `/verify` |
 
 ---
@@ -33,8 +33,8 @@ Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`*
 Install:
 
 ```bash
-launchpad sync-harness-meta --apply
-launchpad verify-harness-meta
+launchpad apply-harness --meta --apply
+launchpad status --meta
 ```
 
 Invoke: `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/prd-impact-map`
@@ -61,7 +61,7 @@ Eng opens spec PR (chore/INIT-{COMPONENT}-{NUMBER}-spec-<repo>)
   → /pre-implement → /loop-spec → /ground-spec → feature PR
 ```
 
-Harness: `launchpad sync-harness-app --repo <name> --apply` — see [harness-pins.md](harness-pins.md).
+Harness: `launchpad apply-harness --repo <name> --apply` — see [harness-pins.md](harness-pins.md).
 
 ---
 

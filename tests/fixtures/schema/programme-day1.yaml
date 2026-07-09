@@ -1,0 +1,9 @@
+apiVersion: launchpad/v1
+kind: Programme
+programme: STRATUM
+programme_slug: stratum
+org: Sandvik-Common
+meta_repo: stratum-meta
+workspace: ~/Workspace/stratum
+forge:
+  provider: github

@@ -290,11 +290,11 @@ PRD authorship, PM findings decisions, PM product answers, domain SME, PE Approv
 ## GitHub setup
 
 ```bash
-launchpad bootstrap-teams --config config/org-example.yaml --apply
-launchpad setup-gitflow --org example-org --apply
+launchpad init-client --config config/governance-example-org.yaml --apply
+launchpad init-client --org example-org --apply
 ```
 
-Config: [`examples/tenant-meta/config/gitflow-example.yaml`](../examples/tenant-meta/config/gitflow-example.yaml)
+Config: [`examples/tenant-meta/config/governance-example-org.yaml`](../examples/tenant-meta/config/governance-example-org.yaml)
 
 ---
 

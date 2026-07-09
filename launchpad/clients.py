@@ -1,4 +1,14 @@
-"""Client registry — ~/.config/launchpad/clients.yaml + env.d/<id>.env secrets."""
+"""Client registry — ~/.config/launchpad/clients.yaml is SSOT.
+
+Resolution order (first match wins):
+  1. explicit --client <id> flag
+  2. LAUNCHPAD_CLIENT env var  (CI / scripting use)
+  3. default: key in clients.yaml
+  4. auto-pick if only one client is registered
+
+If none match, commands that need a client raise ClientRegistryError with
+a clear message pointing to clients.yaml.
+"""
 
 from __future__ import annotations
 
@@ -126,18 +136,26 @@ def load_client_env(client_id: str) -> Path | None:
 
 
 def apply_client_context(explicit_client: str = "") -> str | None:
-    """Resolve client, set LAUNCHPAD_TENANT_ROOT (if unset), load env.d secrets."""
+    """Resolve client, inject secrets from env.d, export LAUNCHPAD_CLIENT.
+
+    Returns the resolved client_id, or None if no client could be derived.
+    Callers that require a client should check for None and raise an error.
+    """
     client_id = resolve_client_id(explicit_client)
     if not client_id:
         return None
 
-    if not os.environ.get("LAUNCHPAD_TENANT_ROOT", "").strip():
-        path = resolve_client_path(client_id)
-        os.environ["LAUNCHPAD_TENANT_ROOT"] = str(path)
-
     os.environ["LAUNCHPAD_CLIENT"] = client_id
     load_client_env(client_id)
     return client_id
+
+
+def config_dir_for_client(client_id: str) -> "Path":
+    """Return the config/ directory for a resolved client_id.
+
+    Derives the path from clients.yaml — no LAUNCHPAD_TENANT_ROOT needed.
+    """
+    return resolve_client_path(client_id) / "config"
 
 
 def format_clients_table() -> str:
