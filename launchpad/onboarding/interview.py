@@ -205,7 +205,7 @@ meta:
   enabled: false
   engine: cookiecutter
   # template: gh:drivestream-lab/tenant-meta-foundation
-  # ref: v1.0.0
+  # ref: v0.1.0
   # context:
   #   project_name: {org}
   #   programme_slug: <slug>
@@ -219,7 +219,7 @@ repos: {{}}
   #   enabled: true
   #   engine: cookiecutter
   #   template: gh:drivestream-lab/python-fastapi-foundation
-  #   ref: v2.0.0
+  #   ref: v0.3.0
   #   context:
   #     project_name: <repo-name>
   #     has_kafka: false

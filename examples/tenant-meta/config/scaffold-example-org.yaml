@@ -23,7 +23,7 @@ meta:
   enabled: false          # set true when ready, then run apply-scaffold --meta --apply
   engine: cookiecutter
   # template: gh:drivestream-lab/tenant-meta-foundation
-  # ref: v1.0.0
+  # ref: v0.1.0
   # context:
   #   project_name: KOLA
   #   programme_slug: kola
@@ -37,7 +37,7 @@ repos: {}
   #   enabled: true
   #   engine: cookiecutter
   #   template: gh:drivestream-lab/python-fastapi-foundation
-  #   ref: v2.0.0
+  #   ref: v0.3.0
   #   context:
   #     project_name: example-api
   #     has_kafka: false          # template owner can add any param — no kit change
@@ -47,7 +47,7 @@ repos: {}
   #   enabled: true
   #   engine: cookiecutter
   #   template: gh:drivestream-lab/nextjs-bff-foundation
-  #   ref: v1.0.0
+  #   ref: TBD  # repo not yet released on drivestream-lab
   #   context:
   #     project_name: example-portal
   #     has_graphql: false
