@@ -47,7 +47,7 @@ repos: {}
   #   enabled: true
   #   engine: cookiecutter
   #   template: gh:drivestream-lab/nextjs-bff-foundation
-  #   ref: TBD  # repo not yet released on drivestream-lab
+  #   ref: v0.1.0
   #   context:
   #     project_name: example-portal
   #     has_graphql: false

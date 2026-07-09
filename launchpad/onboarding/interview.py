@@ -171,9 +171,11 @@ profiles:
 
   # nextjs-frontend:
   #   constitution:
-  #     repo: nextjs-frontend-rules
-  #     ref: v1.0.0
-  #   skills: []
+  #     repo: nextjs-bff-rules
+  #     ref: v0.1.4
+  #   skills:
+  #     - repo: prayog-skills
+  #       ref: v0.4.0
   #   codeowners_template: CODEOWNERS.nextjs-frontend
   #   harness_pin_template: harness-pin.nextjs-frontend.yaml
 
@@ -214,7 +216,7 @@ meta:
 # App repos — add a block for each repo when you are ready to scaffold.
 repos: {{}}
 
-  # Example (copy-paste and uncomment):
+  # ── Python / FastAPI microservice ───────────────────────────────────────
   # <repo-name>:
   #   enabled: true
   #   engine: cookiecutter
@@ -224,6 +226,16 @@ repos: {{}}
   #     project_name: <repo-name>
   #     has_kafka: false
   #     has_postgres: true
+
+  # ── Next.js BFF / frontend ───────────────────────────────────────────────
+  # <repo-name>:
+  #   enabled: true
+  #   engine: cookiecutter
+  #   template: gh:drivestream-lab/nextjs-bff-foundation
+  #   ref: v0.1.0
+  #   context:
+  #     project_name: <repo-name>
+  #     has_graphql: false
 """
 
 
