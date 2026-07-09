@@ -5,11 +5,11 @@ Kind: Programme
 
 Fields
 ------
-programme       Human name for the initiative (e.g. "STRATUM", "Kola").
+programme       Human name for the initiative (e.g. "KOLA", "Kola").
 programme_slug  Lowercase registry id; derived from programme if omitted.
                 Must match clients.yaml entry id.
-org             GitHub organisation slug (exact spelling, e.g. "Sandvik-Common").
-meta_repo       Control-plane repo name (e.g. "stratum-meta").
+org             GitHub organisation slug (exact spelling, e.g. "apex-common").
+meta_repo       Control-plane repo name (e.g. "kola-meta").
 workspace       Local parent directory for repo clones (supports ~).
 forge           Forge configuration.
   provider      "github" (only supported provider in v0.5.10).
@@ -60,7 +60,7 @@ class ProgrammeSchema:
             raise SchemaError(
                 "programme.yaml missing required field 'programme'",
                 path=p,
-                hint="Set programme: to your initiative name, e.g. 'STRATUM'",
+                hint="Set programme: to your initiative name, e.g. 'KOLA'",
             )
         self.programme = programme
 
@@ -70,7 +70,7 @@ class ProgrammeSchema:
             raise SchemaError(
                 f"programme_slug {slug!r} is invalid — must be lowercase [a-z][a-z0-9-]",
                 path=p,
-                hint="Use a lowercase slug, e.g. 'stratum' (not the GitHub org name)",
+                hint="Use a lowercase slug, e.g. 'kola' (not the GitHub org name)",
             )
         self.programme_slug = slug
 
@@ -79,7 +79,7 @@ class ProgrammeSchema:
             raise SchemaError(
                 "programme.yaml missing required field 'org'",
                 path=p,
-                hint="Set org: to your GitHub organisation, e.g. 'Sandvik-Common'",
+                hint="Set org: to your GitHub organisation, e.g. 'apex-common'",
             )
         self.org = org
 

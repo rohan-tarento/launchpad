@@ -1,9 +1,9 @@
 apiVersion: launchpad/v1
 kind: Programme
-programme: STRATUM
-programme_slug: stratum
-org: Sandvik-Common
-meta_repo: stratum-meta
-workspace: ~/Workspace/stratum
+programme: KOLA
+programme_slug: kola
+org: apex-common
+meta_repo: kola-meta
+workspace: ~/Workspace/kola
 forge:
   provider: github

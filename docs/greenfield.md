@@ -1,7 +1,7 @@
 # Greenfield Operator Guide (v0.5.12)
 
 This guide walks a new operator through standing up a programme from zero.
-We use **STRATUM** (org: `Sandvik-Common`) as the running example.
+We use **KOLA** (org: `apex-common`) as the running example.
 
 ---
 
@@ -16,7 +16,7 @@ Day 1 — Meta repo on GitHub
   launchpad init-client --meta --apply      # execute
 
 Day 1 — Scaffold meta (optional)
-  # Edit config/scaffold-Sandvik-Common.yaml: set meta.enabled: true
+  # Edit config/scaffold-apex-common.yaml: set meta.enabled: true
   launchpad apply-scaffold --meta --apply
 
 Day 1 — Pin meta harness
@@ -24,20 +24,20 @@ Day 1 — Pin meta harness
   launchpad status --meta
 
 Day N — Add an app repo
-  # Edit governance-Sandvik-Common.yaml: add repo block
-  launchpad init-client --repo stratum-platform-core --apply
+  # Edit governance-apex-common.yaml: add repo block
+  launchpad init-client --repo kola-platform-core --apply
 
 Day N — Scaffold the app repo
-  # Edit scaffold-Sandvik-Common.yaml: add repos.<name> block
-  launchpad apply-scaffold --repo stratum-platform-core --apply
+  # Edit scaffold-apex-common.yaml: add repos.<name> block
+  launchpad apply-scaffold --repo kola-platform-core --apply
 
 Day N — Pin app repo harness
-  launchpad apply-harness --repo stratum-platform-core --apply
-  launchpad status --repo stratum-platform-core
+  launchpad apply-harness --repo kola-platform-core --apply
+  launchpad status --repo kola-platform-core
 
 Any time — Readiness check
   launchpad status --meta
-  launchpad status --repo stratum-platform-core
+  launchpad status --repo kola-platform-core
 ```
 
 ---
@@ -61,33 +61,33 @@ launchpad onboard interview
 The interview asks 4 questions:
 
 ```
-  Programme name  (e.g. STRATUM): STRATUM
-  Auto-derived slug: stratum
-  Programme slug  (confirm or override) [stratum]:
-  GitHub org  (e.g. Sandvik-Common): Sandvik-Common
-  Workspace path [~/Workspace]: ~/Workspace/stratum
+  Programme name  (e.g. KOLA): KOLA
+  Auto-derived slug: kola
+  Programme slug  (confirm or override) [kola]:
+  GitHub org  (e.g. apex-common): apex-common
+  Workspace path [~/Workspace]: ~/Workspace/kola
 ```
 
 It then creates:
 
 ```
-~/Workspace/stratum/stratum-meta/
+~/Workspace/kola/kola-meta/
   config/
     programme.yaml
-    governance-Sandvik-Common.yaml
-    harness-Sandvik-Common.yaml
-    scaffold-Sandvik-Common.yaml
-    service-catalog-Sandvik-Common.yaml
-~/.config/launchpad/clients.yaml     ← id: stratum registered
-~/.config/launchpad/env.d/stratum.env  ← PAT stub
+    governance-apex-common.yaml
+    harness-apex-common.yaml
+    scaffold-apex-common.yaml
+    service-catalog-apex-common.yaml
+~/.config/launchpad/clients.yaml     ← id: kola registered
+~/.config/launchpad/env.d/kola.env  ← PAT stub
 ```
 
 **NEXT printed by the command:**
 ```
-1. Open ~/.config/launchpad/env.d/stratum.env
+1. Open ~/.config/launchpad/env.d/kola.env
    Replace github_pat_REPLACE_ME with your GitHub PAT
-2. chmod 600 ~/.config/launchpad/env.d/stratum.env
-3. launchpad --client stratum doctor
+2. chmod 600 ~/.config/launchpad/env.d/kola.env
+3. launchpad --client kola doctor
 ```
 
 ---
@@ -97,23 +97,23 @@ It then creates:
 Source the secrets, then dry-run first:
 
 ```bash
-source ~/.config/launchpad/env.d/stratum.env
+source ~/.config/launchpad/env.d/kola.env
 
 launchpad init-client --meta --dry-run
 ```
 
 Output shows what will happen:
 ```
-init-client  →  Sandvik-Common/stratum-meta
+init-client  →  apex-common/kola-meta
 
-  [dry-run] ensure team: Sandvik-Common/platform-core
-  [dry-run] ensure repo: Sandvik-Common/stratum-meta (private)
-  [dry-run] add team platform-core → Sandvik-Common/stratum-meta (push)
-  [dry-run] ensure default branch: Sandvik-Common/stratum-meta@main
-  [dry-run] ensure branch protection: Sandvik-Common/stratum-meta@main
-  [dry-run] ensure project board: Sandvik-Common / "Sandvik-Common Board"
-  [dry-run] link Sandvik-Common/stratum-meta → project dry-run-node-id
-  [dry-run] ensure clients.yaml entry: id=stratum
+  [dry-run] ensure team: apex-common/platform-core
+  [dry-run] ensure repo: apex-common/kola-meta (private)
+  [dry-run] add team platform-core → apex-common/kola-meta (push)
+  [dry-run] ensure default branch: apex-common/kola-meta@main
+  [dry-run] ensure branch protection: apex-common/kola-meta@main
+  [dry-run] ensure project board: apex-common / "apex-common Board"
+  [dry-run] link apex-common/kola-meta → project dry-run-node-id
+  [dry-run] ensure clients.yaml entry: id=kola
 
 NEXT: launchpad apply-scaffold --meta --apply
 ```
@@ -127,15 +127,15 @@ launchpad init-client --meta --apply
 Then clone locally:
 
 ```bash
-cd ~/Workspace/stratum
-gh repo clone Sandvik-Common/stratum-meta
+cd ~/Workspace/kola
+gh repo clone apex-common/kola-meta
 ```
 
 ---
 
 ## Day 1 — Scaffold Meta (optional)
 
-Edit `config/scaffold-Sandvik-Common.yaml` to enable the meta scaffold:
+Edit `config/scaffold-apex-common.yaml` to enable the meta scaffold:
 
 ```yaml
 meta:
@@ -144,9 +144,9 @@ meta:
   template: gh:drivestream-lab/tenant-meta-foundation
   ref: v1.0.0
   context:
-    project_name: STRATUM
-    programme_slug: stratum
-    github_org: Sandvik-Common
+    project_name: KOLA
+    programme_slug: kola
+    github_org: apex-common
 ```
 
 Then scaffold:
@@ -166,7 +166,7 @@ launchpad status --meta
 
 Output:
 ```
-status  →  Sandvik-Common/stratum-meta  [profile: meta-pm]
+status  →  apex-common/kola-meta  [profile: meta-pm]
   ✔  constitution  meta-governance-rules@v1.0.0
   ✔  AGENTS.md
 
@@ -179,7 +179,7 @@ status  →  Sandvik-Common/stratum-meta  [profile: meta-pm]
 
 ### Step 1: Edit governance YAML
 
-In `config/governance-Sandvik-Common.yaml`, add:
+In `config/governance-apex-common.yaml`, add:
 
 ```yaml
 teams:
@@ -192,11 +192,11 @@ teams:
     privacy: closed
 
 repos:
-  stratum-meta:
+  kola-meta:
     stack: meta-pm
     teams: [platform-core]
   # NEW:
-  stratum-platform-core:
+  kola-platform-core:
     stack: python-backend
     teams: [platform-core]
     visibility: private
@@ -206,23 +206,23 @@ repos:
 ### Step 2: init-client
 
 ```bash
-launchpad init-client --repo stratum-platform-core --dry-run
-launchpad init-client --repo stratum-platform-core --apply
+launchpad init-client --repo kola-platform-core --dry-run
+launchpad init-client --repo kola-platform-core --apply
 ```
 
 ### Step 3: Edit scaffold YAML
 
-In `config/scaffold-Sandvik-Common.yaml`, add:
+In `config/scaffold-apex-common.yaml`, add:
 
 ```yaml
 repos:
-  stratum-platform-core:
+  kola-platform-core:
     enabled: true
     engine: cookiecutter
     template: gh:drivestream-lab/python-fastapi-foundation
     ref: v2.0.0
     context:
-      project_name: stratum-platform-core
+      project_name: kola-platform-core
       has_kafka: true
       has_postgres: true
 ```
@@ -230,23 +230,23 @@ repos:
 ### Step 4: Scaffold and harness
 
 ```bash
-launchpad apply-scaffold --repo stratum-platform-core --apply
-launchpad apply-harness --repo stratum-platform-core --apply
-launchpad status --repo stratum-platform-core
+launchpad apply-scaffold --repo kola-platform-core --apply
+launchpad apply-harness --repo kola-platform-core --apply
+launchpad status --repo kola-platform-core
 ```
 
 ### Step 5: Promote in service catalog
 
-In `config/service-catalog-Sandvik-Common.yaml`, move the commented entry to live:
+In `config/service-catalog-apex-common.yaml`, move the commented entry to live:
 
 ```yaml
 services:
-  stratum-meta:
+  kola-meta:
     stack: meta-pm
     status: live
     ...
 
-  stratum-platform-core:    # was a comment, now live
+  kola-platform-core:    # was a comment, now live
     stack: python-backend
     description: Core platform microservice
     status: live
@@ -259,15 +259,15 @@ services:
 
 ```bash
 launchpad status --meta
-launchpad status --repo stratum-platform-core
+launchpad status --repo kola-platform-core
 ```
 
 Output:
 ```
-status  →  Sandvik-Common/stratum-meta
+status  →  apex-common/kola-meta
 
-  [✔] Governance declared  (in governance-Sandvik-Common.yaml)
-  [✔] Local clone          (~/Workspace/stratum/stratum-meta)
+  [✔] Governance declared  (in governance-apex-common.yaml)
+  [✔] Local clone          (~/Workspace/kola/kola-meta)
   [✔] Scaffold (meta)      (enabled)
   [✔] Harness pinned       (profile: meta-pm)
 
@@ -278,7 +278,7 @@ NEXT: launchpad status --meta
 
 ## Upgrading a Constitution (Rules)
 
-Pin a new ref in `config/harness-Sandvik-Common.yaml`:
+Pin a new ref in `config/harness-apex-common.yaml`:
 
 ```yaml
 profiles:
@@ -291,8 +291,8 @@ profiles:
 Then re-run for each affected repo:
 
 ```bash
-launchpad apply-harness --repo stratum-platform-core --apply
-launchpad status --repo stratum-platform-core
+launchpad apply-harness --repo kola-platform-core --apply
+launchpad status --repo kola-platform-core
 ```
 
 ---

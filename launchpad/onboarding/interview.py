@@ -1,9 +1,9 @@
 """Greenfield onboard interview — 4 questions, auto-applies locally.
 
 Flow:
-  1. Ask: programme name (human, e.g. "STRATUM")
+  1. Ask: programme name (human, e.g. "KOLA")
   2. Derive programme_slug, show it, confirm or override
-  3. Ask: GitHub org (exact spelling, e.g. "Sandvik-Common")
+  3. Ask: GitHub org (exact spelling, e.g. "apex-common")
   4. Ask: workspace path (where meta repo will be cloned)
 
 After the 4 questions:
@@ -348,7 +348,7 @@ def run_interview(
     out.write("All config files are created in your meta repo.\n\n")
 
     # Q1: Programme name
-    programme = _ask("Programme name  (e.g. STRATUM)", input_fn=input_fn, out=out)
+    programme = _ask("Programme name  (e.g. KOLA)", input_fn=input_fn, out=out)
 
     # Q2: Confirm slug (auto-derived)
     derived = _derive_slug(programme)
@@ -362,7 +362,7 @@ def run_interview(
 
     # Q3: GitHub org
     out.write("\n  GitHub org — the exact organisation slug on GitHub.\n")
-    out.write("  Example: Sandvik-Common, acme-corp, my-startup\n")
+    out.write("  Example: apex-common, acme-corp, my-startup\n")
     org = _ask("GitHub org", input_fn=input_fn, out=out)
 
     # Q4: Workspace

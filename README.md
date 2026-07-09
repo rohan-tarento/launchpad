@@ -57,36 +57,36 @@ launchpad onboard interview
 
 4 questions.  Output:
 ```
-  Programme name:   STRATUM
-  Programme slug:   stratum
-  GitHub org:       Sandvik-Common
-  Workspace path:   ~/Workspace/stratum
+  Programme name:   KOLA
+  Programme slug:   kola
+  GitHub org:       apex-common
+  Workspace path:   ~/Workspace/kola
 ```
 
 Writes:
 ```
-~/Workspace/stratum/stratum-meta/config/
+~/Workspace/kola/kola-meta/config/
   programme.yaml
-  governance-Sandvik-Common.yaml
-  harness-Sandvik-Common.yaml
-  scaffold-Sandvik-Common.yaml
-  service-catalog-Sandvik-Common.yaml
-~/.config/launchpad/clients.yaml     ← id: stratum registered
-~/.config/launchpad/env.d/stratum.env  ← PAT stub
+  governance-apex-common.yaml
+  harness-apex-common.yaml
+  scaffold-apex-common.yaml
+  service-catalog-apex-common.yaml
+~/.config/launchpad/clients.yaml     ← id: kola registered
+~/.config/launchpad/env.d/kola.env  ← PAT stub
 ```
 
 Prints:
 ```
 NEXT:
-  1. Open ~/.config/launchpad/env.d/stratum.env and set GITHUB_TOKEN
-  2. chmod 600 ~/.config/launchpad/env.d/stratum.env
-  3. launchpad --client stratum doctor
+  1. Open ~/.config/launchpad/env.d/kola.env and set GITHUB_TOKEN
+  2. chmod 600 ~/.config/launchpad/env.d/kola.env
+  3. launchpad --client kola doctor
 ```
 
 ### Day 1 — Meta repo on GitHub
 
 ```bash
-source ~/.config/launchpad/env.d/stratum.env
+source ~/.config/launchpad/env.d/kola.env
 launchpad init-client --meta --dry-run    # preview
 launchpad init-client --meta --apply      # execute
 ```
@@ -96,7 +96,7 @@ Creates team, repo, gitflow, project board.  Idempotent — safe to re-run.
 ### Day 1 — Scaffold and harness (optional)
 
 ```bash
-# Edit config/scaffold-Sandvik-Common.yaml: set meta.enabled: true
+# Edit config/scaffold-apex-common.yaml: set meta.enabled: true
 launchpad apply-scaffold --meta --apply
 
 launchpad apply-harness --meta --apply
@@ -106,21 +106,21 @@ launchpad status --meta
 ### Day N — Add an app repo
 
 ```bash
-# Edit governance-Sandvik-Common.yaml: add the repo
-launchpad init-client --repo stratum-platform-core --apply
+# Edit governance-apex-common.yaml: add the repo
+launchpad init-client --repo kola-platform-core --apply
 
-# Edit scaffold-Sandvik-Common.yaml: add the repo
-launchpad apply-scaffold --repo stratum-platform-core --apply
+# Edit scaffold-apex-common.yaml: add the repo
+launchpad apply-scaffold --repo kola-platform-core --apply
 
-launchpad apply-harness --repo stratum-platform-core --apply
-launchpad status --repo stratum-platform-core
+launchpad apply-harness --repo kola-platform-core --apply
+launchpad status --repo kola-platform-core
 ```
 
 ### Any time — Readiness check
 
 ```bash
 launchpad status --meta
-launchpad status --repo stratum-platform-core
+launchpad status --repo kola-platform-core
 ```
 
 ---
@@ -148,14 +148,14 @@ free-form to cookiecutter.  Template owners evolve their `cookiecutter.json`
 without any Launchpad changes.
 
 ```yaml
-# scaffold-Sandvik-Common.yaml
+# scaffold-apex-common.yaml
 repos:
-  stratum-platform-core:
+  kola-platform-core:
     enabled: true
     template: gh:drivestream-lab/python-fastapi-foundation
     ref: v2.0.0
     context:
-      project_name: stratum-platform-core
+      project_name: kola-platform-core
       has_kafka: true          # template owner adds this param tomorrow
       has_postgres: true       # no Launchpad change needed
 ```
@@ -175,7 +175,7 @@ repos:
 
 | Document | Purpose |
 |---|---|
-| [docs/greenfield.md](docs/greenfield.md) | Day-0 to Day-N walkthrough with STRATUM example |
+| [docs/greenfield.md](docs/greenfield.md) | Day-0 to Day-N walkthrough with KOLA example |
 | [docs/SCHEMA.md](docs/SCHEMA.md) | 5 YAML kinds reference |
 | [docs/stacks.md](docs/stacks.md) | Stack registry + adding custom stacks |
 | [docs/kit-evolution.md](docs/kit-evolution.md) | Multi-tenant feedback and kit release process |

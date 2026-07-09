@@ -19,24 +19,24 @@ There is no `onboard apply`, `onboard plan`, or `onboard show`.
 ## What happens
 
 ```
-1.  Programme name?     → STRATUM
-2.  Programme slug?     → stratum     (auto-derived; confirm or override)
-3.  GitHub org?         → Sandvik-Common
-4.  Workspace path?     → ~/Workspace/stratum
+1.  Programme name?     → KOLA
+2.  Programme slug?     → kola     (auto-derived; confirm or override)
+3.  GitHub org?         → apex-common
+4.  Workspace path?     → ~/Workspace/kola
 ```
 
 Writes locally:
 
 ```
-~/Workspace/stratum/stratum-meta/config/
+~/Workspace/kola/kola-meta/config/
   programme.yaml
-  governance-Sandvik-Common.yaml      ← teams, repos, stack profiles
-  harness-Sandvik-Common.yaml         ← constitution + skills pins (placeholders)
-  scaffold-Sandvik-Common.yaml        ← cookiecutter templates (all disabled by default)
-  service-catalog-Sandvik-Common.yaml ← service registry (commented examples)
+  governance-apex-common.yaml      ← teams, repos, stack profiles
+  harness-apex-common.yaml         ← constitution + skills pins (placeholders)
+  scaffold-apex-common.yaml        ← cookiecutter templates (all disabled by default)
+  service-catalog-apex-common.yaml ← service registry (commented examples)
 
-~/.config/launchpad/clients.yaml      ← id: stratum appended
-~/.config/launchpad/env.d/stratum.env ← GITHUB_TOKEN stub (chmod 600, fill in)
+~/.config/launchpad/clients.yaml      ← id: kola appended
+~/.config/launchpad/env.d/kola.env ← GITHUB_TOKEN stub (chmod 600, fill in)
 ```
 
 No GitHub API calls. No PAT required at this stage.
@@ -47,34 +47,18 @@ No GitHub API calls. No PAT required at this stage.
 
 The wizard prints the exact **NEXT:** command to run. Follow it.
 
-1. Open `~/.config/launchpad/env.d/stratum.env` — paste your GitHub PAT.
-2. Run `launchpad --client stratum doctor` — confirms setup.
+1. Open `~/.config/launchpad/env.d/kola.env` — paste your GitHub PAT.
+2. Run `launchpad --client kola doctor` — confirms setup.
 3. `launchpad init-client --meta --dry-run` then `--apply`.
 
 Full walkthrough: **[greenfield.md](greenfield.md)**.
 
 ---
 
-## KOLA example (org ≠ slug)
+## Org ≠ slug pattern
 
-Some programmes live inside a shared enterprise org:
-
-| | |
-|--|--|
-| **GitHub org** | `apex-common` |
-| **Programme slug** | `kola` |
-| **Meta repo** | `kola-meta` |
-
-```bash
-mkdir -p ~/Workspace/kola && cd ~/Workspace/kola
-launchpad onboard interview
-# Programme name: KOLA
-# Slug: kola
-# GitHub org: apex-common
-# Workspace: ~/Workspace/kola
-```
-
-See [examples/programme-kola.yaml](../examples/programme-kola.yaml) for the resulting `programme.yaml`.
+GitHub org and programme slug are independent — e.g. org `apex-common`, slug `kola`, meta repo `kola-meta`.
+See [examples/programme-kola.yaml](../examples/programme-kola.yaml) for a hand-authored `programme.yaml`.
 
 ---
 

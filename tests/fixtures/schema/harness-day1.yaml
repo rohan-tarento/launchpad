@@ -1,6 +1,6 @@
 apiVersion: launchpad/v1
 kind: HarnessConfig
-org: Sandvik-Common
+org: apex-common
 
 profiles:
   meta-pm:

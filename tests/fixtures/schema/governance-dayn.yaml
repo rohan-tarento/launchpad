@@ -2,7 +2,7 @@ apiVersion: launchpad/v1
 kind: GovernanceConfig
 
 # Day N: one app repo added after meta is live.
-org: Sandvik-Common
+org: apex-common
 
 stack_profiles: {}
 
@@ -15,12 +15,12 @@ teams:
     privacy: closed
 
 repos:
-  stratum-meta:
+  kola-meta:
     stack: meta-pm
     teams: [platform-core]
     visibility: private
 
-  stratum-platform-core:
+  kola-platform-core:
     stack: python-backend
     teams: [platform-core]
     visibility: private

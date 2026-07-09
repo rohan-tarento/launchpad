@@ -114,7 +114,7 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 
 - [ ] CI / tests pass on `main`
 - [ ] `pyproject.toml` + `launchpad/__init__.py` version bumped
-- [ ] No customer names in diff (`rg -i 'sandvik\|stratum'`)
+- [ ] No customer names in diff (see [PUBLICATION_CHECKLIST.md](PUBLICATION_CHECKLIST.md))
 - [ ] Tag pushed: `v0.x.y`
 - [ ] Tenant operators notified: version + any re-run commands
 

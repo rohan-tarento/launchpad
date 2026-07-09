@@ -27,10 +27,10 @@ FIXTURES = Path(__file__).parent / "fixtures" / "schema"
 class TestProgrammeSchema:
     def test_load_day1_fixture(self):
         prog = load_programme(FIXTURES / "programme-day1.yaml")
-        assert prog.programme == "STRATUM"
-        assert prog.programme_slug == "stratum"
-        assert prog.org == "Sandvik-Common"
-        assert prog.meta_repo == "stratum-meta"
+        assert prog.programme == "KOLA"
+        assert prog.programme_slug == "kola"
+        assert prog.org == "apex-common"
+        assert prog.meta_repo == "kola-meta"
         assert prog.forge_provider == "github"
 
     def test_slug_auto_derived_from_programme_name(self):
@@ -58,10 +58,10 @@ class TestProgrammeSchema:
             ProgrammeSchema({"programme": "Test", "programme_slug": "UPPER_CASE", "org": "acme"})
 
     def test_as_dict_round_trip(self):
-        prog = ProgrammeSchema({"programme": "STRATUM", "org": "Sandvik-Common"})
+        prog = ProgrammeSchema({"programme": "KOLA", "org": "apex-common"})
         d = prog.as_dict()
         assert d["kind"] == "Programme"
-        assert d["programme"] == "STRATUM"
+        assert d["programme"] == "KOLA"
         assert d["forge"]["provider"] == "github"
 
 
@@ -70,14 +70,14 @@ class TestProgrammeSchema:
 class TestGovernanceSchema:
     def test_load_day1_fixture(self):
         gov = load_governance(FIXTURES / "governance-day1.yaml")
-        assert gov.org == "Sandvik-Common"
-        assert "stratum-meta" in gov.repos
-        assert gov.repos["stratum-meta"].stack == "meta-pm"
+        assert gov.org == "apex-common"
+        assert "kola-meta" in gov.repos
+        assert gov.repos["kola-meta"].stack == "meta-pm"
 
     def test_load_dayn_fixture(self):
         gov = load_governance(FIXTURES / "governance-dayn.yaml")
-        assert "stratum-platform-core" in gov.repos
-        assert gov.repos["stratum-platform-core"].stack == "python-backend"
+        assert "kola-platform-core" in gov.repos
+        assert gov.repos["kola-platform-core"].stack == "python-backend"
 
     def test_starter_stacks_always_available(self):
         gov = GovernanceSchema({"org": "acme", "teams": [], "repos": {}})
@@ -142,7 +142,7 @@ class TestGovernanceSchema:
 class TestHarnessSchema:
     def test_load_day1_fixture(self):
         h = load_harness(FIXTURES / "harness-day1.yaml")
-        assert h.org == "Sandvik-Common"
+        assert h.org == "apex-common"
         assert "meta-pm" in h.profiles
         assert "python-backend" in h.profiles
         assert h.profiles["python-backend"].constitution.repo == "python-services-rules"
@@ -238,11 +238,11 @@ class TestScaffoldSchema:
         assert s.meta.enabled is True
         assert s.meta.template == "gh:drivestream-lab/tenant-meta-foundation"
         assert s.meta.ref == "v1.0.0"
-        assert s.meta.context["project_name"] == "STRATUM"
+        assert s.meta.context["project_name"] == "KOLA"
 
     def test_dayn_repo_scaffold(self):
         s = load_scaffold(FIXTURES / "scaffold-dayn.yaml")
-        repo = s.repos["stratum-platform-core"]
+        repo = s.repos["kola-platform-core"]
         assert repo.enabled is True
         assert repo.context["has_kafka"] is True
 
@@ -285,15 +285,15 @@ class TestScaffoldSchema:
 class TestCatalogSchema:
     def test_load_day1_fixture(self):
         c = load_catalog(FIXTURES / "catalog-day1.yaml")
-        assert c.org == "Sandvik-Common"
-        assert "stratum-meta" in c.services
-        assert c.services["stratum-meta"].status == "live"
+        assert c.org == "apex-common"
+        assert "kola-meta" in c.services
+        assert c.services["kola-meta"].status == "live"
 
     def test_live_services_filter(self):
         c = load_catalog(FIXTURES / "catalog-day1.yaml")
         live = c.live_services
         assert len(live) == 1
-        assert live[0].name == "stratum-meta"
+        assert live[0].name == "kola-meta"
 
     def test_missing_org_raises(self):
         with pytest.raises(SchemaError, match="missing required field 'org'"):

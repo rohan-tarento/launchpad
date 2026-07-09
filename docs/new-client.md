@@ -69,7 +69,7 @@ See [multi-laptop.md](multi-laptop.md).
 
 | Guide | Content |
 |-------|---------|
-| [greenfield.md](greenfield.md) | Day-0 → Day-N walkthrough with STRATUM example |
+| [greenfield.md](greenfield.md) | Day-0 → Day-N walkthrough with KOLA example |
 | [SCHEMA.md](SCHEMA.md) | 5 YAML kinds reference |
 | [stacks.md](stacks.md) | Stack registry + adding custom stacks |
 | [multi-laptop.md](multi-laptop.md) | Install + client registry across machines |

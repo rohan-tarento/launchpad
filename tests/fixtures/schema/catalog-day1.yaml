@@ -1,32 +1,32 @@
 apiVersion: launchpad/v1
 kind: ServiceCatalog
-org: Sandvik-Common
+org: apex-common
 
 services:
-  stratum-meta:
+  kola-meta:
     stack: meta-pm
-    description: Control-plane for STRATUM programme
+    description: Control-plane for KOLA programme
     status: live
     teams: [platform-core]
     links:
-      repo: https://github.com/Sandvik-Common/stratum-meta
+      repo: https://github.com/apex-common/kola-meta
 
   # ─── Day-N examples (remove the '#' when the repo is live) ──────────────
   #
-  # stratum-platform-core:
+  # kola-platform-core:
   #   stack: python-backend
   #   description: Core platform microservice
   #   status: planned
   #   teams: [platform-core]
   #
-  # stratum-hitl-web:
+  # kola-hitl-web:
   #   stack: nextjs-frontend
   #   description: Human-in-the-loop web UI
   #   status: planned
   #   teams: [hitl-dev]
   #
-  # stratum-infra:
+  # kola-infra:
   #   stack: terraform-iac
-  #   description: Terraform modules for STRATUM infrastructure
+  #   description: Terraform modules for KOLA infrastructure
   #   status: planned
   #   teams: [platform-core]
