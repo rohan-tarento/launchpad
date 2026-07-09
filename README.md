@@ -1,4 +1,4 @@
-# Launchpad  ·  v0.5.11
+# Launchpad  ·  v0.5.12
 
 **YAML-driven forge factory and harness engineering kit for multi-tenant engineering programmes.**
 
@@ -41,7 +41,7 @@ The interview writes all five on Day 0.  You edit them incrementally on Day N.
 ## Install
 
 ```bash
-pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"
+pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.12"
 launchpad --version
 ```
 
@@ -166,7 +166,7 @@ repos:
 
 | Provider | Status |
 |---|---|
-| GitHub | Supported (v0.5.11) |
+| GitHub | Supported (v0.5.12) |
 | GitLab | Planned (v0.6) |
 
 ---

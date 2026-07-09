@@ -210,7 +210,7 @@ That's the right trade for a consultancy / platform team: ship **repeatable scaf
 
 If this post is useful, here's the compressed runbook. Full detail: [greenfield.md](../greenfield.md).
 
-1. **Install Launchpad** — `pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"`
+1. **Install Launchpad** — `pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.12"`
 2. **Day 0** — `launchpad onboard interview` (writes 5 YAMLs + client registry + PAT stub)
 3. **Token** — set `GITHUB_TOKEN` in `~/.config/launchpad/env.d/<slug>.env`
 4. **Day 1 meta** — `launchpad init-client --meta --apply`

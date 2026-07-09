@@ -1,11 +1,11 @@
-# Multi-laptop setup (v0.5.11)
+# Multi-laptop setup (v0.5.12)
 
 ## Install launchpad once per machine
 
 **Tenant operators (recommended)** — install a **released tag**:
 
 ```bash
-pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"
+pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.12"
 launchpad --version
 ```
 
@@ -14,7 +14,7 @@ Match the version in your tenant `<slug>-meta/.launchpad-version`.
 **Upgrade:**
 
 ```bash
-pipx install --force "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"
+pipx install --force "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.12"
 launchpad --client <slug> doctor
 ```
 
@@ -135,6 +135,6 @@ launchpad --client kola doctor
 Tenant `<slug>-meta/.launchpad-version` should match installed version:
 
 ```bash
-cat ~/Workspace/stratum/stratum-meta/.launchpad-version   # should be 0.5.11
-launchpad --version                                        # launchpad 0.5.11
+cat ~/Workspace/stratum/stratum-meta/.launchpad-version   # should be 0.5.12
+launchpad --version                                        # launchpad 0.5.12
 ```

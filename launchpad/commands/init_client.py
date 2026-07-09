@@ -5,7 +5,7 @@ Pipeline (for --meta):
   2. Ensure GitHub team(s) declared for the meta repo
   3. Ensure the meta repo on GitHub
   4. Assign teams to repo
-  5. Setup gitflow (default branch + branch protection)
+  5. Setup gitflow (default branch + integration branch + branch protection on both)
   6. Ensure project board + link repo
   7. Re-ensure clients.yaml entry from programme.yaml
   8. Local git setup: init + commit config + push, or clone if no local dir
@@ -98,6 +98,7 @@ def _setup_local_repo(
     org: str,
     repo_name: str,
     default_branch: str,
+    integration_branch: str,
     *,
     dry_run: bool,
 ) -> None:
@@ -146,11 +147,25 @@ def _setup_local_repo(
                 print(f"  Push manually: cd {repo_path} && git push -u origin {default_branch}")
             else:
                 print(f"  ✔  committed config/ and pushed to {remote_url}")
+                if integration_branch != default_branch:
+                    _run(["git", "fetch", "origin"], repo_path)
+                    co = _run(["git", "checkout", "-B", integration_branch, f"origin/{integration_branch}"], repo_path)
+                    if co.returncode == 0:
+                        print(f"  ✔  checked out {integration_branch}")
+                    else:
+                        local = _run(["git", "branch", integration_branch], repo_path)
+                        push = _run(["git", "push", "-u", "origin", integration_branch], repo_path)
+                        if push.returncode == 0:
+                            _run(["git", "checkout", integration_branch], repo_path)
+                            print(f"  ✔  pushed and checked out {integration_branch}")
+                        elif local.returncode != 0:
+                            print(f"  WARN: could not set up {integration_branch}: {co.stderr.strip()}")
         else:
             print(f"  ✔  git init done (nothing to commit yet)")
     else:
         # Case C: directory does not exist — clone the (empty) repo from GitHub
         repo_path.parent.mkdir(parents=True, exist_ok=True)
+        print(f"  Cloning {remote_url} → {repo_path} …")
         result = subprocess.run(
             ["git", "clone", remote_url, str(repo_path)],
             capture_output=True,
@@ -161,6 +176,17 @@ def _setup_local_repo(
             print(f"  Clone manually: git clone {remote_url} {repo_path}")
         else:
             print(f"  ✔  cloned {remote_url} → {repo_path}")
+            if integration_branch != default_branch:
+                _run(["git", "fetch", "origin"], repo_path)
+                co = _run(["git", "checkout", integration_branch], repo_path)
+                if co.returncode == 0:
+                    print(f"  ✔  checked out {integration_branch}")
+                else:
+                    print(
+                        f"  WARN: remote branch {integration_branch!r} not found locally — "
+                        f"re-run init-client --apply to create it on GitHub",
+                        file=sys.stderr,
+                    )
 
 
 def run_init_client(
@@ -206,6 +232,7 @@ def run_init_client(
     required_approvals = int(policy.get("require_pr_reviews", 1))
     dismiss_stale = bool(policy.get("dismiss_stale_reviews", True))
     default_branch = str(policy.get("default_branch", "main"))
+    integration_branch = str(policy.get("integration_branch", "develop"))
 
     with GitHubForgeProvider(dry_run=dr) as forge:
         # Ensure project board (for all targets, use a shared board)
@@ -243,8 +270,15 @@ def run_init_client(
             for team_name in repo_cfg.teams:
                 forge.add_team_to_repo(org, target_repo, team_name)
 
-            # 4. Gitflow
+            # 4. Gitflow — default branch, integration branch, protection on both
             forge.ensure_default_branch(org, target_repo, default_branch)
+            if integration_branch != default_branch:
+                forge.ensure_branch(
+                    org,
+                    target_repo,
+                    integration_branch,
+                    from_branch=default_branch,
+                )
             forge.ensure_branch_protection(
                 org,
                 target_repo,
@@ -252,6 +286,14 @@ def run_init_client(
                 required_approvals=required_approvals,
                 dismiss_stale=dismiss_stale,
             )
+            if integration_branch != default_branch:
+                forge.ensure_branch_protection(
+                    org,
+                    target_repo,
+                    integration_branch,
+                    required_approvals=required_approvals,
+                    dismiss_stale=dismiss_stale,
+                )
 
             # 5. Link to board
             if board_id:
@@ -272,6 +314,7 @@ def run_init_client(
             org,
             prog.meta_repo,
             default_branch,
+            integration_branch,
             dry_run=dr,
         )
     else:
@@ -283,6 +326,7 @@ def run_init_client(
             org,
             repo_name,
             default_branch,
+            integration_branch,
             dry_run=dr,
         )
 
@@ -317,7 +361,7 @@ def run_init_client(
         print("╔══════════════════════════════════════════════════════════════╗")
         print("║  NEXT:                                                       ║")
         print("╠══════════════════════════════════════════════════════════════╣")
-        print(f"║  launchpad apply-harness --repo {repo_name:<29}  ║")
+        print(f"║  launchpad apply-scaffold --repo {repo_name:<24} --apply --force  ║")
         print("╚══════════════════════════════════════════════════════════════╝")
 
     return 0

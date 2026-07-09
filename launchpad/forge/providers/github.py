@@ -1,11 +1,11 @@
 """GitHub implementation of ForgeProvider.
 
-Delegates to GitHubClient for actual API calls.
-All operations are idempotent — safe to re-run after a partial failure.
+Delegates to github_ops for idempotent REST + GraphQL operations.
 """
 
 from __future__ import annotations
 
+from launchpad import github_ops as gh
 from launchpad.github_client import GitHubClient
 
 
@@ -31,6 +31,9 @@ class GitHubForgeProvider:
             raise RuntimeError("GitHubForgeProvider must be used as a context manager")
         return self._client
 
+    def _effective_dry_run(self, dry_run: bool | None) -> bool:
+        return self._dry_run if dry_run is None else dry_run
+
     # ── Teams ────────────────────────────────────────────────────────────────
 
     def ensure_team(
@@ -42,12 +45,11 @@ class GitHubForgeProvider:
         privacy: str = "closed",
         dry_run: bool | None = None,
     ) -> None:
-        dr = self._dry_run if dry_run is None else dry_run
+        dr = self._effective_dry_run(dry_run)
         if dr:
             print(f"  [dry-run] ensure team: {org}/{name}")
             return
-        from launchpad import bootstrap_teams as bt
-        bt.ensure_team(self.client, org=org, name=name, description=description, privacy=privacy)
+        gh.ensure_team(self.client, org, name, description=description, privacy=privacy)
 
     # ── Repos ────────────────────────────────────────────────────────────────
 
@@ -60,12 +62,17 @@ class GitHubForgeProvider:
         visibility: str = "private",
         dry_run: bool | None = None,
     ) -> None:
-        dr = self._dry_run if dry_run is None else dry_run
+        dr = self._effective_dry_run(dry_run)
         if dr:
             print(f"  [dry-run] ensure repo: {org}/{name} ({visibility})")
             return
-        from launchpad import bootstrap_org as bo
-        bo.ensure_repo(self.client, org=org, name=name, description=description, private=(visibility == "private"))
+        gh.ensure_repo(
+            self.client,
+            org,
+            name,
+            description=description,
+            private=(visibility == "private"),
+        )
 
     def add_team_to_repo(
         self,
@@ -76,22 +83,37 @@ class GitHubForgeProvider:
         permission: str = "push",
         dry_run: bool | None = None,
     ) -> None:
-        dr = self._dry_run if dry_run is None else dry_run
+        dr = self._effective_dry_run(dry_run)
         if dr:
             print(f"  [dry-run] add team {team} → {org}/{repo} ({permission})")
             return
-        self.client.add_team_to_repo(org=org, repo=repo, team_slug=team, permission=permission)
+        gh.add_team_to_repo(self.client, org, repo, team, permission=permission)
 
     # ── Branch protection / gitflow ───────────────────────────────────────────
 
     def ensure_default_branch(
         self, org: str, repo: str, branch: str, *, dry_run: bool | None = None
     ) -> None:
-        dr = self._dry_run if dry_run is None else dry_run
+        dr = self._effective_dry_run(dry_run)
         if dr:
             print(f"  [dry-run] ensure default branch: {org}/{repo}@{branch}")
             return
-        self.client.set_default_branch(org=org, repo=repo, branch=branch)
+        gh.set_default_branch(self.client, org, repo, branch)
+
+    def ensure_branch(
+        self,
+        org: str,
+        repo: str,
+        branch: str,
+        *,
+        from_branch: str,
+        dry_run: bool | None = None,
+    ) -> None:
+        dr = self._effective_dry_run(dry_run)
+        if dr:
+            print(f"  [dry-run] ensure branch: {org}/{repo}@{branch} from {from_branch}")
+            return
+        gh.ensure_branch(self.client, org, repo, branch, from_branch=from_branch)
 
     def ensure_branch_protection(
         self,
@@ -103,14 +125,15 @@ class GitHubForgeProvider:
         dismiss_stale: bool = True,
         dry_run: bool | None = None,
     ) -> None:
-        dr = self._dry_run if dry_run is None else dry_run
+        dr = self._effective_dry_run(dry_run)
         if dr:
             print(f"  [dry-run] ensure branch protection: {org}/{repo}@{branch}")
             return
-        self.client.update_branch_protection(
-            org=org,
-            repo=repo,
-            branch=branch,
+        gh.update_branch_protection(
+            self.client,
+            org,
+            repo,
+            branch,
             required_approvals=required_approvals,
             dismiss_stale=dismiss_stale,
         )
@@ -124,11 +147,11 @@ class GitHubForgeProvider:
         *,
         dry_run: bool | None = None,
     ) -> str:
-        dr = self._dry_run if dry_run is None else dry_run
+        dr = self._effective_dry_run(dry_run)
         if dr:
             print(f"  [dry-run] ensure project board: {org} / {name!r}")
             return "dry-run-node-id"
-        return self.client.ensure_org_project(org=org, name=name)
+        return gh.ensure_org_project(self.client, org, name)
 
     def link_repo_to_project(
         self,
@@ -138,8 +161,8 @@ class GitHubForgeProvider:
         *,
         dry_run: bool | None = None,
     ) -> None:
-        dr = self._dry_run if dry_run is None else dry_run
+        dr = self._effective_dry_run(dry_run)
         if dr:
             print(f"  [dry-run] link {org}/{repo} → project {project_id}")
             return
-        self.client.link_repo_to_project(org=org, repo=repo, project_id=project_id)
+        gh.link_repo_to_project(self.client, org, repo, project_id)

@@ -13,7 +13,7 @@ Policy docs describe intent. **These mechanisms enforce it.**
 | Teams | Create teams from `teams:` block |
 | Repos | Create repos from `repos:` block |
 | Access | Grant repo teams from each repo's `teams:` list |
-| Gitflow | Set `policy.default_branch`; apply PR review protection |
+| Gitflow | Set `policy.default_branch`; create `policy.integration_branch` (default `develop`); apply PR review protection on both |
 | Board | Create org project (`project_board:`) and link repos |
 
 ```bash
@@ -29,6 +29,7 @@ Config is resolved from `--client <id>` → `clients.yaml` → `config/` (no `--
 ```yaml
 policy:
   default_branch: main
+  integration_branch: develop   # feature PR target; created from main if absent
   require_pr_reviews: 1
   dismiss_stale_reviews: true
 ```
@@ -39,7 +40,7 @@ Edit policy in YAML, PR to meta, re-run `init-client --apply` — idempotent.
 
 ## Advanced enforcement (manual / reference templates)
 
-v0.5.10 does **not** yet automate rulesets, workflow seeding, or `develop` branch creation. Tenants deploy these from kit reference templates under [`launchpad/templates/github/workflows/`](../launchpad/templates/github/workflows/):
+v0.5.10 does **not** yet automate rulesets or workflow seeding. Tenants deploy workflow reference templates from [`launchpad/templates/github/workflows/`](../launchpad/templates/github/workflows/):
 
 | Template | Purpose |
 |----------|---------|

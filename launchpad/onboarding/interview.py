@@ -126,6 +126,7 @@ repos:
 
 policy:
   default_branch: main
+  integration_branch: develop
   require_pr_reviews: 1
   dismiss_stale_reviews: true
 

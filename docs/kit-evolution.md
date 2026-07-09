@@ -120,7 +120,16 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 
 ---
 
-## Current release line (v0.5.11)
+## Current release line (v0.5.12)
+
+**v0.5.12** — greenfield-tested factory fixes:
+
+- **`init-client`** creates `develop` from `main` (`policy.integration_branch`) and protects both branches
+- **`apply-harness`** pins constitution and prayog-skills as git submodules (unified governance model); progress messages; reliable tag fetch/checkout
+- **`status --repo`** skills submodule drift check; PM view shows governance pins for rules + skills
+- **`apply-scaffold`** helpful `--force` hint when output directory already exists (post init-client)
+- Restore **`github_ops.py`** for GitHub forge (teams, repos, branch protection, projects)
+- Governance examples: `integration_branch: develop`
 
 **v0.5.11** — doc drift fix + harness skills path:
 
@@ -130,4 +139,4 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 
 **v0.5.10** introduced the greenfield refactor (5-YAML model, 5-command CLI, GitHub-only).
 
-Tenants adopt by pinning `0.5.11` in `.launchpad-version` and installing from that tag.
+Tenants adopt by pinning `0.5.12` in `.launchpad-version` and installing from that tag.

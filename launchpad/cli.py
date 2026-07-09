@@ -1,4 +1,4 @@
-"""CLI entry point for launchpad (v0.5.11).
+"""CLI entry point for launchpad (v0.5.12).
 
 Public commands:
   onboard interview   4-question setup → writes 5 config YAMLs locally
@@ -146,7 +146,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="launchpad",
         description=(
-            "Launchpad factory automation (v0.5.11 · GitHub only).\n"
+            "Launchpad factory automation (v0.5.12 · GitHub only).\n"
             "Pass --client <id> to select your programme (see: launchpad clients).\n"
             "All commands are dry-run by default — pass --apply to execute."
         ),

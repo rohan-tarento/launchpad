@@ -97,14 +97,14 @@ launchpad init-client --repo example-api --dry-run   # preview
 launchpad init-client --repo example-api --apply     # execute
 ```
 
-Creates: GitHub repo, assigns teams, seeds `main` branch, applies branch protection, links to project board.
+Creates: GitHub repo, assigns teams, seeds `main` + `develop` branches, applies branch protection on both, links to project board.
 
-Clone locally:
+Clone locally (checked out on `develop` automatically):
 
 ```bash
-gh repo clone <org>/example-api ~/Workspace/<slug>/example-api
-cd ~/Workspace/<slug>/example-api
-git checkout -b develop
+# init-client clones into programme.workspace/<repo> when the directory is missing
+launchpad init-client --repo example-api --apply
+cd ~/Workspace/<slug>/example-api   # already on develop
 ```
 
 ---

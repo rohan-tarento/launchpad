@@ -1,6 +1,6 @@
 # Harness pins (frozen surface)
 
-Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. App repos **pin** rules; dev skills are **seeded** on sync.
+Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. App repos **pin both as git submodules** — same governance model for rules and skills.
 
 ---
 
@@ -9,7 +9,7 @@ Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. 
 | Repo | Mount / path | Owner | Contents |
 |------|----------------|-------|----------|
 | `drivestream-lab/python-services-rules` | `.cursor/rules/` submodule | Platform (OSS) | `.mdc` constitution |
-| [prayog-skills](https://github.com/drivestream-lab/prayog-skills) | `.agents/skills/` (seeded) | Public | Dev workflow skills |
+| [prayog-skills](https://github.com/drivestream-lab/prayog-skills) | `.agents/skills/prayog-skills/` submodule | Public | Dev workflow skills |
 | `<client>-meta` (private) | (tenant workspace) | Tenant | PRDs, manifests, factory config, templates |
 
 ---
@@ -20,7 +20,7 @@ Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. 
 |-------|----------|----------|------------------|
 | **Constitution** | `.cursor/rules/*.mdc` (rules submodule) | How to code — SDD discipline, patterns, boundaries | `drivestream-lab/*-rules` repo |
 | **Router** | `AGENTS.md` | Harness pin, verify commands, playbook links, **which** skills exist | Harness sync templates + tenant overrides |
-| **Procedures** | `.agents/skills/` (gitignored) | Step-by-step slash workflows (`/pre-implement`, `/verify`, …) | [prayog-skills](https://github.com/drivestream-lab/prayog-skills) @ pinned ref |
+| **Procedures** | `.agents/skills/<repo>/` (git submodule) | Step-by-step slash workflows (`/pre-implement`, `/verify`, …) | [prayog-skills](https://github.com/drivestream-lab/prayog-skills) @ pinned ref |
 
 **Never** enumerate prayog skill names or slash commands in `*-rules` MDC files — they drift from `AGENTS.md` and prayog. Rules repos run `scripts/check_mdc_boundary.sh` in CI to enforce this.
 
@@ -74,10 +74,12 @@ Bump via harness PR after platform publishes a new approved rules + skills pair.
 ## What apply-harness does
 
 1. Write `.harness-pin.yaml` and `AGENTS.md`
-2. Sync **rules** submodule @ pinned ref
+2. Pin **rules** submodule @ declared ref → `.cursor/rules/`
 3. Remove legacy **`.cursor/skills`** submodule if present
-4. Seed prayog-skills dev bundle → `.agents/skills/`
-5. Gitignore **`.agents/`**; optional commit **`skills-lock.json`**
+4. Pin **prayog-skills** submodule @ declared ref → `.agents/skills/prayog-skills/`
+5. Stage gitlinks — commit `.harness-pin.yaml`, `AGENTS.md`, `.gitmodules`, submodule paths
+
+**Do not** gitignore `.agents/` in app repos — skills are tracked submodules, same as constitution.
 
 **PM pipeline skills** (`validate-requirements`, `prd-impact-map`, …) install in **`<slug>-meta`** only — not app repos.
 
@@ -106,7 +108,7 @@ Short harness-only path (repo already exists with code):
 1. Add entry under `repos:` in `harness-<org>.yaml`.
 2. Ensure clone lives next to `<slug>-meta` in the workspace.
 3. `launchpad apply-harness --repo <name> --apply`
-4. Commit pin, `AGENTS.md`, rules submodule, `.gitignore` (`.agents/`).
+4. Commit pin, `AGENTS.md`, rules submodule, skills submodule (`.agents/skills/`).
 5. `launchpad status --repo <name>` before opening PR.
 
 ---
@@ -121,7 +123,7 @@ launchpad apply-harness --meta --apply
 launchpad status --meta
 ```
 
-Commit `.harness-pin.yaml`, `skills-lock.json`, `AGENTS.md` — **not** `.agents/skills/` (gitignored).
+Commit `.harness-pin.yaml`, `AGENTS.md`, and skills submodule gitlinks under `.agents/skills/`.
 
 Meta structure comes from `apply-scaffold --meta` (cookiecutter `tenant-meta-foundation`).
 

@@ -1,4 +1,4 @@
-"""apply-harness — pin constitution submodule + seed agent skills per stack.
+"""apply-harness — pin constitution + skills submodules per stack.
 
 Reads harness-<org>.yaml + governance-<org>.yaml.
 harness_profile resolves as: repos.<name> override → repo.stack from governance.
@@ -10,17 +10,100 @@ Usage:
 
 from __future__ import annotations
 
+import os
 import shutil
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from launchpad.schema import SchemaError
-from launchpad.schema.harness import HarnessProfile, load_harness
+from launchpad.schema.harness import HarnessProfile, SkillRef, load_harness
 from launchpad.schema.governance import load_governance
 
 # Sentinel placeholder used in kit CODEOWNERS templates.
 # All templates ship with this string; apply-harness substitutes the real org.
 _TEMPLATE_ORG_PLACEHOLDER = "example-org"
+
+# Default prayog dev skills seeded into harness-pin when template is rendered.
+_DEFAULT_DEV_SKILLS = [
+    "spec-draft",
+    "initiative-feasibility",
+    "spec-technical-review",
+    "spec-implementation-plan",
+    "pre-implement",
+    "loop-spec",
+    "ground-spec",
+    "verify",
+]
+
+
+def _run_git(cmd: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+
+
+def _pin_git_ref(repo_dir: Path, ref: str, *, label: str = "") -> bool:
+    """Fetch and force-checkout a tag or branch inside a git repo."""
+    if not repo_dir.is_dir():
+        return False
+
+    prefix = f"  {label}: " if label else "  "
+    print(f"{prefix}fetching {ref!r} …")
+
+    # Tags need an explicit refspec — `git fetch origin v0.1.5` only updates FETCH_HEAD.
+    fetch = _run_git(
+        ["git", "fetch", "origin", f"refs/tags/{ref}:refs/tags/{ref}"],
+        cwd=repo_dir,
+    )
+    if fetch.returncode != 0:
+        fetch = _run_git(["git", "fetch", "origin", ref], cwd=repo_dir)
+    if fetch.returncode != 0:
+        print(f"  WARN: fetch {ref!r} failed: {fetch.stderr.strip()}", file=sys.stderr)
+        return False
+
+    print(f"{prefix}checkout {ref!r} …")
+    checkout = _run_git(["git", "checkout", "-f", ref], cwd=repo_dir)
+    if checkout.returncode != 0:
+        print(f"  WARN: checkout {ref!r} failed: {checkout.stderr.strip()}", file=sys.stderr)
+        return False
+    return True
+
+
+def _pin_submodule(
+    repo_path: Path,
+    submodule_rel: str,
+    url: str,
+    ref: str,
+    *,
+    label: str = "",
+) -> bool:
+    """Ensure submodule exists at repo_path/submodule_rel and pin it to ref."""
+    if not (repo_path / ".git").is_dir():
+        print(f"  WARN: {repo_path} is not a git repo — cannot pin submodule", file=sys.stderr)
+        return False
+
+    tag = label or submodule_rel
+    submodule_dest = repo_path / submodule_rel
+    gitmodules = repo_path / ".gitmodules"
+    already_added = gitmodules.is_file() and url in gitmodules.read_text()
+
+    if not already_added:
+        print(f"  {tag}: adding submodule {url} → {submodule_rel} …")
+        result = _run_git(
+            ["git", "submodule", "add", "--force", url, submodule_rel],
+            cwd=repo_path,
+        )
+        if result.returncode != 0:
+            print(f"  WARN: submodule add failed: {result.stderr.strip()}", file=sys.stderr)
+            return False
+    else:
+        print(f"  {tag}: submodule exists — pinning {ref!r} …")
+
+    if not _pin_git_ref(submodule_dest, ref, label=tag):
+        return False
+
+    _run_git(["git", "add", submodule_rel], cwd=repo_path)
+    return True
 
 
 def _find_config(config_dir: Path, pattern: str) -> Path | None:
@@ -68,8 +151,15 @@ def _seed_codeowners(repo_path: Path, tpl_name: str, org: str, *, apply: bool) -
     print(f"  ✔  CODEOWNERS  ← {tpl_name}  (org: {org})")
 
 
-def _seed_harness_pin(repo_path: Path, tpl_name: str, *, apply: bool) -> None:
-    """Write .harness-pin.yaml from the template file declared in harness-<org>.yaml."""
+def _seed_harness_pin(
+    repo_path: Path,
+    tpl_name: str,
+    profile: HarnessProfile,
+    profile_name: str,
+    *,
+    apply: bool,
+) -> None:
+    """Write or sync .harness-pin.yaml from the kit template + harness profile refs."""
     tpl_path = _resolve_kit_template(tpl_name)
 
     if tpl_path is None:
@@ -78,17 +168,35 @@ def _seed_harness_pin(repo_path: Path, tpl_name: str, *, apply: bool) -> None:
         return
 
     dest = repo_path / ".harness-pin.yaml"
+    con = profile.constitution
+    skill = profile.skills[0] if profile.skills else None
+    skills_block = "\n".join(f"    - {name}" for name in _DEFAULT_DEV_SKILLS)
 
     if not apply:
         print(f"    [dry-run] harness-pin ← {tpl_name}  →  .harness-pin.yaml")
         return
 
-    if dest.is_file():
-        print(f"  SKIP: .harness-pin.yaml already exists (edit manually to upgrade)")
-        return
+    content = tpl_path.read_text(encoding="utf-8")
+    if con:
+        content = content.replace("{{RULES_REF}}", con.ref)
+        content = content.replace(
+            "repo: drivestream-lab/python-services-rules",
+            f"repo: {con.org}/{con.repo}",
+        )
+        content = content.replace(
+            "repo: drivestream-lab/nextjs-bff-rules",
+            f"repo: {con.org}/{con.repo}",
+        )
+    if skill:
+        content = content.replace("{{AGENT_SKILLS_REF}}", skill.ref or "HEAD")
+        content = content.replace(
+            "repo: drivestream-lab/prayog-skills",
+            f"repo: {skill.org}/{skill.repo}",
+        )
+    content = content.replace("{{AGENT_SKILLS_LIST}}", skills_block)
 
-    shutil.copy(tpl_path, dest)
-    print(f"  ✔  harness-pin  ← {tpl_name}")
+    dest.write_text(content, encoding="utf-8")
+    print(f"  ✔  harness-pin synced ← {tpl_name}  (profile: {profile_name})")
 
 
 def _remove_legacy_cursor_skills(repo_path: Path, *, apply: bool) -> None:
@@ -104,8 +212,6 @@ def _remove_legacy_cursor_skills(repo_path: Path, *, apply: bool) -> None:
     if not apply:
         print(f"    [dry-run] remove legacy {legacy_rel} submodule")
         return
-
-    import subprocess
 
     if in_gitmodules:
         subprocess.run(
@@ -128,6 +234,7 @@ def _remove_legacy_cursor_skills(repo_path: Path, *, apply: bool) -> None:
 def _apply_harness_to_repo(
     repo_path: Path,
     profile: HarnessProfile,
+    profile_name: str,
     org: str,
     *,
     apply: bool = False,
@@ -147,70 +254,57 @@ def _apply_harness_to_repo(
         else:
             print(f"    [dry-run] constitution: (none — no .cursor/rules submodule for this profile)")
         for skill in profile.skills:
-            print(f"    [dry-run] skill: .agents/skills/{skill.repo} ← https://github.com/{skill.org}/{skill.repo}@{skill.ref}")
+            skill_url = f"https://github.com/{skill.org}/{skill.repo}"
+            skill_path_rel = f".agents/skills/{skill.repo}"
+            print(
+                f"    [dry-run] skills submodule: {skill_path_rel} "
+                f"← {skill_url}@{skill.ref}"
+            )
         _seed_codeowners(repo_path, profile.codeowners_template, org, apply=False)
-        _seed_harness_pin(repo_path, profile.harness_pin_template, apply=False)
+        _seed_harness_pin(repo_path, profile.harness_pin_template, profile, profile_name, apply=False)
         return
-
-    import subprocess
 
     # Constitution submodule — skip entirely if profile has none
     if con:
-        submodule_dest.parent.mkdir(parents=True, exist_ok=True)
-        if not (repo_path / ".git").is_dir():
-            print(f"  WARN: {repo_path} is not a git repo — cannot add submodule", file=sys.stderr)
-            return
-
-        gitmodules = repo_path / ".gitmodules"
         submodule_path_rel = ".cursor/rules"
-        already_added = gitmodules.is_file() and con.submodule_url in gitmodules.read_text()
-
-        if not already_added:
-            result = subprocess.run(
-                ["git", "submodule", "add", "--force", con.submodule_url, submodule_path_rel],
-                cwd=repo_path,
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode != 0:
-                print(f"  WARN: submodule add failed: {result.stderr.strip()}", file=sys.stderr)
-
-        # Pin to ref
-        subprocess.run(
-            ["git", "-C", str(submodule_dest), "fetch", "origin", con.ref],
-            capture_output=True,
-            text=True,
-        )
-        subprocess.run(
-            ["git", "-C", str(submodule_dest), "checkout", con.ref],
-            capture_output=True,
-            text=True,
-        )
-        print(f"  ✔  constitution: {con.submodule_url}@{con.ref}")
+        submodule_dest.parent.mkdir(parents=True, exist_ok=True)
+        if _pin_submodule(
+            repo_path,
+            submodule_path_rel,
+            con.submodule_url,
+            con.ref,
+            label="constitution",
+        ):
+            print(f"  ✔  constitution pinned: {con.repo}@{con.ref}")
+        else:
+            print(f"  ✗  constitution pin failed: {con.submodule_url}@{con.ref}", file=sys.stderr)
     else:
         print(f"  –  constitution: (none — meta/config repo, no rules submodule)")
 
-    # Skills — SSOT path is .agents/skills/ (not .cursor/skills)
+    # Skills — git submodules under .agents/skills/<repo> (same governance model as constitution)
     _remove_legacy_cursor_skills(repo_path, apply=True)
 
     for skill in profile.skills:
         skill_url = f"https://github.com/{skill.org}/{skill.repo}"
         skill_path_rel = f".agents/skills/{skill.repo}"
-        skill_dest = repo_path / skill_path_rel
-        (repo_path / ".agents" / "skills").mkdir(parents=True, exist_ok=True)
-        if not skill_dest.is_dir():
-            subprocess.run(
-                ["git", "submodule", "add", "--force", skill_url, skill_path_rel],
-                cwd=repo_path,
-                capture_output=True,
+        skill_ref = skill.ref or "HEAD"
+        if _pin_submodule(
+            repo_path,
+            skill_path_rel,
+            skill_url,
+            skill_ref,
+            label=f"skills/{skill.repo}",
+        ):
+            print(f"  ✔  skills pinned: {skill.org}/{skill.repo}@{skill_ref}")
+        else:
+            print(
+                f"  ✗  skills pin failed: {skill_url}@{skill_ref}",
+                file=sys.stderr,
             )
-        if skill.ref:
-            subprocess.run(["git", "-C", str(skill_dest), "checkout", skill.ref], capture_output=True)
-        print(f"  ✔  skill: .agents/skills/{skill.repo} ← {skill_url}@{skill.ref or 'HEAD'}")
 
     # CODEOWNERS and harness-pin — filenames come from YAML profile
     _seed_codeowners(repo_path, profile.codeowners_template, org, apply=True)
-    _seed_harness_pin(repo_path, profile.harness_pin_template, apply=True)
+    _seed_harness_pin(repo_path, profile.harness_pin_template, profile, profile_name, apply=True)
 
 
 def run_apply_harness(
@@ -295,7 +389,7 @@ def run_apply_harness(
         else:
             return 1
 
-    _apply_harness_to_repo(repo_path, profile, org, apply=apply)
+    _apply_harness_to_repo(repo_path, profile, profile_name, org, apply=apply)
 
     if not apply:
         print()
@@ -307,11 +401,14 @@ def run_apply_harness(
         print("╚══════════════════════════════════════════════════════════════╝")
     else:
         print()
+        import os
+        client_id = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
+        client_prefix = f"--client {client_id} " if client_id else ""
+        target_flag = "--meta" if meta else f"--repo {target}"
         print("╔══════════════════════════════════════════════════════════════╗")
         print("║  NEXT:                                                       ║")
         print("╠══════════════════════════════════════════════════════════════╣")
-        target_flag = "--meta" if meta else f"--repo {target}"
-        print(f"║  launchpad status {target_flag:<41}  ║")
+        print(f"║  launchpad {client_prefix}status {target_flag:<41}  ║")
         print("╚══════════════════════════════════════════════════════════════╝")
 
     return 0

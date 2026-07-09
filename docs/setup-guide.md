@@ -1,4 +1,4 @@
-# Setup guide (v0.5.11)
+# Setup guide (v0.5.12)
 
 End-to-end onboarding for a new programme.
 
@@ -45,7 +45,7 @@ For the full day-by-day walkthrough with a STRATUM example, see **[greenfield.md
 ## Phase 1 — Install Launchpad (once per machine)
 
 ```bash
-pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"
+pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.12"
 launchpad --version
 ```
 

@@ -1,4 +1,4 @@
-# New programme onboarding (v0.5.11)
+# New programme onboarding (v0.5.12)
 
 Quick checklist. Full walkthrough: **[greenfield.md](greenfield.md)**.
 
@@ -8,7 +8,7 @@ Quick checklist. Full walkthrough: **[greenfield.md](greenfield.md)**.
 
 ### Day 0 — Local setup
 
-- [ ] Install Launchpad: `pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"`
+- [ ] Install Launchpad: `pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.12"`
 - [ ] Run `launchpad onboard interview` (4 questions → 5 YAML files + registry + env stub)
 - [ ] Set `GITHUB_TOKEN` in `~/.config/launchpad/env.d/<slug>.env`
 - [ ] `chmod 600 ~/.config/launchpad/env.d/<slug>.env`
