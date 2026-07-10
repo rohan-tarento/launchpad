@@ -13,6 +13,7 @@ Reference files seeded by factory commands into each repo clone.
 | CODEOWNERS | `CODEOWNERS.<stack>` from harness profile | `.github/CODEOWNERS` |
 | Harness pin | `harness-pin.<stack>.yaml` from harness profile | `.harness-pin.yaml` |
 | AGENTS.md | `AGENTS.md` / `AGENTS.meta.md` | `AGENTS.md` |
+| Gitignore (harness) | `gitignore.harness` | `.gitignore` (append or upgrade symlink patterns) |
 | Constitution | rules repo URL from harness profile | `.cursor/rules/` submodule |
 | Skills | skill repos from harness profile | `.harness/skills/` hub + runtime symlinks |
 

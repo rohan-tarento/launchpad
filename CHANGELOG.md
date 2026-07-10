@@ -11,6 +11,19 @@ Pick `<tag>` from the latest section below or [GitHub Releases](https://github.c
 
 ---
 
+## [0.5.17] — 2026-07-10
+
+### Added
+
+- **`apply-harness`** seeds `.gitignore` harness block (`gitignore.harness` template) so skill symlink mirrors are ignored
+- **`examples/tenant-meta/.gitignore`** — skeleton for Path B onboarding
+
+### Changed
+
+- Upgrades legacy `.agents/skills/*/` patterns to `.agents/skills/*` on re-apply (symlinks vs directories)
+
+---
+
 ## [0.5.16] — 2026-07-10
 
 ### Added
