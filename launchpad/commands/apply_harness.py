@@ -137,6 +137,24 @@ def _seed_harness_pin(
     print(f"  ✔  harness-pin synced ← {tpl_name}  (profile: {profile_name})")
 
 
+_RUN_SECTION_RE = re.compile(
+    r"(## Run and verify\n.*?)(?=\n---\n)",
+    re.DOTALL,
+)
+
+
+def _preserve_agents_run_section(content: str, existing_path: Path) -> str:
+    """Keep an existing Run and verify block when re-applying harness."""
+    if not existing_path.is_file():
+        return content
+    existing = existing_path.read_text(encoding="utf-8")
+    run_match = _RUN_SECTION_RE.search(existing)
+    if not run_match or "{{" in run_match.group(1):
+        return content
+    preserved = run_match.group(1)
+    return _RUN_SECTION_RE.sub(preserved, content, count=1)
+
+
 def _seed_agents_md(
     repo_path: Path,
     profile_name: str,
@@ -177,6 +195,7 @@ def _seed_agents_md(
         "`.agents/skills/prayog-skills/` (git submodule",
         "`.agents/skills/<skill>/` (symlinks via `.harness/skills/` hub",
     )
+    content = _preserve_agents_run_section(content, repo_path / "AGENTS.md")
 
     (repo_path / "AGENTS.md").write_text(content, encoding="utf-8")
     print(f"  ✔  AGENTS.md  ← {tpl_name}")

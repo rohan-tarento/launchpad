@@ -10,7 +10,7 @@ It is also used for local smoke tests (`LAUNCHPAD_TENANT_ROOT=examples/tenant-me
 All five YAML kinds live in `config/`:
 
 | File | Kind | Purpose |
-|---|---|---|
+|------|------|---------|
 | `programme.yaml` | Programme | Identity spine: name, slug, org, workspace, forge |
 | `governance-example-org.yaml` | GovernanceConfig | Teams, repos (stack + teams required), gitflow policy, board |
 | `harness-example-org.yaml` | HarnessConfig | Constitution (rules submodule) + agent skills per stack profile |
@@ -21,51 +21,43 @@ Rename `*-example-org.yaml` → `*-<your-org>.yaml` in your real meta repo.
 
 ---
 
-## Greenfield setup
+## Setup paths
 
-The interview generates all five files automatically:
+**Path A — interview:**
 
 ```bash
 launchpad onboard interview
 ```
 
+**Path B — copy this directory** and edit config.
+
+Full operator guide: [docs/onboarding/tenant-meta.md](../../docs/onboarding/tenant-meta.md).
+
 Then:
 
 ```bash
-# Day 1: meta repo on GitHub
-launchpad init-client --meta --dry-run    # preview
-launchpad init-client --meta --apply      # execute
-
-# Day 1: scaffold (optional)
-# Edit config/scaffold-<org>.yaml: set meta.enabled: true
-launchpad apply-scaffold --meta --apply
-
-# Day 1: pin harness
+launchpad init-client --meta --apply
+launchpad apply-scaffold --meta --apply      # optional
 launchpad apply-harness --meta --apply
+launchpad apply-forge-templates --meta --apply
 launchpad status --meta
-
-# Day N: app repos (edit governance + scaffold YAMLs first)
-launchpad init-client    --repo example-api --apply
-launchpad apply-scaffold --repo example-api --apply
-launchpad apply-harness  --repo example-api --apply
 ```
 
-All commands are **dry-run by default** — pass `--apply` to execute.
+Day N app repos: [playbook/operator/greenfield-app-repo.md](../../playbook/operator/greenfield-app-repo.md).
 
 ---
 
 ## Directory layout
 
 | Path | Purpose |
-|---|---|
-| `config/` | All five factory YAMLs (programme, governance, harness, scaffold, catalog) |
+|------|---------|
+| `config/` | All five factory YAMLs |
 | `prd/` | Product requirements (`INIT-*.md`) after PM sign-off |
 | `planning/` | Pre-build narratives — not app-repo SSOT |
 | `programs/` | Programme overviews |
-| `work/` | `WorkManifest` YAML archive (traceability; board seed via `gh issue create`) |
-| `wiki/` | Published to GitHub Wiki via wiki git remote — see [wiki-setup.md](../../playbook/wiki-setup.md) |
-| `playbook/` | Client-specific playbook deltas (kit playbook is the SSOT) |
-| `templates/` | Client-specific template overrides (kit defaults apply otherwise) |
+| `work/` | `WorkManifest` YAML archive |
+| `wiki/` | Published to GitHub Wiki — see [wiki-setup.md](../../playbook/wiki/wiki-setup.md) |
+| `playbook/` | Client-specific playbook deltas (kit playbook is SSOT) |
 
 **No `.env` in meta** — factory secrets live in `~/.config/launchpad/env.d/<slug>.env` only.
 
@@ -73,6 +65,7 @@ All commands are **dry-run by default** — pass `--apply` to execute.
 
 ## Further reading
 
-- [docs/greenfield.md](../../docs/greenfield.md) — Day-0 → Day-N walkthrough
+- [docs/README.md](../../docs/README.md) — documentation index
 - [docs/SCHEMA.md](../../docs/SCHEMA.md) — 5 YAML kinds reference
-- [docs/stacks.md](../../docs/stacks.md) — Stack registry + adding custom stacks
+- [docs/stacks.md](../../docs/stacks.md) — Stack registry
+- [CHANGELOG.md](../../CHANGELOG.md) — release notes

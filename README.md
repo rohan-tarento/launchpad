@@ -173,22 +173,24 @@ repos:
 
 ## Docs
 
+See **[docs/README.md](docs/README.md)** for the full index. Quick links:
+
 | Document | Purpose |
 |---|---|
-| [docs/greenfield.md](docs/greenfield.md) | Day-0 to Day-N walkthrough with KOLA example |
+| [docs/setup/pm-setup.md](docs/setup/pm-setup.md) | PM joining an existing programme |
+| [docs/setup/engineer-setup.md](docs/setup/engineer-setup.md) | Engineer joining an existing programme |
+| [docs/onboarding/tenant-meta.md](docs/onboarding/tenant-meta.md) | New tenant meta onboarding |
+| [docs/scaffolding.md](docs/scaffolding.md) | Cookiecutter scaffold guide |
+| [CHANGELOG.md](CHANGELOG.md) | Release notes and install tags |
 | [docs/SCHEMA.md](docs/SCHEMA.md) | 5 YAML kinds reference |
-| [docs/stacks.md](docs/stacks.md) | Stack registry + adding custom stacks |
-| [docs/kit-evolution.md](docs/kit-evolution.md) | Multi-tenant feedback and kit release process |
-| [docs/multi-laptop.md](docs/multi-laptop.md) | Client registry across machines |
-| [docs/local-dev.md](docs/local-dev.md) | Kit contributors — editable install + testing |
-| [playbook/](playbook/) | SDD, delivery workflow, harness pins |
+| [playbook/](playbook/) | Delivery workflow, harness pins, RBAC |
 
 ---
 
 ## Contributing
 
 Standard `fork → branch → PR` to `drivestream-lab/launchpad`.  
-See [docs/kit-evolution.md](docs/kit-evolution.md) for the tenant feedback → kit PR process.
+See [docs/contributing/kit-evolution.md](docs/contributing/kit-evolution.md) for the tenant feedback → kit PR process.
 
 ---
 

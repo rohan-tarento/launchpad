@@ -1,41 +1,76 @@
-# Launchpad playbook
+# Playbook
 
-Process SSOT for tenant engineering. **Product content** (PRDs, planning, wiki pages) lives in each private `<client>-meta` repo.
+**How we ship** — process SSOT for delivery, harness, GitHub, and wiki. Factory install and tenant onboarding live in [docs/](../docs/README.md).
 
-## Start here
+Pick install tag from [CHANGELOG.md](../CHANGELOG.md).
 
-| Topic | Document |
-|-------|----------|
-| **How we ship (start here)** | [delivery-workflow.md](delivery-workflow.md) |
-| Spec layout | [spec-layout.md](spec-layout.md) |
-| Delivery model (waves) | [delivery-model.md](delivery-model.md) |
-| Branching policy | [branching-policy.md](branching-policy.md) |
-| PM workflow (pointer) | [pm-workflow.md](pm-workflow.md) |
-| Agent skills matrix | [skills-matrix.md](skills-matrix.md) |
-| Agent prompt templates | [agent-prompt-templates.md](agent-prompt-templates.md) |
-| Skills audition | [skills-audition.md](skills-audition.md) |
-| GitHub board | [github-project.md](github-project.md) |
-| GitLab / multi-forge | [../docs/multi-forge.md](../docs/multi-forge.md) |
-| Harness pins | [harness-pins.md](harness-pins.md) |
-| Greenfield app repo | [greenfield-app-repo.md](greenfield-app-repo.md) |
-| Factory CLI | [python-automation.md](python-automation.md) |
-| Bootstrap PAT + prerequisites | [bootstrap-prerequisites.md](bootstrap-prerequisites.md) |
-| GitHub org setup | [github-org-setup.md](github-org-setup.md) |
-| GitHub enforcement | [github-enforcement.md](github-enforcement.md) |
-| Teams + RBAC | [teams-and-rbac.md](teams-and-rbac.md) |
-| SDD workflow | [sdd-workflow.md](sdd-workflow.md) |
-| Wiki setup | [wiki-setup.md](wiki-setup.md) |
-| Wiki index template | [wiki-index.md](wiki-index.md) |
-| Cursor ↔ GitHub connection | [cursor-github-connection.md](cursor-github-connection.md) |
-| Exit criteria (bootstrap) | [exit-criteria.md](exit-criteria.md) |
-| Test quality program | [test-quality-program.md](test-quality-program.md) |
+---
 
-## Agent skills
+## Ship (start here)
 
-Install from **[prayog-skills](https://github.com/drivestream-lab/prayog-skills)** — not duplicated in this repo.
+| Doc | Topic |
+|-----|--------|
+| [delivery-workflow.md](ship/delivery-workflow.md) | End-to-end PM ↔ dev flow |
+| [delivery-model.md](ship/delivery-model.md) | Waves and 1:1 board rule |
+| [spec-layout.md](ship/spec-layout.md) | Mandatory spec tree |
+| [branching-policy.md](ship/branching-policy.md) | Branch naming |
+| [sdd-workflow.md](ship/sdd-workflow.md) | Truth hierarchy for agents |
+| [teams-and-rbac.md](ship/teams-and-rbac.md) | Teams and merge rights |
 
-**Dev bundle (v0.4.0):** `spec-draft`, `initiative-feasibility`, `spec-technical-review`, `spec-implementation-plan`, `pre-implement`, `loop-spec`, `ground-spec`, `verify`
+---
 
-## Tenant overrides
+## Harness
 
-Copy [examples/tenant-meta](../examples/tenant-meta/) for empty `prd/`, `planning/`, `programs/`, `work/`, `wiki/`. Add deltas under tenant `playbook/` only when needed.
+| Doc | Topic |
+|-----|--------|
+| [harness-pins.md](harness/harness-pins.md) | Rules + prayog pins, `apply-harness` |
+| [skills-matrix.md](harness/skills-matrix.md) | PM vs dev skill bundles |
+| [skills-audition.md](harness/skills-audition.md) | Score skills before exit |
+| [test-quality-program.md](harness/test-quality-program.md) | Unit vs verify discipline |
+
+---
+
+## GitHub
+
+| Doc | Topic |
+|-----|--------|
+| [github-project.md](github/github-project.md) | Board columns and fields |
+| [github-enforcement.md](github/github-enforcement.md) | Branch rules and workflows |
+
+---
+
+## Operator
+
+| Doc | Topic |
+|-----|--------|
+| [greenfield-app-repo.md](operator/greenfield-app-repo.md) | Day-N app repo sequence |
+
+---
+
+## Wiki
+
+| Doc | Topic |
+|-----|--------|
+| [wiki-setup.md](wiki/wiki-setup.md) | Publish tenant wiki |
+| [wiki-index.md](wiki/wiki-index.md) | Home page link index |
+
+---
+
+## Factory and onboarding (docs/)
+
+| Doc | Topic |
+|-----|--------|
+| [bootstrap-prerequisites.md](../docs/onboarding/bootstrap-prerequisites.md) | PAT + Team plan |
+| [factory-cli.md](../docs/onboarding/factory-cli.md) | `launchpad` commands |
+| [tenant-meta.md](../docs/onboarding/tenant-meta.md) | New programme onboarding |
+| [exit-criteria.md](../docs/onboarding/exit-criteria.md) | Bootstrap exit checklist |
+| [PM setup](../docs/setup/pm-setup.md) | Join existing meta |
+| [Engineer setup](../docs/setup/engineer-setup.md) | Join existing app repo |
+
+---
+
+## Examples
+
+| Doc | Topic |
+|-----|--------|
+| [agent-prompt-templates.md](../examples/agent-prompt-templates.md) | Sample agent prompts |

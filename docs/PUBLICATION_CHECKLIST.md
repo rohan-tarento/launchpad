@@ -1,4 +1,4 @@
-# Publication checklist (v0.5.13)
+# Publication checklist
 
 Before pushing public changes to `launchpad`:
 
@@ -7,13 +7,13 @@ Before pushing public changes to `launchpad`:
 - [ ] No private org names in examples (`example-org` only)
 - [ ] Harness examples reference public `drivestream-lab/*-rules` (not tenant-specific placeholders)
 - [ ] No private repo lists — only `example-api`, `example-platform`, etc.
-- [ ] `examples/tenant-meta/config/` uses 5-YAML model (`programme.yaml`, `governance-example-org.yaml`, `harness-example-org.yaml`, `scaffold-example-org.yaml`, `service-catalog-example-org.yaml`)
+- [ ] `examples/tenant-meta/config/` uses 5-YAML model
 - [ ] `examples/tenant-meta/` contains structure only + `INIT-EXAMPLE-001.yaml`
-- [ ] README states tenant vs kit separation and v0.5.13
+- [ ] README states tenant vs kit separation
+- [ ] [CHANGELOG.md](../CHANGELOG.md) updated for releases
 - [ ] `launchpad --version` and `launchpad --help` work after `pip install .`
-- [ ] `launchpad doctor` exits 0 with a valid `programme.yaml` and `GITHUB_TOKEN`
-- [ ] `pytest tests/test_schema.py` passes (36 tests, no network required)
-- [ ] Example config validates: `load_programme / load_governance / load_harness / load_scaffold / load_catalog` against `examples/tenant-meta/config/`
+- [ ] `pytest` passes (no network required for schema tests)
+- [ ] Example config validates against `examples/tenant-meta/config/`
 - [ ] `scripts/smoke-local.sh` exits 0 (dry-run only, no PAT required)
 - [ ] CI (`ci.yml`) passes on `main` and `develop`
 - [ ] No GitLab-specific commands in public CLI (`launchpad --help` output)

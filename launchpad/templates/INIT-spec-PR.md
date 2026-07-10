@@ -6,4 +6,4 @@
 | **Board** | Engineering board — Initiative = `INIT-<id>`, Codebase = `<repo>` |
 | **App spec** | `<app>/docs/specification/product/INIT-<id>.md` |
 
-Eng opens PR on branch `chore/INIT-<id>-spec-<repo>`. See launchpad `playbook/delivery-workflow.md`.
+Eng opens PR on branch `chore/INIT-<id>-spec-<repo>`. See launchpad `playbook/ship/delivery-workflow.md`.

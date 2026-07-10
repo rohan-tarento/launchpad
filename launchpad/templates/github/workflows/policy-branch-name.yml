@@ -2,7 +2,7 @@
 # Required check name: policy-branch-name (enable when CI gate is ready)
 #
 # Complements GitHub ruleset branch_name_pattern (blocks push of bad names).
-# See playbook/branching-policy.md
+# See playbook/ship/branching-policy.md
 
 name: policy-branch-name
 

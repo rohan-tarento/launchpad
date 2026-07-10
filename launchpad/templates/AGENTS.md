@@ -17,11 +17,11 @@ Playbook SSOT: **launchpad** `playbook/` (pinned from tenant `<client>-meta`).
 
 | Topic | Where |
 |-------|--------|
-| Branching policy (`INIT-{COMPONENT}-{NUMBER}` naming) | launchpad `playbook/branching-policy.md` |
-| PM ↔ dev delivery workflow | launchpad `playbook/delivery-workflow.md` |
-| Delivery model (1:1 wave rule) | launchpad `playbook/delivery-model.md` |
-| SDD workflow | launchpad `playbook/sdd-workflow.md` |
-| Harness pins | launchpad `playbook/harness-pins.md` |
+| Branching policy (`INIT-{COMPONENT}-{NUMBER}` naming) | launchpad `playbook/ship/branching-policy.md` |
+| PM ↔ dev delivery workflow | launchpad `playbook/ship/delivery-workflow.md` |
+| Delivery model (1:1 wave rule) | launchpad `playbook/ship/delivery-model.md` |
+| SDD workflow | launchpad `playbook/ship/sdd-workflow.md` |
+| Harness pins | launchpad `playbook/harness/harness-pins.md` |
 | Program board | Your forge engineering board (tenant wiki) |
 
 **PRs:** use `.github/pull_request_template.md` — Initiative, Spec path, Verify command.
@@ -60,7 +60,7 @@ Active work: board issue **Spec path** → product initiative spec (from PRD han
 
 ## Before changing behavior
 
-**Delivery workflow:** [launchpad playbook/delivery-workflow.md](https://github.com/drivestream-lab/launchpad/blob/main/playbook/delivery-workflow.md) — full skill chain, roles, automation phases.
+**Delivery workflow:** [launchpad playbook/ship/delivery-workflow.md](https://github.com/drivestream-lab/launchpad/blob/main/playbook/ship/delivery-workflow.md) — full skill chain, roles, automation phases.
 
 1. Read `AGENTS.md` and relevant **product** spec (and **ADR** if architecture changes).
 2. Read **as-built** — do not assume a feature exists without checking.
