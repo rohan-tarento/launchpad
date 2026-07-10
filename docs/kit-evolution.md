@@ -128,7 +128,16 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 - **`apply-harness`** substitutes `terraform-infra-rules` in harness pin templates
 - Examples and docs updated for `terraform-infra-rules` + Azure foundation scaffold context
 
-**v0.5.12** — greenfield-tested factory fixes:
+**v0.5.14** — harness skill hub + YAML SSOT:
+
+- **`apply-harness`** resolves skill names from prayog `profiles/*.yaml` at pinned ref (no Python fallbacks)
+- Materializes `.harness/skills/<name>/` hub and mirrors into `skill_runtimes` (default `.agents/skills`, `.claude/skills`)
+- **`community_skills`** and **`skill_runtimes`** on harness profiles; community submodules under `.harness/community/`
+- **`prayog_profile`** optional alias when harness stack name differs from prayog profile filename
+- **`status`** checks hub + all runtime paths; fails if prayog profile missing at pinned ref
+
+**v0.5.13** — (installed kit baseline)
+
 
 - **`init-client`** creates `develop` from `main` (`policy.integration_branch`) and protects both branches
 - **`apply-harness`** pins constitution and prayog-skills as git submodules (unified governance model); progress messages; reliable tag fetch/checkout

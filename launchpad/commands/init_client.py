@@ -38,6 +38,7 @@ from launchpad.schema.catalog import load_catalog
 from launchpad.schema.governance import load_governance
 from launchpad.schema.programme import load_programme
 from launchpad.clients import CLIENTS_FILE, CONFIG_DIR
+from launchpad.ui import print_next_box
 
 
 def _find_config(config_dir: Path, pattern: str) -> Path | None:
@@ -331,7 +332,6 @@ def run_init_client(
         )
 
     # NEXT step
-    print()
     if meta:
         sca_path = _find_config(cdir, "scaffold-*.yaml")
         scaffold_enabled = False
@@ -343,25 +343,19 @@ def run_init_client(
             except SchemaError:
                 pass
 
-        print("╔══════════════════════════════════════════════════════════════╗")
-        print("║  NEXT:                                                       ║")
-        print("╠══════════════════════════════════════════════════════════════╣")
         if scaffold_enabled:
-            print("║  launchpad apply-scaffold --meta --apply                     ║")
+            print_next_box(["launchpad apply-scaffold --meta --apply"])
         else:
-            print("║  Option A — skip scaffold (no foundation template):          ║")
-            print("║    launchpad apply-harness --meta --apply                    ║")
-            print("║                                                              ║")
-            print("║  Option B — scaffold from a cookiecutter template first:     ║")
-            print(f"║    Edit config/scaffold-{org}.yaml                  ║")
-            print("║    Set meta.enabled: true, template, ref, context            ║")
-            print("║    launchpad apply-scaffold --meta --apply                   ║")
-        print("╚══════════════════════════════════════════════════════════════╝")
+            print_next_box([
+                "Option A — skip scaffold (no foundation template):",
+                "launchpad apply-harness --meta --apply",
+                "",
+                "Option B — scaffold from a cookiecutter template first:",
+                f"Edit config/scaffold-{org}.yaml",
+                "Set meta.enabled: true, template, ref, context",
+                "launchpad apply-scaffold --meta --apply",
+            ])
     else:
-        print("╔══════════════════════════════════════════════════════════════╗")
-        print("║  NEXT:                                                       ║")
-        print("╠══════════════════════════════════════════════════════════════╣")
-        print(f"║  launchpad apply-scaffold --repo {repo_name:<24} --apply --force  ║")
-        print("╚══════════════════════════════════════════════════════════════╝")
+        print_next_box([f"launchpad apply-scaffold --repo {repo_name} --apply --force"])
 
     return 0

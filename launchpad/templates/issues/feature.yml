@@ -8,7 +8,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use for **product work** after INIT manifest exists. Mirror your engineering board fields.
+        Use for **product work** after INIT manifest exists. Mirror **{{BOARD_NAME}}** board fields.
 
   - type: input
     id: initiative
@@ -31,8 +31,7 @@ body:
     attributes:
       label: Codebase
       options:
-        - example-meta
-        - example-api
+{{REPO_LIST_YAML}}
     validations:
       required: true
 
@@ -54,4 +53,5 @@ body:
   - type: markdown
     attributes:
       value: |
+        **Board:** {{BOARD_URL}}
         **Branch:** `feature/INIT-{COMPONENT}-{NUMBER}-{slug}` → `develop`

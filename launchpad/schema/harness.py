@@ -22,6 +22,14 @@ profiles        Map of stack name → HarnessProfile.
     repo        Skill repo slug.
     org         Optional override org.
     ref         Git ref.
+  prayog_profile      Optional. Prayog profiles/{name}.yaml filename when it differs
+                      from the harness profile name (e.g. nextjs-frontend → frontend).
+  community_skills    Optional. External skill repos (e.g. awesome-copilot /prd on meta).
+    source      GitHub org/repo slug.
+    ref         Pinned tag or branch.
+    skill       Skill directory name under source repo skills/.
+  skill_runtimes      Optional. Agent runtime roots for flat skill symlinks.
+                      Defaults to .agents/skills and .claude/skills.
   codeowners_template   Filename inside kit templates/ to seed as .github/CODEOWNERS.
                         Defaults to "CODEOWNERS.<profile-name>" (convention).
   harness_pin_template  Filename inside kit templates/ to seed as .harness-pin.yaml.
@@ -43,6 +51,51 @@ API_VERSION = "launchpad/v1"
 KIND = "HarnessConfig"
 
 _PLATFORM_ORG = "drivestream-lab"
+_DEFAULT_SKILL_RUNTIMES = (".agents/skills", ".claude/skills")
+
+
+class CommunitySkillRef:
+    def __init__(self, raw: dict[str, Any], *, profile: str, idx: int, path: str = "") -> None:
+        source = str(raw.get("source") or "").strip()
+        if not source:
+            raise SchemaError(
+                f"profiles.{profile!r}.community_skills[{idx}] missing required field 'source'",
+                path=path,
+                hint="Use org/repo form, e.g. source: github/awesome-copilot",
+            )
+        if "/" not in source:
+            raise SchemaError(
+                f"profiles.{profile!r}.community_skills[{idx}].source must be org/repo",
+                path=path,
+            )
+        self.source = source
+        ref = str(raw.get("ref") or "").strip()
+        if not ref:
+            raise SchemaError(
+                f"profiles.{profile!r}.community_skills[{idx}] missing required field 'ref'",
+                path=path,
+                hint="Pin to a tag, e.g. ref: v1.0.0",
+            )
+        self.ref = ref
+        skill = str(raw.get("skill") or "").strip()
+        if not skill:
+            raise SchemaError(
+                f"profiles.{profile!r}.community_skills[{idx}] missing required field 'skill'",
+                path=path,
+            )
+        self.skill = skill
+
+    @property
+    def url(self) -> str:
+        return f"https://github.com/{self.source}"
+
+    @property
+    def submodule_dir(self) -> str:
+        return self.source.split("/", 1)[-1]
+
+    @property
+    def submodule_rel(self) -> str:
+        return f".harness/community/{self.submodule_dir}"
 
 
 class ConstitutionRef:
@@ -106,6 +159,30 @@ class HarnessProfile:
         self.skills: list[SkillRef] = [
             SkillRef(s, profile=name, idx=i, path=path) for i, s in enumerate(skills_raw)
         ]
+
+        self.prayog_profile: str = str(raw.get("prayog_profile") or "").strip() or name
+
+        community_raw = raw.get("community_skills") or []
+        if not isinstance(community_raw, list):
+            raise SchemaError(f"profiles.{name!r}.community_skills must be a list", path=path)
+        self.community_skills: list[CommunitySkillRef] = [
+            CommunitySkillRef(c, profile=name, idx=i, path=path) for i, c in enumerate(community_raw)
+        ]
+
+        runtimes_raw = raw.get("skill_runtimes")
+        if runtimes_raw is None:
+            self.skill_runtimes: list[str] = list(_DEFAULT_SKILL_RUNTIMES)
+        elif not isinstance(runtimes_raw, list):
+            raise SchemaError(f"profiles.{name!r}.skill_runtimes must be a list", path=path)
+        else:
+            runtimes = [str(r).strip() for r in runtimes_raw if str(r).strip()]
+            if not runtimes:
+                raise SchemaError(
+                    f"profiles.{name!r}.skill_runtimes must not be empty when set",
+                    path=path,
+                )
+            self.skill_runtimes = runtimes
+
         # Template filenames in kit templates/ — default to convention if not set.
         # Convention: CODEOWNERS.<name>  and  harness-pin.<name>.yaml
         self.codeowners_template: str = (

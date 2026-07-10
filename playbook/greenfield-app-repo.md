@@ -20,7 +20,8 @@ Three layers — do not skip or reorder:
 │ 1. init-client --repo   GitHub repo + team + gitflow + board  │
 │ 2. apply-scaffold       cookiecutter foundation code          │
 │ 3. apply-harness        rules submodule + AGENTS.md + skills  │
-│ 4. status        verify pins match config              │
+│ 4. apply-forge-templates  issue forms + PR template           │
+│ 5. status        verify pins + forge templates match config   │
 ├──────────────────────────────────────────────────────────────┤
 │ 5. spec handoff PR      docs/specification/product/INIT-*     │
 │ 6. wave PRs (W0…)       business logic on top of foundation   │
@@ -158,6 +159,26 @@ Commit harness artifacts in the app repo:
 cd ~/Workspace/<slug>/example-api
 git add .
 git commit -m "chore: sync harness pins"
+git push
+```
+
+---
+
+## Step 3b — Forge contributor templates
+
+```bash
+launchpad apply-forge-templates --repo example-api --dry-run
+launchpad apply-forge-templates --repo example-api --apply
+```
+
+Writes `.github/ISSUE_TEMPLATE/` and `.github/pull_request_template.md` from kit + governance (repo list, board URL).
+
+Commit in the app repo:
+
+```bash
+cd ~/Workspace/<slug>/example-api
+git add .github/
+git commit -m "chore: seed forge issue templates"
 git push
 ```
 

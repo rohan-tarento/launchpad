@@ -115,7 +115,8 @@ All commands default to **`--dry-run`**. Pass **`--apply`** to change GitHub or 
 | `init-client` | Create GitHub teams, repo, gitflow, project board | `--meta` or `--repo <name>` |
 | `apply-scaffold` | Run cookiecutter template into repo | `--meta` or `--repo <name>` |
 | `apply-harness` | Pin constitution submodule, seed skills, write AGENTS.md | `--meta` or `--repo <name>` |
-| `status` | Verify harness pins match config | `--meta` or `--repo <name>` |
+| `apply-forge-templates` | Seed issue forms + PR template from kit + governance | `--meta` or `--repo <name>` |
+| `status` | Verify harness pins + forge templates match config | `--meta` or `--repo <name>` |
 | `status` | Checklist + suggest next command | `--meta` |
 | `doctor` | Preflight checks (token, config, version pin) | — |
 | `whoami` | Verify token and print GitHub login | — |
@@ -132,12 +133,14 @@ launchpad init-client --meta --apply
 # Day 1 — scaffold + harness meta
 launchpad apply-scaffold --meta --apply
 launchpad apply-harness --meta --apply
+launchpad apply-forge-templates --meta --apply
 launchpad status --meta
 
 # Day N — app repos (repeat per repo)
 launchpad init-client --repo example-api --apply
 launchpad apply-scaffold --repo example-api --apply
 launchpad apply-harness --repo example-api --apply
+launchpad apply-forge-templates --repo example-api --apply
 launchpad status --repo example-api
 
 ```

@@ -20,11 +20,16 @@ org: example-org
 profiles:
   # ─── Meta repo profile ───────────────────────────────────────────────────
   meta-pm:
-    # constitution: omitted intentionally.
-    # Meta repos hold config YAMLs, planning docs, and ADRs — not application code.
-    # There are no MDC rules to enforce here, so no .cursor/rules submodule is needed.
-    # apply-harness skips the submodule step when constitution is absent.
-    skills: []
+    skills:
+      - repo: prayog-skills
+        ref: v0.4.2
+    community_skills:
+      - source: github/awesome-copilot
+        ref: v1.0.0
+        skill: prd
+    skill_runtimes:
+      - .agents/skills
+      - .claude/skills
     codeowners_template: CODEOWNERS.meta-pm
     harness_pin_template: harness-pin.meta.yaml
 

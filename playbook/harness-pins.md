@@ -20,7 +20,7 @@ Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. 
 |-------|----------|----------|------------------|
 | **Constitution** | `.cursor/rules/*.mdc` (rules submodule) | How to code — SDD discipline, patterns, boundaries | `drivestream-lab/*-rules` repo |
 | **Router** | `AGENTS.md` | Harness pin, verify commands, playbook links, **which** skills exist | Harness sync templates + tenant overrides |
-| **Procedures** | `.agents/skills/<repo>/` (git submodule) | Step-by-step slash workflows (`/pre-implement`, `/verify`, …) | [prayog-skills](https://github.com/drivestream-lab/prayog-skills) @ pinned ref |
+| **Procedures** | `.harness/skills/<skill-name>/` hub + mirrors under `skill_runtimes` | Step-by-step slash workflows | prayog-skills @ pinned ref + harness YAML |
 
 **Never** enumerate prayog skill names or slash commands in `*-rules` MDC files — they drift from `AGENTS.md` and prayog. Rules repos run `scripts/check_mdc_boundary.sh` in CI to enforce this.
 
@@ -77,7 +77,13 @@ Bump via harness PR after platform publishes a new approved rules + skills pair.
 2. Pin **rules** submodule @ declared ref → `.cursor/rules/`
 3. Remove legacy **`.cursor/skills`** submodule if present
 4. Pin **prayog-skills** submodule @ declared ref → `.agents/skills/prayog-skills/`
-5. Stage gitlinks — commit `.harness-pin.yaml`, `AGENTS.md`, `.gitmodules`, submodule paths
+5. Resolve skill names from prayog `profiles/{prayog_profile}.yaml` at the pinned ref
+   (`requirements_skills` for `meta-pm`, `development_skills` for app profiles)
+6. Materialize **hub** symlinks → `.harness/skills/<skill-name>/`
+7. Mirror hub into each path in `skill_runtimes` (default: `.agents/skills`, `.claude/skills`)
+8. Pin **community** submodules under `.harness/community/<repo>/` when declared in harness YAML
+9. **App repos only:** copy prayog profile → `.harness/profile.yaml`
+10. Stage gitlinks — commit `.harness-pin.yaml`, `AGENTS.md`, `.gitmodules`, harness paths
 
 **Do not** gitignore `.agents/` in app repos — skills are tracked submodules, same as constitution.
 
@@ -99,7 +105,10 @@ launchpad status --repo example-api
 
 Config: `config/harness-<org>.yaml`
 
-Template paths resolve **tenant override first**, then **launchpad kit** `templates/` (pipx install). Store only tenant-specific overrides under `<slug>-meta/templates/`.
+Harness and forge templates come from **launchpad kit** `templates/` (pipx install). Tenant meta stores **config only** — no parallel `<slug>-meta/templates/` folder.
+
+- Harness: `launchpad apply-harness`
+- Issue forms + PR template: `launchpad apply-forge-templates`
 
 **Onboard a new app repo:** see [greenfield-app-repo.md](greenfield-app-repo.md).
 

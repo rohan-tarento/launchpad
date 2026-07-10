@@ -214,6 +214,52 @@ class TestHarnessSchema:
         with pytest.raises(SchemaError, match="missing required field 'ref'"):
             HarnessSchema(raw)
 
+    def test_community_skills_and_runtimes(self):
+        raw = {
+            "org": "acme",
+            "profiles": {
+                "meta-pm": {
+                    "skills": [{"repo": "prayog-skills", "ref": "v0.4.2"}],
+                    "community_skills": [
+                        {"source": "github/awesome-copilot", "ref": "v1.0.0", "skill": "prd"}
+                    ],
+                    "skill_runtimes": [".agents/skills", ".claude/skills"],
+                }
+            },
+        }
+        h = HarnessSchema(raw)
+        prof = h.profiles["meta-pm"]
+        assert prof.prayog_profile == "meta-pm"
+        assert len(prof.community_skills) == 1
+        assert prof.community_skills[0].source == "github/awesome-copilot"
+        assert prof.community_skills[0].ref == "v1.0.0"
+        assert prof.skill_runtimes == [".agents/skills", ".claude/skills"]
+
+    def test_prayog_profile_alias(self):
+        raw = {
+            "org": "acme",
+            "profiles": {
+                "nextjs-frontend": {
+                    "prayog_profile": "frontend",
+                    "skills": [{"repo": "prayog-skills", "ref": "v0.4.2"}],
+                }
+            },
+        }
+        h = HarnessSchema(raw)
+        assert h.profiles["nextjs-frontend"].prayog_profile == "frontend"
+
+    def test_community_skill_missing_ref_raises(self):
+        raw = {
+            "org": "acme",
+            "profiles": {
+                "meta-pm": {
+                    "community_skills": [{"source": "github/awesome-copilot", "skill": "prd"}],
+                }
+            },
+        }
+        with pytest.raises(SchemaError, match="missing required field 'ref'"):
+            HarnessSchema(raw)
+
     def test_repos_references_unknown_profile_raises(self):
         raw = {
             "org": "acme",
