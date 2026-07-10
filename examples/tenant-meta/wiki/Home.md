@@ -8,4 +8,4 @@
 | How we ship | PM ↔ dev handoff, branches, board |
 | PM workflow | PRD, prayog-skills, `gh issue create` per wave |
 
-Publish via wiki git remote — see [playbook/wiki-setup.md](../../playbook/wiki-setup.md).
+Publish via wiki git remote — see [playbook/wiki/wiki-setup.md](../../../playbook/wiki/wiki-setup.md).

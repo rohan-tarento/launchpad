@@ -21,10 +21,10 @@ Playbook SSOT: **launchpad** `playbook/` (from tenant meta or pip install).
 
 | Topic | Where |
 |-------|--------|
-| PM workflow | launchpad `playbook/pm-workflow.md` |
-| Delivery workflow | launchpad `playbook/delivery-workflow.md` |
-| Skills matrix | launchpad `playbook/skills-matrix.md` |
-| Harness pins | launchpad `playbook/harness-pins.md` |
+| PM workflow | launchpad `docs/setup/pm-setup.md` |
+| Delivery workflow | launchpad `playbook/ship/delivery-workflow.md` |
+| Skills matrix | launchpad `playbook/harness/skills-matrix.md` |
+| Harness pins | launchpad `playbook/harness/harness-pins.md` |
 | Program board | Your forge engineering board |
 
 ---
@@ -41,4 +41,4 @@ Playbook SSOT: **launchpad** `playbook/` (from tenant meta or pip install).
 
 Engineering opens **spec PRs** in app repos after impact map LGTM. Devs run dev harness skills in app repos — not here.
 
-See launchpad `playbook/delivery-workflow.md`.
+See launchpad `playbook/ship/delivery-workflow.md`.

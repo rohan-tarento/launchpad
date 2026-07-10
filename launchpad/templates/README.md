@@ -67,7 +67,7 @@ Use `--force` to overwrite after governance repo list changes.
 
 ## Reference copies (manual deploy in v0.5.10)
 
-Copy into each repo as needed. See [playbook/github-enforcement.md](../../playbook/github-enforcement.md).
+Copy into each repo as needed. See [playbook/github/github-enforcement.md](../../playbook/github/github-enforcement.md).
 
 ### GitHub workflows
 
