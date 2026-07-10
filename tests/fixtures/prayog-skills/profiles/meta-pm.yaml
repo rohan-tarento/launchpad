@@ -1,0 +1,11 @@
+profile: meta-pm
+
+requirements_skills:
+  - validate-requirements
+  - review-findings
+  - update-documents
+  - prd-impact-map
+
+layout:
+  prd_root: prd/
+  reports_dir: prd/reports/

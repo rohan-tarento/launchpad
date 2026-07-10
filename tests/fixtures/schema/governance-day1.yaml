@@ -2,7 +2,7 @@ apiVersion: launchpad/v1
 kind: GovernanceConfig
 
 # Day 1: meta repo only.  App repos are added incrementally on Day N.
-org: Sandvik-Common
+org: apex-common
 
 stack_profiles: {}  # starter set merged in automatically (meta-pm, python-backend, nextjs-frontend, terraform-iac)
 
@@ -12,17 +12,18 @@ teams:
     privacy: closed
 
 repos:
-  stratum-meta:
+  kola-meta:
     stack: meta-pm
     teams: [platform-core]
     visibility: private
-    description: Control-plane for STRATUM
+    description: Control-plane for KOLA
 
 policy:
   default_branch: main
+  integration_branch: develop
   require_pr_reviews: 1
   dismiss_stale_reviews: true
 
 project_board:
   enabled: true
-  name: STRATUM Board
+  name: KOLA Board

@@ -114,13 +114,37 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 
 - [ ] CI / tests pass on `main`
 - [ ] `pyproject.toml` + `launchpad/__init__.py` version bumped
-- [ ] No customer names in diff (`rg -i 'sandvik\|stratum'`)
+- [ ] No customer names in diff (see [PUBLICATION_CHECKLIST.md](PUBLICATION_CHECKLIST.md))
 - [ ] Tag pushed: `v0.x.y`
 - [ ] Tenant operators notified: version + any re-run commands
 
 ---
 
-## Current release line (v0.5.11)
+## Current release line (v0.5.13)
+
+**v0.5.13** — terraform-iac harness templates:
+
+- Add **`CODEOWNERS.terraform-iac`** and **`harness-pin.terraform-iac.yaml`** (cloud-agnostic; pairs with `terraform-azure-foundation` / future `terraform-aws-foundation`)
+- **`apply-harness`** substitutes `terraform-infra-rules` in harness pin templates
+- Examples and docs updated for `terraform-infra-rules` + Azure foundation scaffold context
+
+**v0.5.14** — harness skill hub + YAML SSOT:
+
+- **`apply-harness`** resolves skill names from prayog `profiles/*.yaml` at pinned ref (no Python fallbacks)
+- Materializes `.harness/skills/<name>/` hub and mirrors into `skill_runtimes` (default `.agents/skills`, `.claude/skills`)
+- **`community_skills`** and **`skill_runtimes`** on harness profiles; community submodules under `.harness/community/`
+- **`prayog_profile`** optional alias when harness stack name differs from prayog profile filename
+- **`status`** checks hub + all runtime paths; fails if prayog profile missing at pinned ref
+
+**v0.5.13** — (installed kit baseline)
+
+
+- **`init-client`** creates `develop` from `main` (`policy.integration_branch`) and protects both branches
+- **`apply-harness`** pins constitution and prayog-skills as git submodules (unified governance model); progress messages; reliable tag fetch/checkout
+- **`status --repo`** skills submodule drift check; PM view shows governance pins for rules + skills
+- **`apply-scaffold`** helpful `--force` hint when output directory already exists (post init-client)
+- Restore **`github_ops.py`** for GitHub forge (teams, repos, branch protection, projects)
+- Governance examples: `integration_branch: develop`
 
 **v0.5.11** — doc drift fix + harness skills path:
 
@@ -130,4 +154,4 @@ See [multi-laptop.md](multi-laptop.md) for install and client registry.
 
 **v0.5.10** introduced the greenfield refactor (5-YAML model, 5-command CLI, GitHub-only).
 
-Tenants adopt by pinning `0.5.11` in `.launchpad-version` and installing from that tag.
+Tenants adopt by pinning `0.5.13` in `.launchpad-version` and installing from that tag.

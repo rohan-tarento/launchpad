@@ -1,11 +1,11 @@
-# Setup guide (v0.5.11)
+# Setup guide (v0.5.13)
 
 End-to-end onboarding for a new programme.
 
 Launchpad (the kit) and `<slug>-meta` (the tenant) are **separate repos**.
 Install Launchpad once; the interview generates `<slug>-meta/config/` per programme.
 
-For the full day-by-day walkthrough with a STRATUM example, see **[greenfield.md](greenfield.md)**.
+For the full day-by-day walkthrough with a KOLA example, see **[greenfield.md](greenfield.md)**.
 
 ---
 
@@ -45,7 +45,7 @@ For the full day-by-day walkthrough with a STRATUM example, see **[greenfield.md
 ## Phase 1 — Install Launchpad (once per machine)
 
 ```bash
-pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"
+pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.13"
 launchpad --version
 ```
 
@@ -62,23 +62,23 @@ launchpad onboard interview
 4 questions → writes 5 YAML files, patches `clients.yaml`, creates `env.d/<slug>.env` stub.
 
 ```
-  Programme name:   STRATUM
-  Programme slug:   stratum       (auto-derived, confirm)
-  GitHub org:       Sandvik-Common
-  Workspace path:   ~/Workspace/stratum
+  Programme name:   KOLA
+  Programme slug:   kola       (auto-derived, confirm)
+  GitHub org:       apex-common
+  Workspace path:   ~/Workspace/kola
 ```
 
 Output:
 ```
-~/Workspace/stratum/stratum-meta/config/
+~/Workspace/kola/kola-meta/config/
   programme.yaml
-  governance-Sandvik-Common.yaml
-  harness-Sandvik-Common.yaml
-  scaffold-Sandvik-Common.yaml
-  service-catalog-Sandvik-Common.yaml
+  governance-apex-common.yaml
+  harness-apex-common.yaml
+  scaffold-apex-common.yaml
+  service-catalog-apex-common.yaml
 
-~/.config/launchpad/clients.yaml  ← id: stratum registered
-~/.config/launchpad/env.d/stratum.env  ← PAT stub (chmod 600, fill token)
+~/.config/launchpad/clients.yaml  ← id: kola registered
+~/.config/launchpad/env.d/kola.env  ← PAT stub (chmod 600, fill token)
 ```
 
 **NEXT printed by the command** — follow it exactly.
@@ -88,8 +88,8 @@ Output:
 ## Phase 3 — Doctor
 
 ```bash
-source ~/.config/launchpad/env.d/stratum.env
-launchpad --client stratum doctor
+source ~/.config/launchpad/env.d/kola.env
+launchpad --client kola doctor
 ```
 
 Checks: token valid, programme.yaml found, version pin, GitHub API reachable.

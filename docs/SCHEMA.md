@@ -29,11 +29,11 @@ incrementally.
 ```yaml
 apiVersion: launchpad/v1
 kind: Programme
-programme: STRATUM                # Human name of the initiative
-programme_slug: stratum           # Lowercase machine id; auto-derived if omitted
-org: Sandvik-Common               # GitHub org slug (exact spelling)
-meta_repo: stratum-meta           # Control-plane repo name
-workspace: ~/Workspace/stratum    # Local parent dir for clones (supports ~)
+programme: KOLA                # Human name of the initiative
+programme_slug: kola           # Lowercase machine id; auto-derived if omitted
+org: apex-common               # GitHub org slug (exact spelling)
+meta_repo: kola-meta           # Control-plane repo name
+workspace: ~/Workspace/kola    # Local parent dir for clones (supports ~)
 forge:
   provider: github                # Only "github" is supported in v0.5.10
 ```
@@ -51,7 +51,7 @@ forge:
 ```yaml
 apiVersion: launchpad/v1
 kind: GovernanceConfig
-org: Sandvik-Common
+org: apex-common
 
 stack_profiles:             # Optional — starter set is always merged in
   go-backend: Go microservice   # Extend with custom stacks without kit changes
@@ -62,7 +62,7 @@ teams:
     privacy: closed         # "closed" | "secret"
 
 repos:
-  stratum-meta:
+  kola-meta:
     stack: meta-pm          # Required. Must be a key in stack_profiles.
     teams: [platform-core]  # Required. At least one team from teams[].
     visibility: private     # "private" | "public" | "internal"
@@ -74,7 +74,7 @@ policy:
 
 project_board:
   enabled: true
-  name: STRATUM Board
+  name: KOLA Board
 ```
 
 **Rules:**
@@ -106,28 +106,48 @@ No kit-code changes required.  See [docs/stacks.md](stacks.md).
 ```yaml
 apiVersion: launchpad/v1
 kind: HarnessConfig
-org: Sandvik-Common
+org: apex-common
 
 profiles:
-  python-backend:
-    constitution:
-      repo: python-services-rules   # Rules submodule repo slug
-      org: drivestream-lab          # Optional; defaults to drivestream-lab
-      ref: v2.1.0                   # Required. Pin to a tag.
-    skills:
-      - repo: python-agent-skills
-        ref: v1.0.0
-
   meta-pm:
-    constitution:
-      repo: meta-governance-rules
-      ref: v1.0.0
+    skills:
+      - repo: prayog-skills
+        ref: v0.4.2
+    community_skills:
+      - source: github/awesome-copilot
+        ref: v1.0.0
+        skill: prd
+    skill_runtimes:
+      - .agents/skills
+      - .claude/skills
 
-# Per-repo profile overrides.
-# If omitted, a repo's harness_profile defaults to its stack from governance.yaml.
+  python-backend:
+    prayog_profile: python-backend    # optional when name matches harness profile
+    constitution:
+      repo: python-services-rules
+      ref: v2.1.0
+    skills:
+      - repo: prayog-skills
+        ref: v0.4.2
+    skill_runtimes:
+      - .agents/skills
+      - .claude/skills
+
+  nextjs-frontend:
+    prayog_profile: frontend           # prayog file is profiles/frontend.yaml
+    constitution:
+      repo: nextjs-bff-rules
+      ref: v0.1.5
+    skills:
+      - repo: prayog-skills
+        ref: v0.4.2
+
 repos:
   special-repo: python-backend
 ```
+
+Skill **names** resolve from prayog `profiles/{prayog_profile}.yaml` at the pinned
+`skills[].ref` (`requirements_skills` for `meta-pm`, `development_skills` for app profiles).
 
 **Resolution order:** `repos.<name>` → `repo.stack` from governance → no harness.
 
@@ -144,7 +164,7 @@ Template owners evolve their `cookiecutter.json` without Launchpad changes.
 ```yaml
 apiVersion: launchpad/v1
 kind: ScaffoldConfig
-org: Sandvik-Common
+org: apex-common
 
 meta:
   enabled: true
@@ -152,18 +172,18 @@ meta:
   template: gh:drivestream-lab/tenant-meta-foundation  # gh: | git+https:// | /local/path
   ref: v1.0.0
   context:                          # Free-form — passed directly to cookiecutter
-    project_name: STRATUM
-    programme_slug: stratum
-    github_org: Sandvik-Common
+    project_name: KOLA
+    programme_slug: kola
+    github_org: apex-common
 
 repos:
-  stratum-platform-core:
+  kola-platform-core:
     enabled: true
     engine: cookiecutter
     template: gh:drivestream-lab/python-fastapi-foundation
     ref: v2.0.0
     context:
-      project_name: stratum-platform-core
+      project_name: kola-platform-core
       has_kafka: true
       has_postgres: true
 ```
@@ -188,20 +208,20 @@ The catalog is **required**.  On Day 1 only the meta repo is a `live` entry.
 ```yaml
 apiVersion: launchpad/v1
 kind: ServiceCatalog
-org: Sandvik-Common
+org: apex-common
 
 services:
-  stratum-meta:
+  kola-meta:
     stack: meta-pm
-    description: Control-plane for STRATUM
+    description: Control-plane for KOLA
     status: live              # "live" | "planned" | "deprecated"
     teams: [platform-core]
     links:
-      repo: https://github.com/Sandvik-Common/stratum-meta
+      repo: https://github.com/apex-common/kola-meta
 
   # ─── Day-N examples (uncomment when the repo is live) ───────────────────
   #
-  # stratum-platform-core:
+  # kola-platform-core:
   #   stack: python-backend
   #   description: Core platform microservice
   #   status: planned
@@ -226,9 +246,9 @@ new provider requires only implementing the `ForgeProvider` protocol there.
 
 | Concept | Example | Notes |
 |---|---|---|
-| `programme` | `STRATUM` | Human name — used in board titles, docs |
-| `programme_slug` | `stratum` | Machine id — must be `[a-z][a-z0-9-]+` |
-| `org` | `Sandvik-Common` | GitHub org — exact spelling |
-| `meta_repo` | `stratum-meta` | Control-plane repo in the org |
+| `programme` | `KOLA` | Human name — used in board titles, docs |
+| `programme_slug` | `kola` | Machine id — must be `[a-z][a-z0-9-]+` |
+| `org` | `apex-common` | GitHub org — exact spelling |
+| `meta_repo` | `kola-meta` | Control-plane repo in the org |
 | `stack` | `python-backend` | Key in `stack_profiles`; drives harness profile |
-| repo slug | `stratum-platform-core` | GitHub repo name in the org |
+| repo slug | `kola-platform-core` | GitHub repo name in the org |

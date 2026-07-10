@@ -55,8 +55,14 @@ repos: {}
   # example-infra:
   #   enabled: true
   #   engine: cookiecutter
-  #   template: gh:drivestream-lab/terraform-foundation
-  #   ref: v1.0.0
+  #   template: gh:drivestream-lab/terraform-azure-foundation
+  #   ref: v0.1.1
   #   context:
-  #     project_name: example-infra
-  #     cloud_provider: aws
+  #     stack_name: example-infra
+  #     client: example
+  #     org_prefix: ex
+  #     location: westeurope
+  #     subscription_strategy: per-env
+  #     environments: dev,stage,prod
+  #     ci_platform: github
+  #     github_org: example-org

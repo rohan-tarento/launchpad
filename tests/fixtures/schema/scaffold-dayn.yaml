@@ -1,6 +1,6 @@
 apiVersion: launchpad/v1
 kind: ScaffoldConfig
-org: Sandvik-Common
+org: apex-common
 
 meta:
   enabled: true
@@ -8,17 +8,17 @@ meta:
   template: gh:drivestream-lab/tenant-meta-foundation
   ref: v1.0.0
   context:
-    project_name: STRATUM
-    programme_slug: stratum
-    github_org: Sandvik-Common
+    project_name: KOLA
+    programme_slug: kola
+    github_org: apex-common
 
 repos:
-  stratum-platform-core:
+  kola-platform-core:
     enabled: true
     engine: cookiecutter
     template: gh:drivestream-lab/python-fastapi-foundation
     ref: v2.0.0
     context:
-      project_name: stratum-platform-core
+      project_name: kola-platform-core
       has_kafka: true
       has_postgres: true

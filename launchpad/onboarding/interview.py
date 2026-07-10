@@ -1,9 +1,9 @@
 """Greenfield onboard interview — 4 questions, auto-applies locally.
 
 Flow:
-  1. Ask: programme name (human, e.g. "STRATUM")
+  1. Ask: programme name (human, e.g. "KOLA")
   2. Derive programme_slug, show it, confirm or override
-  3. Ask: GitHub org (exact spelling, e.g. "Sandvik-Common")
+  3. Ask: GitHub org (exact spelling, e.g. "apex-common")
   4. Ask: workspace path (where meta repo will be cloned)
 
 After the 4 questions:
@@ -25,6 +25,7 @@ import yaml
 from launchpad.clients import CLIENTS_FILE, CONFIG_DIR, ENV_D_DIR
 from launchpad.onboarding.errors import OnboardingError
 from launchpad.schema.governance import STARTER_STACKS
+from launchpad.ui import format_next_box, shorten_path
 
 _SLUG_RE = re.compile(r"^[a-z][a-z0-9-]{0,62}$")
 
@@ -126,6 +127,7 @@ repos:
 
 policy:
   default_branch: main
+  integration_branch: develop
   require_pr_reviews: 1
   dismiss_stale_reviews: true
 
@@ -181,9 +183,11 @@ profiles:
 
   # terraform-iac:
   #   constitution:
-  #     repo: terraform-rules
-  #     ref: v1.0.0
-  #   skills: []
+  #     repo: terraform-infra-rules
+  #     ref: v0.1.2
+  #   skills:
+  #     - repo: prayog-skills
+  #       ref: v0.4.0
   #   codeowners_template: CODEOWNERS.terraform-iac
   #   harness_pin_template: harness-pin.terraform-iac.yaml
 
@@ -347,7 +351,7 @@ def run_interview(
     out.write("All config files are created in your meta repo.\n\n")
 
     # Q1: Programme name
-    programme = _ask("Programme name  (e.g. STRATUM)", input_fn=input_fn, out=out)
+    programme = _ask("Programme name  (e.g. KOLA)", input_fn=input_fn, out=out)
 
     # Q2: Confirm slug (auto-derived)
     derived = _derive_slug(programme)
@@ -361,7 +365,7 @@ def run_interview(
 
     # Q3: GitHub org
     out.write("\n  GitHub org — the exact organisation slug on GitHub.\n")
-    out.write("  Example: Sandvik-Common, acme-corp, my-startup\n")
+    out.write("  Example: apex-common, acme-corp, my-startup\n")
     org = _ask("GitHub org", input_fn=input_fn, out=out)
 
     # Q4: Workspace
@@ -408,16 +412,15 @@ def run_interview(
     env_path = _write_env_stub(slug, org, meta_path)
     out.write(f"  ✔  {env_path}  (PAT stub)\n")
 
+    env_display = shorten_path(env_path)
     out.write("\n")
-    out.write("╔══════════════════════════════════════════════════════════════╗\n")
-    out.write("║  NEXT:                                                       ║\n")
-    out.write("╠══════════════════════════════════════════════════════════════╣\n")
-    out.write(f"║  1. Open:  {str(env_path):<50}  ║\n")
-    out.write( "║     Replace github_pat_REPLACE_ME with your GitHub PAT      ║\n")
-    out.write(f"║     Scopes: repo, admin:org, project                        ║\n")
-    out.write( "║                                                              ║\n")
-    out.write(f"║  2. chmod 600 {str(env_path):<47}  ║\n")
-    out.write( "║                                                              ║\n")
-    out.write(f"║  3. launchpad --client {slug} doctor                         ║\n")
-    out.write("╚══════════════════════════════════════════════════════════════╝\n")
+    out.write(
+        format_next_box([
+            f"1. Open: {env_display}",
+            "Replace github_pat_REPLACE_ME with your GitHub PAT",
+            "Scopes: repo, admin:org, project",
+            f"2. chmod 600 {env_display}",
+            f"3. launchpad --client {slug} doctor",
+        ])
+    )
     out.write("\n")

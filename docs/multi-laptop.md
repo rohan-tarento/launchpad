@@ -1,11 +1,11 @@
-# Multi-laptop setup (v0.5.11)
+# Multi-laptop setup (v0.5.13)
 
 ## Install launchpad once per machine
 
 **Tenant operators (recommended)** — install a **released tag**:
 
 ```bash
-pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"
+pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.13"
 launchpad --version
 ```
 
@@ -14,7 +14,7 @@ Match the version in your tenant `<slug>-meta/.launchpad-version`.
 **Upgrade:**
 
 ```bash
-pipx install --force "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.11"
+pipx install --force "launchpad @ git+https://github.com/drivestream-lab/launchpad@v0.5.13"
 launchpad --client <slug> doctor
 ```
 
@@ -37,8 +37,8 @@ One-time setup under `~/.config/launchpad/`:
 ~/.config/launchpad/
 ├── clients.yaml          # programme registry
 └── env.d/
-    ├── stratum.env        # secrets (GITHUB_TOKEN) — one file per programme
-    └── kola.env
+    ├── kola.env           # secrets (GITHUB_TOKEN) — one file per programme
+    └── example.env
 ```
 
 Generated automatically by `launchpad onboard interview`.
@@ -50,11 +50,11 @@ Generated automatically by `launchpad onboard interview`.
 ```yaml
 # ~/.config/launchpad/clients.yaml
 clients:
-  - id: stratum
-    path: ~/Workspace/stratum/stratum-meta
+  - id: kola
+    path: ~/Workspace/kola/kola-meta
     forge: github
-  # - id: kola
-  #   path: ~/Workspace/kola/kola-meta
+  # - id: example
+  #   path: ~/Workspace/example/example-meta
   #   forge: github
 ```
 
@@ -64,11 +64,11 @@ The `id` must match `programme_slug` in the programme's `config/programme.yaml`.
 
 ```bash
 mkdir -p ~/.config/launchpad/env.d
-cat > ~/.config/launchpad/env.d/stratum.env << 'EOF'
-# stratum factory secrets — chmod 600
+cat > ~/.config/launchpad/env.d/kola.env << 'EOF'
+# kola factory secrets — chmod 600
 GITHUB_TOKEN=github_pat_REPLACE_ME
 EOF
-chmod 600 ~/.config/launchpad/env.d/stratum.env
+chmod 600 ~/.config/launchpad/env.d/kola.env
 ```
 
 **Secrets SSOT:** `~/.config/launchpad/env.d/<slug>.env` — never commit this file.
@@ -76,17 +76,17 @@ chmod 600 ~/.config/launchpad/env.d/stratum.env
 #### 3. Run from anywhere
 
 ```bash
-source ~/.config/launchpad/env.d/stratum.env
+source ~/.config/launchpad/env.d/kola.env
 
 launchpad clients              # list all registered programmes
 launchpad doctor               # preflight check
-launchpad --client stratum doctor
+launchpad --client kola doctor
 ```
 
 Or set a shell default:
 
 ```bash
-export LAUNCHPAD_CLIENT=stratum
+export LAUNCHPAD_CLIENT=kola
 launchpad doctor
 ```
 
@@ -111,21 +111,21 @@ Secrets load automatically from `env.d/<id>.env` when a client is active.
 ```yaml
 # ~/.config/launchpad/clients.yaml
 clients:
-  - id: stratum
-    path: ~/Workspace/stratum/stratum-meta
-    forge: github
   - id: kola
     path: ~/Workspace/kola/kola-meta
     forge: github
+  - id: example
+    path: ~/Workspace/example/example-meta
+    forge: github
 ```
 
 ```bash
-# ~/.config/launchpad/env.d/kola.env  (chmod 600)
-GITHUB_TOKEN=github_pat_kola_...
+# ~/.config/launchpad/env.d/example.env  (chmod 600)
+GITHUB_TOKEN=github_pat_example_...
 ```
 
 ```bash
-launchpad --client kola doctor
+launchpad --client example doctor
 ```
 
 ---
@@ -135,6 +135,6 @@ launchpad --client kola doctor
 Tenant `<slug>-meta/.launchpad-version` should match installed version:
 
 ```bash
-cat ~/Workspace/stratum/stratum-meta/.launchpad-version   # should be 0.5.11
-launchpad --version                                        # launchpad 0.5.11
+cat ~/Workspace/kola/kola-meta/.launchpad-version   # should be 0.5.13
+launchpad --version                                        # launchpad 0.5.13
 ```

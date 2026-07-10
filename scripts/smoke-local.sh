@@ -9,7 +9,7 @@ CFG="${TENANT}/config"
 
 export LAUNCHPAD_TENANT_ROOT="${TENANT}"
 
-echo "=== launchpad local smoke (v0.5.11) ==="
+echo "=== launchpad local smoke (v0.5.13) ==="
 
 "${ROOT}/bin/launchpad" --version
 "${ROOT}/bin/launchpad" --help >/dev/null

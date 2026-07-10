@@ -20,7 +20,8 @@ Three layers — do not skip or reorder:
 │ 1. init-client --repo   GitHub repo + team + gitflow + board  │
 │ 2. apply-scaffold       cookiecutter foundation code          │
 │ 3. apply-harness        rules submodule + AGENTS.md + skills  │
-│ 4. status        verify pins match config              │
+│ 4. apply-forge-templates  issue forms + PR template           │
+│ 5. status        verify pins + forge templates match config   │
 ├──────────────────────────────────────────────────────────────┤
 │ 5. spec handoff PR      docs/specification/product/INIT-*     │
 │ 6. wave PRs (W0…)       business logic on top of foundation   │
@@ -97,14 +98,14 @@ launchpad init-client --repo example-api --dry-run   # preview
 launchpad init-client --repo example-api --apply     # execute
 ```
 
-Creates: GitHub repo, assigns teams, seeds `main` branch, applies branch protection, links to project board.
+Creates: GitHub repo, assigns teams, seeds `main` + `develop` branches, applies branch protection on both, links to project board.
 
-Clone locally:
+Clone locally (checked out on `develop` automatically):
 
 ```bash
-gh repo clone <org>/example-api ~/Workspace/<slug>/example-api
-cd ~/Workspace/<slug>/example-api
-git checkout -b develop
+# init-client clones into programme.workspace/<repo> when the directory is missing
+launchpad init-client --repo example-api --apply
+cd ~/Workspace/<slug>/example-api   # already on develop
 ```
 
 ---
@@ -158,6 +159,26 @@ Commit harness artifacts in the app repo:
 cd ~/Workspace/<slug>/example-api
 git add .
 git commit -m "chore: sync harness pins"
+git push
+```
+
+---
+
+## Step 3b — Forge contributor templates
+
+```bash
+launchpad apply-forge-templates --repo example-api --dry-run
+launchpad apply-forge-templates --repo example-api --apply
+```
+
+Writes `.github/ISSUE_TEMPLATE/` and `.github/pull_request_template.md` from kit + governance (repo list, board URL).
+
+Commit in the app repo:
+
+```bash
+cd ~/Workspace/<slug>/example-api
+git add .github/
+git commit -m "chore: seed forge issue templates"
 git push
 ```
 
@@ -256,7 +277,7 @@ cp .env.example .env && make setup && make check && make test
 |-------|---------------------|--------|
 | `python-backend` | `python-fastapi-foundation` | Implemented |
 | `nextjs-frontend` | `nextjs-bff-foundation` (planned) | Stub |
-| `terraform-iac` | (planned) | Not started |
+| `terraform-iac` | `terraform-azure-foundation` or `terraform-aws-foundation` (when published) | IaC repos |
 | `meta-pm` | `tenant-meta-foundation` | Meta repos only |
 
 ---

@@ -64,6 +64,10 @@ class ForgeProvider(Protocol):
         """Set or verify the default branch."""
         ...
 
+    def ensure_branch(self, org: str, repo: str, branch: str, *, from_branch: str, dry_run: bool = True) -> None:
+        """Create branch from from_branch if absent.  Idempotent."""
+        ...
+
     def ensure_branch_protection(
         self,
         org: str,

@@ -138,7 +138,7 @@ class GovernanceSchema:
             raise SchemaError(
                 "governance YAML missing required field 'org'",
                 path=p,
-                hint="Set org: to match your programme.yaml org (e.g. 'Sandvik-Common')",
+                hint="Set org: to match your programme.yaml org (e.g. 'apex-common')",
             )
         self.org = org
 

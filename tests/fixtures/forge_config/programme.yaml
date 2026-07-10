@@ -1,0 +1,11 @@
+apiVersion: launchpad/v1
+kind: Programme
+
+programme: Example
+programme_slug: example
+org: example-org
+meta_repo: example-meta
+workspace: /tmp/example-workspace
+
+forge:
+  provider: github

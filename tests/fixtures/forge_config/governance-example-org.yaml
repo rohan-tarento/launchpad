@@ -1,0 +1,31 @@
+apiVersion: launchpad/v1
+kind: GovernanceConfig
+
+org: example-org
+
+teams:
+  - name: example-devs
+    description: Developers
+    privacy: closed
+
+repos:
+  example-meta:
+    stack: meta-pm
+    teams: [example-devs]
+    visibility: private
+    description: Meta repo
+  example-api:
+    stack: python-backend
+    teams: [example-devs]
+    visibility: private
+    description: API service
+
+policy:
+  default_branch: main
+  integration_branch: develop
+  require_pr_reviews: 1
+  dismiss_stale_reviews: true
+
+project_board:
+  enabled: true
+  name: Example Engineering

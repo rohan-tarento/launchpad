@@ -1,9 +1,12 @@
-# Tenant template overrides
+# Tenant meta — no local templates/
 
-**Kit defaults:** launchpad `templates/` (from your pipx / editable install).
+Launchpad kit `templates/` is the SSOT. Seed contributor artifacts with:
 
-Add **client-specific overrides only** here. Launchpad resolves `templates/<file>` in this repo first, then falls back to the kit.
+```bash
+launchpad apply-forge-templates --meta --apply
+launchpad apply-forge-templates --repo <name> --apply
+```
 
-On onboarding, copy nothing unless you need to customize — overrides are optional.
+Org-specific data (repo list, board URL) comes from `config/governance-<org>.yaml`, not duplicated files in meta.
 
-See [launchpad templates/](https://github.com/drivestream-lab/launchpad/tree/main/templates) for the full generic set.
+See [launchpad templates/](https://github.com/drivestream-lab/launchpad/tree/main/templates).

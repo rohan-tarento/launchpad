@@ -1,21 +1,43 @@
 # Templates (launchpad kit)
 
-Reference files for tenant overrides and manual repo setup.
+Reference files seeded by factory commands into each repo clone.
 
-Tenants copy **overrides only** into `<slug>-meta/templates/` — Launchpad resolves tenant path first, then these kit defaults when seeding via `apply-harness`.
+**SSOT:** launchpad kit `templates/` (installed with pipx / editable install). Tenant meta repos do **not** keep a parallel `templates/` folder.
 
 ---
 
-## Seeded by `apply-harness` (v0.5.10)
+## Seeded by `apply-harness`
 
 | Artifact | Source template | Destination |
 |----------|-----------------|-------------|
 | CODEOWNERS | `CODEOWNERS.<stack>` from harness profile | `.github/CODEOWNERS` |
 | Harness pin | `harness-pin.<stack>.yaml` from harness profile | `.harness-pin.yaml` |
+| AGENTS.md | `AGENTS.md` / `AGENTS.meta.md` | `AGENTS.md` |
 | Constitution | rules repo URL from harness profile | `.cursor/rules/` submodule |
-| Skills | skill repos from harness profile | `.agents/skills/<repo>/` submodules |
+| Skills | skill repos from harness profile | `.harness/skills/` hub + runtime symlinks |
 
-Substitutes `example-org` → actual GitHub org from `programme.yaml` in CODEOWNERS.
+Substitutes `example-org` → actual GitHub org from `governance-<org>.yaml` in CODEOWNERS.
+
+---
+
+## Seeded by `apply-forge-templates`
+
+Contributor-facing forge artifacts (GitHub today; GitLab planned v0.6).
+
+| Artifact | Kit source | Destination (GitHub) |
+|----------|------------|----------------------|
+| Issue forms (meta) | `issues/*.yml` | `.github/ISSUE_TEMPLATE/*.yml` |
+| Issue forms (app) | `issues/*.app.yml` | `.github/ISSUE_TEMPLATE/*.yml` |
+| PR template | `pull_request_template.md` | `.github/pull_request_template.md` |
+
+Substitutions from `governance-<org>.yaml` + `programme.yaml`: org, meta repo, board URL, repo list (Codebase dropdown on meta).
+
+```bash
+launchpad apply-forge-templates --meta --apply
+launchpad apply-forge-templates --repo <name> --apply
+```
+
+Use `--force` to overwrite after governance repo list changes.
 
 ---
 
@@ -26,6 +48,7 @@ Substitutes `example-org` → actual GitHub org from `programme.yaml` in CODEOWN
 | `CODEOWNERS.python-backend` | `python-backend` |
 | `CODEOWNERS.nextjs-frontend` | `nextjs-frontend` |
 | `CODEOWNERS.data-platform` | `data-platform` |
+| `CODEOWNERS.terraform-iac` | `terraform-iac` (Azure/AWS foundations) |
 | `CODEOWNERS.meta-pm` | `meta-pm` (meta repo) |
 
 ---
@@ -37,6 +60,7 @@ Substitutes `example-org` → actual GitHub org from `programme.yaml` in CODEOWN
 | `harness-pin.python-backend.yaml` | `python-backend` |
 | `harness-pin.nextjs-frontend.yaml` | `nextjs-frontend` |
 | `harness-pin.data-platform.yaml` | `data-platform` |
+| `harness-pin.terraform-iac.yaml` | `terraform-iac` |
 | `harness-pin.meta.yaml` | `meta-pm` (meta repo) |
 
 ---

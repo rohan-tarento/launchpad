@@ -1,4 +1,4 @@
-# Publication checklist (v0.5.11)
+# Publication checklist (v0.5.13)
 
 Before pushing public changes to `launchpad`:
 
@@ -9,7 +9,7 @@ Before pushing public changes to `launchpad`:
 - [ ] No private repo lists — only `example-api`, `example-platform`, etc.
 - [ ] `examples/tenant-meta/config/` uses 5-YAML model (`programme.yaml`, `governance-example-org.yaml`, `harness-example-org.yaml`, `scaffold-example-org.yaml`, `service-catalog-example-org.yaml`)
 - [ ] `examples/tenant-meta/` contains structure only + `INIT-EXAMPLE-001.yaml`
-- [ ] README states tenant vs kit separation and v0.5.11
+- [ ] README states tenant vs kit separation and v0.5.13
 - [ ] `launchpad --version` and `launchpad --help` work after `pip install .`
 - [ ] `launchpad doctor` exits 0 with a valid `programme.yaml` and `GITHUB_TOKEN`
 - [ ] `pytest tests/test_schema.py` passes (36 tests, no network required)

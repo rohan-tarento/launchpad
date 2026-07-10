@@ -6,12 +6,14 @@ Two views depending on flag:
     Kit version check (installed vs latest on drivestream-lab)
     Meta repo phase checklist: governance, clone, scaffold, harness
     Constitution pins declared across all harness profiles
+    Skills pins declared across all harness profiles
     Foundation freshness: new tags available on scaffold template repos
 
   --repo <name>   (Engineer / Repo-owner view)
     Kit version check
     Repo phase checklist: governance, clone, scaffold, harness
     Constitution: declared ref vs locally pinned ref (drift check)
+    Skills: declared ref vs locally pinned ref (drift check)
     Exit code 1 if drift detected — safe for CI pipelines
 
 check-harness is removed — status --repo covers its functionality.
@@ -23,6 +25,7 @@ Usage:
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -31,7 +34,19 @@ from typing import Any
 import httpx
 
 from launchpad import __version__
+from launchpad.forge.templates.render import (
+    build_render_context,
+    forge_templates_present,
+    get_layout,
+    kit_templates_dir,
+    render_template,
+)
+from launchpad.harness.community_skills import community_skill_names
+from launchpad.harness.paths import HARNESS_PROFILE_REL, PM_HARNESS_PROFILE, PRAYOG_SKILLS_SUBMODULE_REL
+from launchpad.harness.skills_materialize import all_runtime_skills_present, hub_skill_present, runtime_skill_present
+from launchpad.harness.skills_resolve import HarnessResolveError, resolve_skill_names
 from launchpad.schema import SchemaError
+from launchpad.ui import print_next_box
 
 _KIT_REPO = "drivestream-lab/launchpad"
 _API_TIMEOUT = 4.0
@@ -176,20 +191,26 @@ def _print_foundation_section(sca: Any) -> None:
         print("  (some checks skipped — offline?)")
 
 
-# ── Constitution pins (PM view) ───────────────────────────────────────────────
+# ── Governance pins (PM view) ─────────────────────────────────────────────────
 
 
-def _print_constitution_pins(h: Any) -> None:
-    _section("Constitution pins  (declared in harness YAML)")
+def _print_governance_pins(h: Any) -> None:
+    _section("Governance pins  (declared in harness YAML)")
     for pname, profile in h.profiles.items():
         if profile.constitution is None:
             print(f"  –   {pname:<20}  no constitution (by design)")
         else:
             con = profile.constitution
             print(f"  [→] {pname:<20}  {con.repo:<34}  @ {con.ref}")
+        if not profile.skills:
+            print(f"  –   {pname:<20}  no skills (by design)")
+        else:
+            for skill in profile.skills:
+                label = f"{skill.org}/{skill.repo}"
+                print(f"  [→] {pname:<20}  {label:<34}  @ {skill.ref or 'HEAD'}")
 
 
-# ── Constitution drift (Engineer view) ────────────────────────────────────────
+# ── Submodule drift (Engineer view) ───────────────────────────────────────────
 
 
 def _get_local_submodule_ref(repo_path: Path, submodule_rel: str) -> str | None:
@@ -216,29 +237,160 @@ def _get_local_submodule_ref(repo_path: Path, submodule_rel: str) -> str | None:
     return sha[:7] if sha else None
 
 
-def _print_constitution_drift(profile: Any, repo_path: Path) -> bool:
-    """Print declared vs local constitution state. Returns True if drift detected."""
-    _section("Constitution")
-    con = profile.constitution
-    if con is None:
-        print(f"  –   no constitution for this profile (by design)")
-        return False
+def _print_submodule_drift(
+    *,
+    section: str,
+    repo_label: str,
+    declared_ref: str,
+    submodule_rel: str,
+    repo_path: Path,
+) -> bool:
+    """Print declared vs local submodule state. Returns True if drift detected."""
+    _section(section)
+    print(f"  [→] declared:  {repo_label} @ {declared_ref}")
 
-    declared = con.ref
-    local_ref = _get_local_submodule_ref(repo_path, ".cursor/rules")
-
-    print(f"  [→] declared:  {con.repo} @ {declared}")
-
+    local_ref = _get_local_submodule_ref(repo_path, submodule_rel)
     if local_ref is None:
-        print(f"  [✗] local:     not pinned yet")
+        print("  [✗] local:     not pinned yet")
         return True
 
-    if local_ref == declared:
-        print(f"  [✔] local:     {con.repo} @ {local_ref}  (in sync)")
+    if local_ref == declared_ref:
+        print(f"  [✔] local:     {repo_label} @ {local_ref}  (in sync)")
         return False
 
-    print(f"  [!] local:     {con.repo} @ {local_ref}  ← behind declared {declared}")
+    print(f"  [!] local:     {repo_label} @ {local_ref}  ← behind declared {declared_ref}")
     return True
+
+
+def _print_constitution_drift(profile: Any, repo_path: Path) -> bool:
+    """Print declared vs local constitution state. Returns True if drift detected."""
+    con = profile.constitution
+    if con is None:
+        _section("Constitution")
+        print("  –   no constitution for this profile (by design)")
+        return False
+
+    return _print_submodule_drift(
+        section="Constitution",
+        repo_label=con.repo,
+        declared_ref=con.ref,
+        submodule_rel=".cursor/rules",
+        repo_path=repo_path,
+    )
+
+
+def _print_skills_drift(profile: Any, repo_path: Path) -> bool:
+    """Print declared vs local skills submodule state. Returns True if any drift."""
+    if not profile.skills:
+        _section("Skills")
+        print("  –   no skills for this profile (by design)")
+        return False
+
+    drift = False
+    for skill in profile.skills:
+        declared = skill.ref or "HEAD"
+        label = f"{skill.org}/{skill.repo}"
+        rel = f".agents/skills/{skill.repo}"
+        if _print_submodule_drift(
+            section=f"Skills bundle  ({skill.repo})",
+            repo_label=label,
+            declared_ref=declared,
+            submodule_rel=rel,
+            repo_path=repo_path,
+        ):
+            drift = True
+    return drift
+
+
+def _expected_skill_names(repo_path: Path, profile: Any, profile_name: str) -> list[str]:
+    """Skill names that should exist in the harness hub and runtime roots."""
+    submodule_root = repo_path / PRAYOG_SKILLS_SUBMODULE_REL
+    names: list[str] = []
+    if submodule_root.is_dir():
+        try:
+            names = resolve_skill_names(submodule_root, profile, profile_name)
+        except HarnessResolveError:
+            return community_skill_names(profile)
+    return names + community_skill_names(profile)
+
+
+def _harness_materialized_ok(repo_path: Path, profile_name: str, profile: Any) -> bool:
+    if not profile.skills:
+        return True
+
+    if not (repo_path / PRAYOG_SKILLS_SUBMODULE_REL).is_dir():
+        return False
+
+    expected = _expected_skill_names(repo_path, profile, profile_name)
+    if not expected:
+        return False
+
+    if not (repo_path / ".harness-pin.yaml").is_file():
+        return False
+
+    return all_runtime_skills_present(repo_path, expected, profile.skill_runtimes)
+
+
+def _forge_templates_ok(repo_path: Path, *, is_meta: bool, provider: str = "github") -> bool:
+    if provider != "github":
+        return True
+    try:
+        entries = get_layout(provider, is_meta=is_meta)
+    except (NotImplementedError, ValueError):
+        return True
+    return forge_templates_present(repo_path, entries)
+
+
+def _forge_templates_stale(
+    repo_path: Path,
+    *,
+    is_meta: bool,
+    gov: Any,
+    prog: Any,
+    provider: str = "github",
+) -> bool:
+    """True when on-disk forge templates differ from kit + governance render."""
+    if provider != "github" or not forge_templates_present(
+        repo_path, get_layout(provider, is_meta=is_meta)
+    ):
+        return False
+    context = build_render_context(gov, prog)
+    for entry in get_layout(provider, is_meta=is_meta):
+        dest = repo_path / entry.dest_rel
+        src = kit_templates_dir() / entry.kit_name
+        if not src.is_file() or not dest.is_file():
+            continue
+        expected = render_template(src.read_text(encoding="utf-8"), context)
+        if dest.read_text(encoding="utf-8") != expected:
+            return True
+    return False
+
+
+def _print_materialized_skills_check(profile_name: str, repo_path: Path, profile: Any) -> bool:
+    """Print hub + runtime skill path health. Returns True if any missing."""
+    if not profile.skills:
+        return False
+
+    expected = _expected_skill_names(repo_path, profile, profile_name)
+    if not expected:
+        return False
+
+    _section("Agent skills  (hub + runtime paths)")
+    drift = False
+    for name in expected:
+        hub_ok = hub_skill_present(repo_path, name)
+        if hub_ok:
+            print(f"  [✔] .harness/skills/{name}/")
+        else:
+            print(f"  [✗] .harness/skills/{name}/  (missing — run apply-harness --apply)")
+            drift = True
+        for runtime in profile.skill_runtimes:
+            if runtime_skill_present(repo_path, name, runtime):
+                print(f"  [✔] {runtime}/{name}/")
+            else:
+                print(f"  [✗] {runtime}/{name}/  (missing — run apply-harness --apply)")
+                drift = True
+    return drift
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
@@ -329,6 +481,8 @@ def run_status(
     print(f"  [{_mark(clone_ok)}] Local clone (git repo)    ({clone_detail})")
 
     # Scaffold — [✔] applied, [–] off (intentional), [✗] enabled but not run
+    sca_applied = False
+    sca_pending = False
     if meta:
         sca_configured = sca is not None and sca.meta is not None
         sca_enabled = sca_configured and sca.meta.enabled  # type: ignore[union-attr]
@@ -340,10 +494,11 @@ def run_status(
         # Scaffold is intentionally off — neutral, not a failure
         print(f"  [{_mark(None, neutral=True)}] Scaffold                  (off — enable in scaffold YAML to opt in)")
     else:
-        # Scaffold is enabled — check if it has been applied (output dir exists)
+        # Scaffold is enabled — check marker written by apply-scaffold
         sca_applied = clone_ok and (repo_path / ".launchpad-scaffold").is_file()
+        sca_pending = clone_ok and not sca_applied
         print(f"  [{_mark(sca_applied)}] Scaffold                  "
-              f"({'applied' if sca_applied else 'enabled but not applied — run apply-scaffold --apply'})")
+              f"({'applied' if sca_applied else 'enabled but not applied — run apply-scaffold --apply --force'})")
 
     # Harness — [✔] pinned, [–] no profile (opt-out), [✗] profile defined but not applied, [?] prereq missing
     harness_ok = False
@@ -364,9 +519,10 @@ def run_status(
             profile = h.profiles[profile_name]
             con = profile.constitution
             if con is None:
-                # Meta/config repos: no constitution needed — harness = CODEOWNERS + harness-pin only
                 harness_pin_path = repo_path / ".harness-pin.yaml"
-                harness_ok = harness_pin_path.is_file()
+                harness_ok = harness_pin_path.is_file() and _harness_materialized_ok(
+                    repo_path, profile_name, profile
+                )
                 harness_detail = (
                     f"profile: {profile_name}"
                     if harness_ok
@@ -374,7 +530,9 @@ def run_status(
                 )
             else:
                 rules_path = repo_path / ".cursor" / "rules"
-                harness_ok = rules_path.is_dir()
+                harness_ok = rules_path.is_dir() and _harness_materialized_ok(
+                    repo_path, profile_name, profile
+                )
                 harness_detail = (
                     f"profile: {profile_name}"
                     if harness_ok
@@ -388,48 +546,101 @@ def run_status(
     else:
         print(f"  [{_mark(harness_ok)}] Harness                   ({harness_detail})")
 
+    # Forge contributor templates (issue forms + PR template)
+    forge_provider = prog.forge_provider if prog else "github"
+    forge_ok = False
+    forge_stale = False
+    forge_detail = ""
+    if not clone_ok:
+        forge_detail = "clone required first"
+    elif forge_provider == "gitlab":
+        forge_detail = "gitlab layout not yet supported (planned v0.6)"
+        forge_ok = True
+    else:
+        is_meta_repo = meta
+        forge_ok = _forge_templates_ok(repo_path, is_meta=is_meta_repo, provider=forge_provider)
+        if forge_ok and gov and prog:
+            forge_stale = _forge_templates_stale(
+                repo_path,
+                is_meta=is_meta_repo,
+                gov=gov,
+                prog=prog,
+                provider=forge_provider,
+            )
+        if not forge_ok:
+            forge_detail = "missing — run apply-forge-templates --apply"
+        elif forge_stale:
+            forge_detail = "stale — run apply-forge-templates --apply --force"
+        else:
+            forge_detail = "present"
+
+    if not clone_ok:
+        print(f"  [{_mark(None)}] Forge templates           ({forge_detail})")
+    elif forge_provider == "gitlab":
+        print(f"  [{_mark(None, neutral=True)}] Forge templates           ({forge_detail})")
+    else:
+        mark_ok = forge_ok and not forge_stale
+        print(f"  [{_mark(mark_ok)}] Forge templates           ({forge_detail})")
+
     # ── PM view: constitution pins + foundation freshness ────────────────────
     drift_detected = False
     if meta:
         if h:
-            _print_constitution_pins(h)
+            _print_governance_pins(h)
         if sca:
             _print_foundation_section(sca)
+        if profile and clone_ok and profile.skills:
+            if _print_materialized_skills_check(profile_name, repo_path, profile):
+                drift_detected = True
+                client = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
+                prefix = f"--client {client} " if client else ""
+                print(f"      Fix: launchpad {prefix}apply-harness --meta --apply")
 
-    # ── Engineer view: constitution drift check ───────────────────────────────
+    # ── Engineer view: constitution + skills drift ────────────────────────────
     else:
         if profile and clone_ok:
             drift_detected = _print_constitution_drift(profile, repo_path)
+            if _print_skills_drift(profile, repo_path):
+                drift_detected = True
+            if _print_materialized_skills_check(profile_name, repo_path, profile):
+                drift_detected = True
             if drift_detected:
-                print(f"      Fix: launchpad apply-harness --repo {target} --apply")
+                client = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
+                prefix = f"--client {client} " if client else ""
+                print(f"      Fix: launchpad {prefix}apply-harness --repo {target} --apply")
 
     # ── NEXT ─────────────────────────────────────────────────────────────────
     print()
+    client_id = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
+    client_prefix = f"--client {client_id} " if client_id else ""
     flag = "--meta" if meta else f"--repo {target}"
     if kit_upgrade_needed:
         next_cmd = "upgrade launchpad kit (see Kit section above)"
     elif not gov_ok:
         next_cmd = f"add '{target}' to governance-{org}.yaml repos"
     elif not clone_ok:
-        next_cmd = f"launchpad init-client {flag} --apply"
+        next_cmd = f"launchpad {client_prefix}init-client {flag} --apply"
+    elif sca_pending:
+        next_cmd = f"launchpad {client_prefix}apply-scaffold {flag} --apply --force"
     elif not harness_neutral and not harness_ok and clone_ok:
-        next_cmd = f"launchpad apply-harness {flag} --apply"
+        next_cmd = f"launchpad {client_prefix}apply-harness {flag} --apply"
+    elif clone_ok and forge_provider == "github" and (not forge_ok or forge_stale):
+        force = " --force" if forge_stale else ""
+        next_cmd = f"launchpad {client_prefix}apply-forge-templates {flag} --apply{force}"
     elif drift_detected:
-        next_cmd = f"launchpad apply-harness --repo {target} --apply"
+        next_cmd = f"launchpad {client_prefix}apply-harness --repo {target} --apply"
     else:
-        next_cmd = f"launchpad status {flag}  (all checks pass)"
+        next_cmd = f"launchpad {client_prefix}status {flag}  (all checks pass)"
 
-    print("╔══════════════════════════════════════════════════════════════╗")
-    print("║  NEXT:                                                       ║")
-    print("╠══════════════════════════════════════════════════════════════╣")
-    print(f"║  {next_cmd:<60}  ║")
-    print("╚══════════════════════════════════════════════════════════════╝")
+    print_next_box([next_cmd.strip()])
 
-    # Exit 1 only for real failures — neutral states (scaffold off, no profile) are not failures
+    # Exit 1 for actionable failures — neutral states (scaffold off, no profile) are not failures
     has_failure = (
         not gov_ok
         or not clone_ok
+        or sca_pending
         or (not harness_neutral and not harness_ok and clone_ok)
+        or (clone_ok and forge_provider == "github" and (not forge_ok or forge_stale))
         or drift_detected
     )
     return 1 if has_failure else 0

@@ -1,6 +1,6 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Playbook (<client>-meta)
-    url: https://github.com/example-org/example-meta/blob/main/playbook/README.md
-  - name: Engineering board
-    url: https://github.com/orgs/example-org/projects/1
+  - name: Playbook ({{META_REPO}})
+    url: {{PLAYBOOK_URL}}
+  - name: {{BOARD_NAME}}
+    url: {{BOARD_URL}}

@@ -4,7 +4,7 @@ PM workspace for **{{ORG}}** (`{{META_REPO}}`).
 
 ## Agent skills
 
-Installed under **`.agents/skills/`** (gitignored; reproducible from pin):
+Installed under **`.harness/skills/<skill>/`** (hub) mirrored to **`.agents/skills/`** and **`.claude/skills/`**:
 
 - Community: `/prd` @ awesome-copilot
 - Prayog PM bundle @ **{{AGENT_SKILLS_REF}}**: {{AGENT_SKILLS_SLASH_LIST}}

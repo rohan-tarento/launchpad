@@ -16,7 +16,7 @@ No YAML configuration required to use them.
 | `meta-pm` | Programme management & ADR meta repo | `meta-governance-rules` |
 | `python-backend` | Python / FastAPI microservice | `python-services-rules` |
 | `nextjs-frontend` | Next.js frontend or BFF | `nextjs-frontend-rules` |
-| `terraform-iac` | Terraform infrastructure-as-code | `terraform-rules` |
+| `terraform-iac` | Terraform infrastructure-as-code | `terraform-infra-rules` |
 
 ---
 

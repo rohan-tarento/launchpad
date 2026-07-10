@@ -13,4 +13,5 @@ agent_skills:
 
 community_skills:
   - source: github/awesome-copilot
+    ref: v1.0.0
     skill: prd

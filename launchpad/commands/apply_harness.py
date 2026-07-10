@@ -1,4 +1,4 @@
-"""apply-harness — pin constitution submodule + seed agent skills per stack.
+"""apply-harness — pin constitution + skills submodules per stack.
 
 Reads harness-<org>.yaml + governance-<org>.yaml.
 harness_profile resolves as: repos.<name> override → repo.stack from governance.
@@ -10,16 +10,32 @@ Usage:
 
 from __future__ import annotations
 
+import os
+import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
+from launchpad.harness.community_skills import community_skill_names, install_community_skills
+from launchpad.harness.paths import (
+    HARNESS_PROFILE_REL,
+    PM_HARNESS_PROFILE,
+    PRAYOG_SKILLS_SUBMODULE_REL,
+)
+from launchpad.harness.skills_materialize import lane_key_for_profile, materialize_skill_tree
+from launchpad.harness.skills_resolve import (
+    HarnessResolveError,
+    copy_harness_profile,
+    resolve_skill_names,
+    slash_list,
+)
+from launchpad.harness.submodules import pin_submodule
 from launchpad.schema import SchemaError
 from launchpad.schema.harness import HarnessProfile, load_harness
 from launchpad.schema.governance import load_governance
+from launchpad.ui import print_next_box
 
-# Sentinel placeholder used in kit CODEOWNERS templates.
-# All templates ship with this string; apply-harness substitutes the real org.
 _TEMPLATE_ORG_PLACEHOLDER = "example-org"
 
 
@@ -29,34 +45,32 @@ def _find_config(config_dir: Path, pattern: str) -> Path | None:
 
 
 def _kit_templates_dir() -> Path:
-    """Resolve the kit's templates/ directory (inside the launchpad package).
-
-    Works identically whether installed from local source or from a git tag:
-      __file__ = .../site-packages/launchpad/commands/apply_harness.py
-      .parent  = .../site-packages/launchpad/commands/
-      .parent  = .../site-packages/launchpad/
-      / "templates" = .../site-packages/launchpad/templates/
-    """
     return Path(__file__).resolve().parent.parent / "templates"
 
 
 def _resolve_kit_template(filename: str) -> Path | None:
-    """Return path to a template file, or None if not found."""
     path = _kit_templates_dir() / filename
     return path if path.is_file() else None
 
 
-def _seed_codeowners(repo_path: Path, tpl_name: str, org: str, *, apply: bool) -> None:
-    """Write .github/CODEOWNERS from the template file declared in harness-<org>.yaml."""
-    tpl_path = _resolve_kit_template(tpl_name)
+def _community_skills_yaml_block(profile: HarnessProfile) -> str:
+    if not profile.community_skills:
+        return "community_skills: []"
+    lines = ["community_skills:"]
+    for spec in profile.community_skills:
+        lines.append(f"  - source: {spec.source}")
+        lines.append(f"    ref: {spec.ref}")
+        lines.append(f"    skill: {spec.skill}")
+    return "\n".join(lines)
 
+
+def _seed_codeowners(repo_path: Path, tpl_name: str, org: str, *, apply: bool) -> None:
+    tpl_path = _resolve_kit_template(tpl_name)
     if tpl_path is None:
         print(f"  WARN: CODEOWNERS template '{tpl_name}' not found in kit templates/ — skipping")
-        print(f"        Set codeowners_template: <filename> in harness-<org>.yaml profiles")
         return
 
     dest = repo_path / ".github" / "CODEOWNERS"
-
     if not apply:
         print(f"    [dry-run] CODEOWNERS  ← {tpl_name}  →  .github/CODEOWNERS")
         print(f"              (replace '{_TEMPLATE_ORG_PLACEHOLDER}' → '{org}')")
@@ -68,31 +82,107 @@ def _seed_codeowners(repo_path: Path, tpl_name: str, org: str, *, apply: bool) -
     print(f"  ✔  CODEOWNERS  ← {tpl_name}  (org: {org})")
 
 
-def _seed_harness_pin(repo_path: Path, tpl_name: str, *, apply: bool) -> None:
-    """Write .harness-pin.yaml from the template file declared in harness-<org>.yaml."""
+def _seed_harness_pin(
+    repo_path: Path,
+    tpl_name: str,
+    profile: HarnessProfile,
+    profile_name: str,
+    skill_names: list[str],
+    *,
+    apply: bool,
+) -> None:
     tpl_path = _resolve_kit_template(tpl_name)
-
     if tpl_path is None:
         print(f"  WARN: harness-pin template '{tpl_name}' not found in kit templates/ — skipping")
-        print(f"        Set harness_pin_template: <filename> in harness-<org>.yaml profiles")
         return
-
-    dest = repo_path / ".harness-pin.yaml"
 
     if not apply:
         print(f"    [dry-run] harness-pin ← {tpl_name}  →  .harness-pin.yaml")
         return
 
-    if dest.is_file():
-        print(f"  SKIP: .harness-pin.yaml already exists (edit manually to upgrade)")
+    dest = repo_path / ".harness-pin.yaml"
+    con = profile.constitution
+    skill = profile.skills[0] if profile.skills else None
+    skills_block = "\n".join(f"    - {name}" for name in skill_names)
+
+    content = tpl_path.read_text(encoding="utf-8")
+    if con:
+        content = content.replace("{{RULES_REF}}", con.ref)
+        for rules_repo in (
+            "drivestream-lab/python-services-rules",
+            "drivestream-lab/nextjs-bff-rules",
+            "drivestream-lab/terraform-infra-rules",
+            "drivestream-lab/data-platform-rules",
+        ):
+            content = content.replace(f"repo: {rules_repo}", f"repo: {con.org}/{con.repo}")
+
+    if skill:
+        content = content.replace("{{AGENT_SKILLS_REF}}", skill.ref or "HEAD")
+        content = content.replace(
+            "repo: drivestream-lab/prayog-skills",
+            f"repo: {skill.org}/{skill.repo}",
+        )
+    content = content.replace("{{AGENT_SKILLS_LIST}}", skills_block)
+
+    community_block = _community_skills_yaml_block(profile)
+    if "community_skills:" in content:
+        content = re.sub(
+            r"community_skills:\n(?:[ \t]+-[^\n]*\n(?:[ \t]+[^\n]*\n)*)*",
+            community_block + "\n",
+            content,
+            count=1,
+        )
+
+    dest.write_text(content, encoding="utf-8")
+    print(f"  ✔  harness-pin synced ← {tpl_name}  (profile: {profile_name})")
+
+
+def _seed_agents_md(
+    repo_path: Path,
+    profile_name: str,
+    profile: HarnessProfile,
+    skill_names: list[str],
+    *,
+    target: str,
+    org: str,
+    meta_repo: str,
+    apply: bool,
+) -> None:
+    is_meta = profile_name == PM_HARNESS_PROFILE
+    tpl_name = "AGENTS.meta.md" if is_meta else "AGENTS.md"
+    tpl_path = _resolve_kit_template(tpl_name)
+    if tpl_path is None:
         return
 
-    shutil.copy(tpl_path, dest)
-    print(f"  ✔  harness-pin  ← {tpl_name}")
+    if not apply:
+        print(f"    [dry-run] AGENTS.md  ← {tpl_name}")
+        return
+
+    con = profile.constitution
+    skill = profile.skills[0] if profile.skills else None
+    content = tpl_path.read_text(encoding="utf-8")
+    content = content.replace("{{DISPLAY_NAME}}", org)
+    content = content.replace("{{ORG}}", org)
+    content = content.replace("{{META_REPO}}", meta_repo)
+    content = content.replace("{{SERVICE_NAME}}", target)
+    content = content.replace("{{PROFILE}}", profile_name)
+    content = content.replace("{{RULES_PIN}}", con.ref if con else "")
+    content = content.replace("{{AGENT_SKILLS_REF}}", skill.ref if skill else "")
+    content = content.replace("{{AGENT_SKILLS_SLASH_LIST}}", slash_list(skill_names))
+    content = content.replace("{{CHECK_COMMAND}}", "")
+    content = content.replace("{{TEST_COMMAND}}", "")
+    content = content.replace("{{VERIFY_SMOKE}}", "")
+    content = content.replace("{{SETUP_NOTES}}", "")
+    content = content.replace(
+        "`.agents/skills/prayog-skills/` (git submodule",
+        "`.agents/skills/<skill>/` (symlinks via `.harness/skills/` hub",
+    )
+
+    (repo_path / "AGENTS.md").write_text(content, encoding="utf-8")
+    print(f"  ✔  AGENTS.md  ← {tpl_name}")
 
 
 def _remove_legacy_cursor_skills(repo_path: Path, *, apply: bool) -> None:
-    """Remove pre-v0.5.10 `.cursor/skills` submodule if present."""
     legacy_rel = ".cursor/skills"
     legacy = repo_path / ".cursor" / "skills"
     gitmodules = repo_path / ".gitmodules"
@@ -104,8 +194,6 @@ def _remove_legacy_cursor_skills(repo_path: Path, *, apply: bool) -> None:
     if not apply:
         print(f"    [dry-run] remove legacy {legacy_rel} submodule")
         return
-
-    import subprocess
 
     if in_gitmodules:
         subprocess.run(
@@ -125,92 +213,172 @@ def _remove_legacy_cursor_skills(repo_path: Path, *, apply: bool) -> None:
     print(f"  ✔  removed legacy {legacy_rel}")
 
 
+def _preview_or_resolve_skills(
+    prayog_submodule: Path,
+    profile: HarnessProfile,
+    profile_name: str,
+) -> list[str] | None:
+    if not prayog_submodule.is_dir():
+        print(
+            f"    [dry-run] prayog skills: resolve from profiles/{profile.prayog_profile}.yaml "
+            f"after submodule pin"
+        )
+        return None
+    return resolve_skill_names(prayog_submodule, profile, profile_name)
+
+
 def _apply_harness_to_repo(
     repo_path: Path,
     profile: HarnessProfile,
+    profile_name: str,
     org: str,
     *,
+    target: str,
+    meta_repo: str,
     apply: bool = False,
-) -> None:
-    """Pin constitution submodule, seed agent skills, CODEOWNERS, and harness-pin.
-
-    constitution is optional — profiles without one (e.g. meta-pm) skip the
-    submodule step entirely and only seed CODEOWNERS + harness-pin.
-    Template filenames come from the profile YAML, not hardcoded Python maps.
-    """
-    con = profile.constitution  # None when profile has no constitution (e.g. meta-pm)
-    submodule_dest = repo_path / ".cursor" / "rules"
+) -> int:
+    prayog_submodule = repo_path / PRAYOG_SKILLS_SUBMODULE_REL
+    skill_names: list[str] = []
+    community_dirs = [spec.submodule_dir for spec in profile.community_skills]
+    lane_key = lane_key_for_profile(profile_name)
 
     if not apply:
+        con = profile.constitution
         if con:
             print(f"    [dry-run] constitution submodule: {con.submodule_url}@{con.ref}")
         else:
-            print(f"    [dry-run] constitution: (none — no .cursor/rules submodule for this profile)")
+            print("    [dry-run] constitution: (none — no .cursor/rules submodule for this profile)")
         for skill in profile.skills:
-            print(f"    [dry-run] skill: .agents/skills/{skill.repo} ← https://github.com/{skill.org}/{skill.repo}@{skill.ref}")
-        _seed_codeowners(repo_path, profile.codeowners_template, org, apply=False)
-        _seed_harness_pin(repo_path, profile.harness_pin_template, apply=False)
-        return
-
-    import subprocess
-
-    # Constitution submodule — skip entirely if profile has none
-    if con:
-        submodule_dest.parent.mkdir(parents=True, exist_ok=True)
-        if not (repo_path / ".git").is_dir():
-            print(f"  WARN: {repo_path} is not a git repo — cannot add submodule", file=sys.stderr)
-            return
-
-        gitmodules = repo_path / ".gitmodules"
-        submodule_path_rel = ".cursor/rules"
-        already_added = gitmodules.is_file() and con.submodule_url in gitmodules.read_text()
-
-        if not already_added:
-            result = subprocess.run(
-                ["git", "submodule", "add", "--force", con.submodule_url, submodule_path_rel],
-                cwd=repo_path,
-                capture_output=True,
-                text=True,
+            skill_url = f"https://github.com/{skill.org}/{skill.repo}"
+            print(
+                f"    [dry-run] skills submodule: {PRAYOG_SKILLS_SUBMODULE_REL} "
+                f"← {skill_url}@{skill.ref}"
             )
-            if result.returncode != 0:
-                print(f"  WARN: submodule add failed: {result.stderr.strip()}", file=sys.stderr)
+        install_community_skills(repo_path, profile, apply=False)
+        preview = _preview_or_resolve_skills(prayog_submodule, profile, profile_name)
+        preview_names = (preview or []) + community_skill_names(profile)
+        if preview is not None:
+            materialize_skill_tree(
+                repo_path,
+                prayog_submodule_rel=PRAYOG_SKILLS_SUBMODULE_REL,
+                skill_names=preview,
+                runtime_roots=profile.skill_runtimes,
+                lane_key=lane_key,
+                community_submodule_dirs=community_dirs,
+                apply=False,
+            )
+        copy_harness_profile(
+            prayog_submodule,
+            profile,
+            repo_path / HARNESS_PROFILE_REL,
+            harness_profile_name=profile_name,
+            apply=False,
+        )
+        _seed_codeowners(repo_path, profile.codeowners_template, org, apply=False)
+        _seed_harness_pin(
+            repo_path,
+            profile.harness_pin_template,
+            profile,
+            profile_name,
+            skill_names=preview_names,
+            apply=False,
+        )
+        _seed_agents_md(
+            repo_path,
+            profile_name,
+            profile,
+            skill_names=preview_names,
+            target=target,
+            org=org,
+            meta_repo=meta_repo,
+            apply=False,
+        )
+        return 0
 
-        # Pin to ref
-        subprocess.run(
-            ["git", "-C", str(submodule_dest), "fetch", "origin", con.ref],
-            capture_output=True,
-            text=True,
-        )
-        subprocess.run(
-            ["git", "-C", str(submodule_dest), "checkout", con.ref],
-            capture_output=True,
-            text=True,
-        )
-        print(f"  ✔  constitution: {con.submodule_url}@{con.ref}")
+    con = profile.constitution
+    if con:
+        if pin_submodule(
+            repo_path,
+            ".cursor/rules",
+            con.submodule_url,
+            con.ref,
+            label="constitution",
+        ):
+            print(f"  ✔  constitution pinned: {con.repo}@{con.ref}")
+        else:
+            print(f"  ✗  constitution pin failed: {con.submodule_url}@{con.ref}", file=sys.stderr)
+            return 1
     else:
-        print(f"  –  constitution: (none — meta/config repo, no rules submodule)")
+        print("  –  constitution: (none — meta/config repo, no rules submodule)")
 
-    # Skills — SSOT path is .agents/skills/ (not .cursor/skills)
     _remove_legacy_cursor_skills(repo_path, apply=True)
 
     for skill in profile.skills:
         skill_url = f"https://github.com/{skill.org}/{skill.repo}"
-        skill_path_rel = f".agents/skills/{skill.repo}"
-        skill_dest = repo_path / skill_path_rel
-        (repo_path / ".agents" / "skills").mkdir(parents=True, exist_ok=True)
-        if not skill_dest.is_dir():
-            subprocess.run(
-                ["git", "submodule", "add", "--force", skill_url, skill_path_rel],
-                cwd=repo_path,
-                capture_output=True,
-            )
-        if skill.ref:
-            subprocess.run(["git", "-C", str(skill_dest), "checkout", skill.ref], capture_output=True)
-        print(f"  ✔  skill: .agents/skills/{skill.repo} ← {skill_url}@{skill.ref or 'HEAD'}")
+        skill_ref = skill.ref or "HEAD"
+        if not pin_submodule(
+            repo_path,
+            PRAYOG_SKILLS_SUBMODULE_REL,
+            skill_url,
+            skill_ref,
+            label=f"skills/{skill.repo}",
+        ):
+            print(f"  ✗  skills pin failed: {skill_url}@{skill_ref}", file=sys.stderr)
+            return 1
+        print(f"  ✔  skills pinned: {skill.org}/{skill.repo}@{skill_ref}")
 
-    # CODEOWNERS and harness-pin — filenames come from YAML profile
+    try:
+        skill_names = resolve_skill_names(prayog_submodule, profile, profile_name)
+    except HarnessResolveError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    materialized = materialize_skill_tree(
+        repo_path,
+        prayog_submodule_rel=PRAYOG_SKILLS_SUBMODULE_REL,
+        skill_names=skill_names,
+        runtime_roots=profile.skill_runtimes,
+        lane_key=lane_key,
+        community_submodule_dirs=community_dirs,
+        apply=True,
+    )
+    if len(materialized) < len(skill_names):
+        print(
+            f"  WARN: materialized {len(materialized)}/{len(skill_names)} prayog skills",
+            file=sys.stderr,
+        )
+
+    copy_harness_profile(
+        prayog_submodule,
+        profile,
+        repo_path / HARNESS_PROFILE_REL,
+        harness_profile_name=profile_name,
+        apply=True,
+    )
+
+    community_names = install_community_skills(repo_path, profile, apply=True)
+    all_skill_names = skill_names + community_names
+
     _seed_codeowners(repo_path, profile.codeowners_template, org, apply=True)
-    _seed_harness_pin(repo_path, profile.harness_pin_template, apply=True)
+    _seed_harness_pin(
+        repo_path,
+        profile.harness_pin_template,
+        profile,
+        profile_name,
+        skill_names=all_skill_names,
+        apply=True,
+    )
+    _seed_agents_md(
+        repo_path,
+        profile_name,
+        profile,
+        skill_names=all_skill_names,
+        target=target,
+        org=org,
+        meta_repo=meta_repo,
+        apply=True,
+    )
+    return 0
 
 
 def run_apply_harness(
@@ -218,7 +386,7 @@ def run_apply_harness(
     meta: bool = False,
     repo_name: str = "",
     apply: bool = False,
-    config_dir: Path | None = None,  # None only in tests — main() always resolves via clients.yaml
+    config_dir: Path | None = None,
     workspace: Path | None = None,
 ) -> int:
     if not meta and not repo_name:
@@ -226,7 +394,6 @@ def run_apply_harness(
         return 1
 
     if config_dir is None:
-        # Should not reach here — main() blocks client-less commands early.
         raise RuntimeError("config_dir not resolved — pass --client <id> or run launchpad onboard interview")
     cdir = config_dir
 
@@ -253,23 +420,20 @@ def run_apply_harness(
         prog_path = cdir / "programme.yaml"
         if prog_path.is_file():
             from launchpad.schema.programme import load_programme
+
             prog = load_programme(prog_path)
             ws = workspace or prog.workspace
             meta_repo = prog.meta_repo
-            slug = prog.programme_slug
         else:
             ws = workspace or Path(".").resolve().parent
             meta_repo = cdir.parent.name
-            slug = meta_repo.replace("-meta", "")
     except SchemaError:
         ws = workspace or Path(".").resolve().parent
         meta_repo = cdir.parent.name
-        slug = meta_repo.replace("-meta", "")
 
     if meta:
         target = meta_repo
-        # Read stack from governance so tenants can name their meta stack freely.
-        stack = gov.repos[target].stack if target in gov.repos else "meta-pm"
+        stack = gov.repos[target].stack if target in gov.repos else PM_HARNESS_PROFILE
     else:
         target = repo_name
         if repo_name not in gov.repos:
@@ -289,29 +453,29 @@ def run_apply_harness(
     print(f"apply-harness  →  {h.org}/{target}  [profile: {profile_name}]")
     if not repo_path.is_dir():
         print(f"  WARN: local clone not found at {repo_path}")
-        print(f"  Clone it first, then re-run apply-harness.")
-        if not apply:
-            pass
-        else:
+        print("  Clone it first, then re-run apply-harness.")
+        if apply:
             return 1
 
-    _apply_harness_to_repo(repo_path, profile, org, apply=apply)
+    result = _apply_harness_to_repo(
+        repo_path,
+        profile,
+        profile_name,
+        org,
+        target=target,
+        meta_repo=meta_repo,
+        apply=apply,
+    )
+    if result != 0:
+        return result
 
     if not apply:
-        print()
         target_flag = "--meta" if meta else f"--repo {target}"
-        print("╔══════════════════════════════════════════════════════════════╗")
-        print("║  NEXT:                                                       ║")
-        print("╠══════════════════════════════════════════════════════════════╣")
-        print(f"║  launchpad apply-harness {target_flag} --apply{'':<31}  ║")
-        print("╚══════════════════════════════════════════════════════════════╝")
+        print_next_box([f"launchpad apply-harness {target_flag} --apply"])
     else:
-        print()
-        print("╔══════════════════════════════════════════════════════════════╗")
-        print("║  NEXT:                                                       ║")
-        print("╠══════════════════════════════════════════════════════════════╣")
+        client_id = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
+        client_prefix = f"--client {client_id} " if client_id else ""
         target_flag = "--meta" if meta else f"--repo {target}"
-        print(f"║  launchpad status {target_flag:<41}  ║")
-        print("╚══════════════════════════════════════════════════════════════╝")
+        print_next_box([f"launchpad {client_prefix}status {target_flag}".strip()])
 
     return 0

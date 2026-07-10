@@ -4,7 +4,7 @@
 
 Shared rules: **`.cursor/rules/*.mdc`** (git submodule, pinned at **{{RULES_PIN}}**).
 
-Agent skills: **`.agents/skills/`** (seeded from [prayog-skills](https://github.com/drivestream-lab/prayog-skills) @ **{{AGENT_SKILLS_REF}}** via harness sync) — {{AGENT_SKILLS_SLASH_LIST}}.
+Agent skills: **`.agents/skills/prayog-skills/`** (git submodule, pinned at **{{AGENT_SKILLS_REF}}**) — {{AGENT_SKILLS_SLASH_LIST}}.
 
 **Do not edit** `.cursor/rules/`. Skill changes go upstream in prayog-skills.
 Pin record: [`.harness-pin.yaml`](.harness-pin.yaml) (`profile: {{PROFILE}}`).

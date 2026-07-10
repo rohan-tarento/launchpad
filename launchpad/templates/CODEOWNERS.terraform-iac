@@ -1,0 +1,41 @@
+# Terraform IaC profile — copy to .github/CODEOWNERS in each infra repo
+# Cloud-agnostic (Azure terraform-azure-foundation, AWS terraform-aws-foundation).
+# Replace @example-org/... with actual GitHub org/team names.
+#
+# Branch protection required:
+#   Settings → Branches → develop → "Require review from Code Owners" ON
+#
+# Sign-off workflow: launchpad/playbook/delivery-workflow.md § Sign-off workflow
+
+# ── Spec pipeline reports (skill gates) ──────────────────────────────────────
+
+/docs/specification/reports/Technical-Review-*       @example-org/pe-team
+/docs/specification/reports/Implementation-Plan-*    @example-org/platform-devs
+/docs/specification/reports/Ground-Report-*          @example-org/platform-devs
+/docs/specification/reports/Feasibility-Report-*     @example-org/pm-team @example-org/platform-devs
+
+# ── Product specs ─────────────────────────────────────────────────────────────
+
+/docs/specification/product/                         @example-org/pm-team @example-org/platform-devs
+/docs/specification/adr/                             @example-org/pe-team
+/docs/specification/as-built/                        @example-org/platform-devs
+
+# ── Constitution and skills ───────────────────────────────────────────────────
+
+.cursor/rules/                                       @example-org/pe-team
+.agents/skills/                                      @example-org/platform-devs
+
+# ── Terraform substrate (bootstrap + env roots + modules) ───────────────────────
+
+/bootstrap/                                           @example-org/platform-devs @example-org/pe-team
+/envs/                                                @example-org/platform-devs
+/modules/                                             @example-org/platform-devs
+/scripts/                                             @example-org/platform-devs
+
+# ── CI workflows (plan / apply gates) ─────────────────────────────────────────
+
+/.github/workflows/                                   @example-org/platform-devs
+
+# ── Default ───────────────────────────────────────────────────────────────────
+
+*                                                    @example-org/platform-devs

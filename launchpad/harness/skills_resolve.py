@@ -1,0 +1,97 @@
+"""Resolve prayog skill names from a pinned submodule checkout."""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+from launchpad.harness.paths import HARNESS_PROFILE_REL, PM_HARNESS_PROFILE
+from launchpad.schema.harness import HarnessProfile
+
+_SKILL_LIST_KEYS = {
+    PM_HARNESS_PROFILE: "requirements_skills",
+}
+
+
+class HarnessResolveError(Exception):
+    """Prayog profile or skill list could not be resolved at the pinned ref."""
+
+
+def skill_list_key(harness_profile_name: str) -> str:
+    return _SKILL_LIST_KEYS.get(harness_profile_name, "development_skills")
+
+
+def _parse_skill_list_block(text: str, key: str) -> list[str]:
+    pattern = re.compile(rf"^{re.escape(key)}:\s*\n((?:[ \t]*-[ \t]*\S+[ \t]*\n?)+)", re.MULTILINE)
+    match = pattern.search(text)
+    if not match:
+        return []
+    return re.findall(r"-\s*(\S+)", match.group(1))
+
+
+def resolve_skill_names(
+    submodule_root: Path,
+    profile: HarnessProfile,
+    harness_profile_name: str,
+) -> list[str]:
+    """Return skill directory names from prayog profiles/{prayog_profile}.yaml."""
+    profile_file = profile.prayog_profile
+    profile_path = submodule_root / "profiles" / f"{profile_file}.yaml"
+    if not profile_path.is_file():
+        raise HarnessResolveError(
+            f"prayog profile not found: profiles/{profile_file}.yaml "
+            f"in pinned prayog-skills submodule. "
+            f"Bump skills[].ref in harness YAML or add the profile in prayog-skills."
+        )
+
+    key = skill_list_key(harness_profile_name)
+    names = _parse_skill_list_block(profile_path.read_text(encoding="utf-8"), key)
+    if not names:
+        raise HarnessResolveError(
+            f"profiles/{profile_file}.yaml has no {key} list at the pinned prayog ref. "
+            f"Update prayog-skills or bump the harness skills ref."
+        )
+    return names
+
+
+def find_skill_source_dir(submodule_root: Path, skill_name: str, *, lane_key: str) -> Path | None:
+    """Locate skills/{requirements|development}/{name} inside prayog-skills."""
+    bucket = "requirements" if lane_key == "requirements_skills" else "development"
+    candidate = submodule_root / "skills" / bucket / skill_name
+    if (candidate / "SKILL.md").is_file():
+        return candidate
+    return None
+
+
+def copy_harness_profile(
+    submodule_root: Path,
+    profile: HarnessProfile,
+    dest: Path,
+    *,
+    harness_profile_name: str,
+    apply: bool,
+) -> bool:
+    """Copy prayog profiles/{profile}.yaml → consumer .harness/profile.yaml (app repos)."""
+    if harness_profile_name == PM_HARNESS_PROFILE:
+        return False
+
+    profile_file = profile.prayog_profile
+    src = submodule_root / "profiles" / f"{profile_file}.yaml"
+    if not src.is_file():
+        return False
+
+    if not apply:
+        print(
+            f"    [dry-run] harness profile  ← profiles/{profile_file}.yaml  "
+            f"→  {HARNESS_PROFILE_REL}"
+        )
+        return True
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+    print(f"  ✔  harness profile  ← profiles/{profile_file}.yaml")
+    return True
+
+
+def slash_list(skill_names: list[str]) -> str:
+    return ", ".join(f"`/{name}`" for name in skill_names)
