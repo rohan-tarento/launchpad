@@ -17,6 +17,7 @@ from pathlib import Path
 
 from launchpad.schema import SchemaError
 from launchpad.schema.scaffold import ScaffoldEntry, ScaffoldSchema, load_scaffold
+from launchpad.ui import print_next_box
 
 
 def _find_config(config_dir: Path, pattern: str) -> Path | None:
@@ -178,13 +179,8 @@ def run_apply_scaffold(
 
     if not apply:
         print("  [dry-run] No files written.  Pass --apply to execute.")
-        print()
-        print("╔══════════════════════════════════════════════════════════════╗")
-        print("║  NEXT:                                                       ║")
-        print("╠══════════════════════════════════════════════════════════════╣")
         target_flag = "--meta" if meta else f"--repo {repo_name}"
-        print(f"║  launchpad apply-scaffold {target_flag} --apply{'':<30}  ║")
-        print("╚══════════════════════════════════════════════════════════════╝")
+        print_next_box([f"launchpad apply-scaffold {target_flag} --apply"])
         return 0
 
     target_dir = _scaffold_target_dir(
@@ -221,9 +217,5 @@ def run_apply_scaffold(
     else:
         next_cmd = f"launchpad {client_prefix}apply-harness --repo {repo_name} --apply"
 
-    print("╔══════════════════════════════════════════════════════════════╗")
-    print("║  NEXT:                                                       ║")
-    print("╠══════════════════════════════════════════════════════════════╣")
-    print(f"║  {next_cmd:<60}  ║")
-    print("╚══════════════════════════════════════════════════════════════╝")
+    print_next_box([next_cmd.strip()])
     return 0

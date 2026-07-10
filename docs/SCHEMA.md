@@ -109,25 +109,45 @@ kind: HarnessConfig
 org: apex-common
 
 profiles:
-  python-backend:
-    constitution:
-      repo: python-services-rules   # Rules submodule repo slug
-      org: drivestream-lab          # Optional; defaults to drivestream-lab
-      ref: v2.1.0                   # Required. Pin to a tag.
-    skills:
-      - repo: python-agent-skills
-        ref: v1.0.0
-
   meta-pm:
-    constitution:
-      repo: meta-governance-rules
-      ref: v1.0.0
+    skills:
+      - repo: prayog-skills
+        ref: v0.4.2
+    community_skills:
+      - source: github/awesome-copilot
+        ref: v1.0.0
+        skill: prd
+    skill_runtimes:
+      - .agents/skills
+      - .claude/skills
 
-# Per-repo profile overrides.
-# If omitted, a repo's harness_profile defaults to its stack from governance.yaml.
+  python-backend:
+    prayog_profile: python-backend    # optional when name matches harness profile
+    constitution:
+      repo: python-services-rules
+      ref: v2.1.0
+    skills:
+      - repo: prayog-skills
+        ref: v0.4.2
+    skill_runtimes:
+      - .agents/skills
+      - .claude/skills
+
+  nextjs-frontend:
+    prayog_profile: frontend           # prayog file is profiles/frontend.yaml
+    constitution:
+      repo: nextjs-bff-rules
+      ref: v0.1.5
+    skills:
+      - repo: prayog-skills
+        ref: v0.4.2
+
 repos:
   special-repo: python-backend
 ```
+
+Skill **names** resolve from prayog `profiles/{prayog_profile}.yaml` at the pinned
+`skills[].ref` (`requirements_skills` for `meta-pm`, `development_skills` for app profiles).
 
 **Resolution order:** `repos.<name>` → `repo.stack` from governance → no harness.
 

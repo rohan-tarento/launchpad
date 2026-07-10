@@ -1,6 +1,6 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Playbook
-    url: https://github.com/YOUR_ORG/YOUR_META_REPO/blob/develop/playbook/README.md
-  - name: Engineering board
-    url: https://github.com/orgs/YOUR_ORG/projects/1
+  - name: Playbook ({{META_REPO}})
+    url: {{PLAYBOOK_URL}}
+  - name: {{BOARD_NAME}}
+    url: {{BOARD_URL}}

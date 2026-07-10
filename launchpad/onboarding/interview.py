@@ -25,6 +25,7 @@ import yaml
 from launchpad.clients import CLIENTS_FILE, CONFIG_DIR, ENV_D_DIR
 from launchpad.onboarding.errors import OnboardingError
 from launchpad.schema.governance import STARTER_STACKS
+from launchpad.ui import format_next_box, shorten_path
 
 _SLUG_RE = re.compile(r"^[a-z][a-z0-9-]{0,62}$")
 
@@ -411,16 +412,15 @@ def run_interview(
     env_path = _write_env_stub(slug, org, meta_path)
     out.write(f"  ✔  {env_path}  (PAT stub)\n")
 
+    env_display = shorten_path(env_path)
     out.write("\n")
-    out.write("╔══════════════════════════════════════════════════════════════╗\n")
-    out.write("║  NEXT:                                                       ║\n")
-    out.write("╠══════════════════════════════════════════════════════════════╣\n")
-    out.write(f"║  1. Open:  {str(env_path):<50}  ║\n")
-    out.write( "║     Replace github_pat_REPLACE_ME with your GitHub PAT      ║\n")
-    out.write(f"║     Scopes: repo, admin:org, project                        ║\n")
-    out.write( "║                                                              ║\n")
-    out.write(f"║  2. chmod 600 {str(env_path):<47}  ║\n")
-    out.write( "║                                                              ║\n")
-    out.write(f"║  3. launchpad --client {slug} doctor                         ║\n")
-    out.write("╚══════════════════════════════════════════════════════════════╝\n")
+    out.write(
+        format_next_box([
+            f"1. Open: {env_display}",
+            "Replace github_pat_REPLACE_ME with your GitHub PAT",
+            "Scopes: repo, admin:org, project",
+            f"2. chmod 600 {env_display}",
+            f"3. launchpad --client {slug} doctor",
+        ])
+    )
     out.write("\n")
