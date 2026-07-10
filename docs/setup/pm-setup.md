@@ -13,7 +13,7 @@ For standing up a **new** programme, see [tenant meta onboarding](../onboarding/
 | Config YAML | `example-meta/config/` | Write (PRs to meta) |
 | PRDs / planning | `example-meta/prd/` | Write |
 | Factory CLI | launchpad on your machine | Run `--meta` commands |
-| Skill symlinks | `.harness/skills/`, `.agents/skills/*/` | Local only — rebuilt by `apply-harness` |
+| Skill symlinks | `.harness/skills/`, `.agents/skills/*` | Local only — rebuilt by `apply-harness` |
 
 Launchpad reads harness and governance rules from **meta config**, then applies them to repos.
 

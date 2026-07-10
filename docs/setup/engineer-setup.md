@@ -11,7 +11,7 @@ Join an **existing** app repo on a new machine. PM/platform has already onboarde
 | Code + specs | `example-api/` | Write (PRs to `develop`) |
 | Config YAML | `example-meta/config/` | Read-only clone (launchpad reads this) |
 | PRDs | `example-meta/prd/` on GitHub | Read |
-| Skill symlinks | `.harness/skills/`, `.agents/skills/*/` | Local only — `apply-harness` after clone |
+| Skill symlinks | `.harness/skills/`, `.agents/skills/*` | Local only — `apply-harness` after clone |
 
 **Home repo:** `example-api`. Launchpad is setup/verify only — not your daily workbench.
 
