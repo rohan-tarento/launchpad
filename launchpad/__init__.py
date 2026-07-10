@@ -1,6 +1,6 @@
 """Launchpad automation — GitHub factory setup (PAT / GITHUB_TOKEN).
 
-v0.5.16 — docs + playbook refactor (4-pillar docs, playbook subdirs).
+v0.5.17 — apply-harness seeds harness .gitignore for skill symlinks.
   • 5-YAML config model (programme, governance, harness, scaffold, catalog)
   • 6-command CLI (onboard interview, init-client, apply-scaffold, apply-harness,
     apply-forge-templates, status)
@@ -9,4 +9,4 @@ v0.5.16 — docs + playbook refactor (4-pillar docs, playbook subdirs).
   • onboard interview: 4 questions, auto-writes all 5 YAMLs + registry + env stub
 """
 
-__version__ = "0.5.16"
+__version__ = "0.5.17"

@@ -201,6 +201,61 @@ def _seed_agents_md(
     print(f"  ✔  AGENTS.md  ← {tpl_name}")
 
 
+_HARNESS_GITIGNORE_MARKER = "# launchpad harness — skill symlinks (apply-harness)"
+_LEGACY_AGENTS_GITIGNORE = ".agents/skills/*/"
+_LEGACY_CLAUDE_GITIGNORE = ".claude/skills/"
+
+
+def _harness_gitignore_block() -> str | None:
+    tpl_path = _resolve_kit_template("gitignore.harness")
+    if tpl_path is None:
+        return None
+    return tpl_path.read_text(encoding="utf-8").rstrip() + "\n"
+
+
+def _upgrade_harness_gitignore_patterns(text: str) -> str:
+    """Fix pre-v0.5.17 trailing-slash patterns that miss symlink entries."""
+    updated = text.replace(_LEGACY_AGENTS_GITIGNORE, ".agents/skills/*")
+    if ".claude/skills/*" not in updated:
+        updated = updated.replace(_LEGACY_CLAUDE_GITIGNORE, ".claude/skills/*")
+    return updated
+
+
+def _seed_gitignore_harness(repo_path: Path, *, apply: bool) -> None:
+    block = _harness_gitignore_block()
+    if block is None:
+        print("  WARN: gitignore.harness template not found in kit templates/ — skipping")
+        return
+
+    dest = repo_path / ".gitignore"
+
+    if not apply:
+        if dest.is_file() and _HARNESS_GITIGNORE_MARKER in dest.read_text(encoding="utf-8"):
+            print("    [dry-run] .gitignore  (harness block present)")
+        else:
+            print("    [dry-run] .gitignore  ← gitignore.harness")
+        return
+
+    if dest.is_file():
+        text = dest.read_text(encoding="utf-8")
+        if _HARNESS_GITIGNORE_MARKER in text:
+            upgraded = _upgrade_harness_gitignore_patterns(text)
+            if upgraded != text:
+                dest.write_text(upgraded, encoding="utf-8")
+                print("  ✔  .gitignore  (upgraded harness symlink patterns)")
+            return
+        if ".harness/skills/" in text and _LEGACY_AGENTS_GITIGNORE in text:
+            dest.write_text(_upgrade_harness_gitignore_patterns(text), encoding="utf-8")
+            print("  ✔  .gitignore  (upgraded harness symlink patterns)")
+            return
+        prefix = "" if text.endswith("\n") else "\n"
+        dest.write_text(text + prefix + "\n" + block, encoding="utf-8")
+        print("  ✔  .gitignore  ← appended harness block")
+    else:
+        dest.write_text(block, encoding="utf-8")
+        print("  ✔  .gitignore  ← gitignore.harness")
+
+
 def _remove_legacy_cursor_skills(repo_path: Path, *, apply: bool) -> None:
     legacy_rel = ".cursor/skills"
     legacy = repo_path / ".cursor" / "skills"
@@ -312,6 +367,7 @@ def _apply_harness_to_repo(
             meta_repo=meta_repo,
             apply=False,
         )
+        _seed_gitignore_harness(repo_path, apply=False)
         return 0
 
     con = profile.constitution
@@ -397,6 +453,7 @@ def _apply_harness_to_repo(
         meta_repo=meta_repo,
         apply=True,
     )
+    _seed_gitignore_harness(repo_path, apply=True)
     return 0
 
 
