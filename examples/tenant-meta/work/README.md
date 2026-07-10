@@ -11,7 +11,7 @@ After spec PR merge, dev seeds the board with **`gh issue create` per wave** fro
 gh issue create --title "[INIT-EXAMPLE-001 W0] ..." --body-file w0-body.md --label initiative
 ```
 
-See [playbook/delivery-workflow.md](../../playbook/delivery-workflow.md).
+See [playbook/ship/delivery-workflow.md](../../../playbook/ship/delivery-workflow.md).
 
 ## Archive format
 

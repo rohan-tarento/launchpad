@@ -50,7 +50,7 @@ class GitHubClient:
             else:
                 raise GitHubError(
                     "GITHUB_TOKEN not set. Add it to ~/.config/launchpad/env.d/<client-id>.env "
-                    "or export GITHUB_TOKEN. See docs/multi-laptop.md."
+                    "or export GITHUB_TOKEN. See docs/setup/multi-laptop.md."
                 )
         self.dry_run = dry_run
         self._rest = httpx.Client(

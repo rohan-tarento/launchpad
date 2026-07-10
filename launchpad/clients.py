@@ -165,7 +165,7 @@ def format_clients_table() -> str:
     if not clients:
         return (
             f"No clients configured.\n"
-            f"Create {CLIENTS_FILE} — see docs/multi-laptop.md"
+            f"Create {CLIENTS_FILE} — see docs/setup/multi-laptop.md"
         )
 
     lines = ["Configured clients:", ""]

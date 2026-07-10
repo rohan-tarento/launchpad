@@ -1,4 +1,4 @@
-# Launchpad Config Schema Reference (v0.5.10)
+# Launchpad Config Schema Reference
 
 Every operator-facing configuration lives in YAML files inside your meta repo's
 `config/` directory.  The CLI treats YAML as the **single source of truth** —

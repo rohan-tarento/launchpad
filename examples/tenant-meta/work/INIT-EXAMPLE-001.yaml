@@ -1,6 +1,6 @@
 # INIT-EXAMPLE-001 — synthetic wave manifest (documentation only)
 # Example WorkManifest — archive / documentation only (v0.5.10).
-# Board seeding: gh issue create per wave from plan §9 (see playbook/delivery-workflow.md).
+# Board seeding: gh issue create per wave from plan §9 (see playbook/ship/delivery-workflow.md).
 
 apiVersion: launchpad/v1
 kind: WorkManifest
@@ -13,7 +13,7 @@ metadata:
     Example waves model — W0 structure, W1 domain. Replace with a real INIT after PRD sign-off.
   playbook:
     - prd/INIT-EXAMPLE-001.md
-    - playbook/delivery-workflow.md
+    - playbook/ship/delivery-workflow.md
 
 target:
   org: example-org

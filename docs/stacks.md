@@ -1,4 +1,4 @@
-# Stacks Reference (v0.5.10)
+# Stacks Reference
 
 A **stack** is a named technology profile that drives two things:
 1. Which harness profile (constitution + skills) to apply to a repo

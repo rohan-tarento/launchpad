@@ -4,7 +4,7 @@
 # Branch protection required:
 #   Settings → Branches → develop → "Require review from Code Owners" ON
 #
-# Sign-off workflow: launchpad/playbook/delivery-workflow.md § Sign-off workflow
+# Sign-off workflow: launchpad/playbook/ship/delivery-workflow.md § Sign-off workflow
 
 # ── Spec pipeline reports (skill gates) ──────────────────────────────────────
 
