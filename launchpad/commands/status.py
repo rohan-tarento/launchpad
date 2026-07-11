@@ -681,6 +681,7 @@ def run_status(
 
     # ── PM view: constitution pins + foundation freshness ────────────────────
     drift_detected = False
+    gate_drift = False
     if profile and clone_ok and h:
         if _print_delivery_contract_check(repo_path, h.delivery_contract):
             drift_detected = True
@@ -692,6 +693,7 @@ def run_status(
             target,
         ):
             drift_detected = True
+            gate_drift = True
     if meta:
         if h:
             _print_governance_pins(h)
@@ -735,6 +737,8 @@ def run_status(
     elif clone_ok and forge_provider == "github" and (not forge_ok or forge_stale):
         force = " --force" if forge_stale else ""
         next_cmd = f"launchpad {client_prefix}apply-forge-templates {flag} --apply{force}"
+    elif gate_drift:
+        next_cmd = f"launchpad {client_prefix}apply-gates {flag} --apply"
     elif drift_detected:
         next_cmd = f"launchpad {client_prefix}apply-harness --repo {target} --apply"
     else:
