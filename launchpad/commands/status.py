@@ -268,7 +268,7 @@ def _print_submodule_drift(
     )
     local_sha = head_result.stdout.strip()
     declared_sha = ""
-    for candidate in (declared_ref, f"origin/{declared_ref}"):
+    for candidate in (f"origin/{declared_ref}", declared_ref):
         result = subprocess.run(
             ["git", "rev-parse", "--verify", candidate],
             cwd=sub_path,
