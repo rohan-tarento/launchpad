@@ -259,7 +259,27 @@ def _print_submodule_drift(
         print("  [✗] local:     not pinned yet")
         return True
 
-    if local_ref == declared_ref:
+    sub_path = repo_path / submodule_rel
+    head_result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=sub_path,
+        capture_output=True,
+        text=True,
+    )
+    local_sha = head_result.stdout.strip()
+    declared_sha = ""
+    for candidate in (declared_ref, f"origin/{declared_ref}"):
+        result = subprocess.run(
+            ["git", "rev-parse", "--verify", candidate],
+            cwd=sub_path,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            declared_sha = result.stdout.strip()
+            break
+
+    if local_ref == declared_ref or (local_sha and local_sha == declared_sha):
         print(f"  [✔] local:     {repo_label} @ {local_ref}  (in sync)")
         return False
 
