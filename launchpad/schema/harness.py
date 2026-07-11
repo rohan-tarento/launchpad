@@ -14,6 +14,7 @@ Fields
 ------
 org             Must match programme.yaml org.
 delivery_contract Optional expected Prayog delivery contract (e.g. sdd-delivery/v2).
+delivery_roles Optional portable delivery role → tenant team slug mapping.
 profiles        Map of stack name → HarnessProfile.
   constitution  Optional. Omit for repos that need no .cursor/rules submodule.
     repo        GitHub repo slug for rules (e.g. "python-services-rules").
@@ -203,6 +204,7 @@ class HarnessSchema:
         self._path = path
         self.org: str = ""
         self.delivery_contract: str = ""
+        self.delivery_roles: dict[str, str] = {}
         self.profiles: dict[str, HarnessProfile] = {}
         self.repos: dict[str, str] = {}
         self._validate(raw)
@@ -220,6 +222,14 @@ class HarnessSchema:
         self.org = org
 
         self.delivery_contract = str(raw.get("delivery_contract") or "").strip()
+        roles_raw = raw.get("delivery_roles") or {}
+        if not isinstance(roles_raw, dict):
+            raise SchemaError("delivery_roles must be a mapping", path=p)
+        self.delivery_roles = {
+            str(role).strip(): str(team).strip()
+            for role, team in roles_raw.items()
+            if str(role).strip() and str(team).strip()
+        }
 
         profiles_raw = raw.get("profiles") or {}
         if not isinstance(profiles_raw, dict):

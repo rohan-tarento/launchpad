@@ -97,6 +97,8 @@ Launchpad:
 - scaffolds repositories,
 - pins constitutions and Prayog,
 - materializes runtime skill symlinks,
+- provisions contract-declared labels and validates review-role bindings with
+  `apply-gates`,
 - writes the initial `AGENTS.md` when absent,
 - verifies refs, contract, workflow, and runtime paths.
 

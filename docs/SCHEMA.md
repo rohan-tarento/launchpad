@@ -108,6 +108,8 @@ apiVersion: launchpad/v1
 kind: HarnessConfig
 org: apex-common
 delivery_contract: sdd-delivery/v2
+delivery_roles:
+  engineering-gate: pe-team
 
 profiles:
   meta-pm:

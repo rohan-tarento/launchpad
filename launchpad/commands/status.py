@@ -35,6 +35,7 @@ import httpx
 from packaging.version import InvalidVersion, Version
 
 from launchpad import __version__
+from launchpad import github_ops
 from launchpad.forge.templates.render import (
     build_render_context,
     forge_templates_present,
@@ -48,8 +49,10 @@ from launchpad.harness.skills_materialize import all_runtime_skills_present, hub
 from launchpad.harness.skills_resolve import (
     HarnessResolveError,
     resolve_delivery_contract,
+    resolve_gate_resources,
     resolve_skill_names,
 )
+from launchpad.github_client import GitHubClient, GitHubError
 from launchpad.schema import SchemaError
 from launchpad.ui import print_next_box
 
@@ -436,6 +439,57 @@ def _print_delivery_contract_check(repo_path: Path, expected: str) -> bool:
     return True
 
 
+def _print_delivery_gates_check(
+    repo_path: Path,
+    profile_name: str,
+    delivery_roles: dict[str, str],
+    org: str,
+    repo: str,
+) -> bool:
+    """Print contract label and review-role readiness. Returns drift."""
+    submodule_root = repo_path / PRAYOG_SKILLS_SUBMODULE_REL
+    try:
+        labels, review_roles = resolve_gate_resources(submodule_root, profile_name)
+    except HarnessResolveError as exc:
+        _section("Delivery gates")
+        print(f"  [✗] {exc}")
+        return True
+    if not labels and not review_roles:
+        return False
+
+    _section("Delivery gates")
+    drift = False
+    try:
+        with GitHubClient(dry_run=False) as client:
+            for expected in labels:
+                actual = github_ops.get_label(client, org, repo, expected["name"])
+                if actual is None:
+                    print(f"  [✗] label missing: {expected['name']}")
+                    drift = True
+                    continue
+                color_ok = str(actual.get("color") or "").upper() == expected["color"].upper()
+                description_ok = str(actual.get("description") or "") == expected["description"]
+                ok = color_ok and description_ok
+                print(f"  [{'✔' if ok else '✗'}] label: {expected['name']}")
+                drift = drift or not ok
+
+            for gate, role in review_roles.items():
+                team = delivery_roles.get(role, "")
+                if not team:
+                    print(f"  [✗] {gate}: no team mapped for role {role!r}")
+                    drift = True
+                    continue
+                permission = github_ops.team_repo_permission(client, org, repo, team)
+                if permission is None:
+                    print(f"  [✗] {gate}: {role} → {team} has no repository access")
+                    drift = True
+                    continue
+                print(f"  [✔] {gate}: {role} → {team}  (permission: {permission})")
+    except GitHubError as exc:
+        print(f"  [?] gate check unavailable: {exc}")
+    return drift
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 
@@ -629,6 +683,14 @@ def run_status(
     drift_detected = False
     if profile and clone_ok and h:
         if _print_delivery_contract_check(repo_path, h.delivery_contract):
+            drift_detected = True
+        if _print_delivery_gates_check(
+            repo_path,
+            profile_name,
+            h.delivery_roles,
+            org,
+            target,
+        ):
             drift_detected = True
     if meta:
         if h:

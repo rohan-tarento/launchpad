@@ -18,6 +18,8 @@ Pick `<tag>` from the latest section below or [GitHub Releases](https://github.c
 - Delivery-contract/workflow verification against the pinned Prayog checkout.
 - Contract recording in generated harness pins and `status` output.
 - Initial AGENTS bootstrap for pinned workflow navigation.
+- `apply-gates` dry-run/apply command for contract-declared labels and
+  tenant review-role access validation.
 
 ### Changed
 

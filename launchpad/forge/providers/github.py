@@ -89,6 +89,43 @@ class GitHubForgeProvider:
             return
         gh.add_team_to_repo(self.client, org, repo, team, permission=permission)
 
+    def team_repo_permission(
+        self,
+        org: str,
+        repo: str,
+        team: str,
+        *,
+        dry_run: bool | None = None,
+    ) -> str | None:
+        dr = self._effective_dry_run(dry_run)
+        if dr:
+            print(f"  [dry-run] verify team access: {team} → {org}/{repo}")
+            return "dry-run"
+        return gh.team_repo_permission(self.client, org, repo, team)
+
+    def ensure_label(
+        self,
+        org: str,
+        repo: str,
+        name: str,
+        *,
+        color: str,
+        description: str = "",
+        dry_run: bool | None = None,
+    ) -> None:
+        dr = self._effective_dry_run(dry_run)
+        if dr:
+            print(f"  [dry-run] ensure label: {org}/{repo}#{name} ({color})")
+            return
+        gh.ensure_label(
+            self.client,
+            org,
+            repo,
+            name,
+            color=color,
+            description=description,
+        )
+
     # ── Branch protection / gitflow ───────────────────────────────────────────
 
     def ensure_default_branch(

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import sys
 from typing import Any
+from urllib.parse import quote
 
 from launchpad.github_client import GitHubClient, GitHubError
 
@@ -114,6 +115,92 @@ def add_team_to_repo(
         f"/orgs/{org}/teams/{team_slug}/repos/{org}/{repo}",
         json_body={"permission": permission},
     )
+
+
+def team_repo_permission(
+    client: GitHubClient,
+    org: str,
+    repo: str,
+    team_slug: str,
+) -> str | None:
+    """Return the team's repository permission, or None when unavailable."""
+    try:
+        data = client.rest(
+            "GET",
+            f"/orgs/{org}/teams/{team_slug}/repos/{org}/{repo}",
+        )
+    except GitHubError as exc:
+        if exc.status == 404:
+            return None
+        raise
+    permission = data.get("permission")
+    return str(permission) if permission else "pull"
+
+
+# ── Delivery labels ───────────────────────────────────────────────────────────
+
+
+def get_label(
+    client: GitHubClient,
+    org: str,
+    repo: str,
+    name: str,
+) -> dict[str, Any] | None:
+    """Return one label or None when it does not exist."""
+    try:
+        return client.rest(
+            "GET",
+            f"/repos/{org}/{repo}/labels/{quote(name, safe='')}",
+        )
+    except GitHubError as exc:
+        if exc.status == 404:
+            return None
+        raise
+
+
+def ensure_label(
+    client: GitHubClient,
+    org: str,
+    repo: str,
+    name: str,
+    *,
+    color: str,
+    description: str = "",
+) -> None:
+    """Create or reconcile one repository label."""
+    path = f"/repos/{org}/{repo}/labels/{quote(name, safe='')}"
+    desired_color = color.lstrip("#").upper()
+    current = get_label(client, org, repo, name)
+    if current is None:
+        print(f"  Creating label: {org}/{repo}#{name}")
+        client.rest(
+            "POST",
+            f"/repos/{org}/{repo}/labels",
+            json_body={
+                "name": name,
+                "color": desired_color,
+                "description": description,
+            },
+        )
+        print(f"  ✔  label created: {name}")
+        return
+
+    current_color = str(current.get("color") or "").upper()
+    current_description = str(current.get("description") or "")
+    if current_color == desired_color and current_description == description:
+        print(f"  Label OK: {name}")
+        return
+    print(f"  Updating label: {org}/{repo}#{name}")
+    client.rest(
+        "PATCH",
+        path,
+        json_body={
+            "new_name": name,
+            "color": desired_color,
+            "description": description,
+        },
+    )
+    print(f"  ✔  label updated: {name}")
 
 
 # ── Branch protection ─────────────────────────────────────────────────────────

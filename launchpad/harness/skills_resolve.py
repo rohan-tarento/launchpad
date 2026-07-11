@@ -19,8 +19,8 @@ class HarnessResolveError(Exception):
     """Prayog profile or skill list could not be resolved at the pinned ref."""
 
 
-def resolve_delivery_contract(submodule_root: Path) -> str:
-    """Return ``id/vN`` from the pinned Prayog delivery contract."""
+def load_delivery_contract(submodule_root: Path) -> dict:
+    """Load and minimally validate the pinned Prayog delivery contract."""
     contract_path = submodule_root / "delivery-contract.yaml"
     workflow_path = submodule_root / "workflow.yaml"
     if not contract_path.is_file():
@@ -33,6 +33,8 @@ def resolve_delivery_contract(submodule_root: Path) -> str:
             "pinned prayog-skills has no workflow.yaml required by its delivery contract"
         )
     raw = yaml.safe_load(contract_path.read_text(encoding="utf-8")) or {}
+    if not isinstance(raw, dict):
+        raise HarnessResolveError("delivery-contract.yaml must be a mapping")
     contract_id = str(raw.get("id") or "").strip()
     version = raw.get("version")
     if not contract_id or version in (None, ""):
@@ -45,7 +47,54 @@ def resolve_delivery_contract(submodule_root: Path) -> str:
             raise HarnessResolveError(
                 f"delivery contract workflow not found: {declared_workflow}"
             )
+    return raw
+
+
+def resolve_delivery_contract(submodule_root: Path) -> str:
+    """Return ``id/vN`` from the pinned Prayog delivery contract."""
+    raw = load_delivery_contract(submodule_root)
+    contract_id = str(raw["id"]).strip()
+    version = raw["version"]
     return f"{contract_id}/v{version}"
+
+
+def resolve_gate_resources(
+    submodule_root: Path,
+    profile_name: str,
+) -> tuple[list[dict[str, str]], dict[str, str]]:
+    """Return profile-scoped labels and portable review-role requirements."""
+    raw = load_delivery_contract(submodule_root)
+    github = raw.get("github") or {}
+    if not isinstance(github, dict):
+        raise HarnessResolveError("delivery contract github section must be a mapping")
+
+    labels: list[dict[str, str]] = []
+    for entry in github.get("labels") or []:
+        if not isinstance(entry, dict):
+            raise HarnessResolveError("delivery contract labels must be mappings")
+        profiles = [str(p) for p in (entry.get("profiles") or [])]
+        if profiles and profile_name not in profiles:
+            continue
+        name = str(entry.get("name") or "").strip()
+        color = str(entry.get("color") or "").strip().lstrip("#")
+        description = str(entry.get("description") or "").strip()
+        if not name or not color:
+            raise HarnessResolveError("delivery label requires name and color")
+        labels.append(
+            {"name": name, "color": color, "description": description}
+        )
+
+    roles: dict[str, str] = {}
+    for gate, entry in (github.get("review_roles") or {}).items():
+        if not isinstance(entry, dict):
+            raise HarnessResolveError("review role entries must be mappings")
+        profiles = [str(p) for p in (entry.get("profiles") or [])]
+        if profiles and profile_name not in profiles:
+            continue
+        role = str(entry.get("role") or "").strip()
+        if role:
+            roles[str(gate)] = role
+    return labels, roles
 
 
 def skill_list_key(harness_profile_name: str) -> str:

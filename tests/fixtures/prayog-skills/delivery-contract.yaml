@@ -4,3 +4,13 @@ id: sdd-delivery
 version: 2
 status: rc
 workflow: workflow.yaml
+github:
+  labels:
+    - name: impact-map-pending
+      color: BFD4F2
+      description: Gate 1 awaiting PE review
+      profiles: [meta-pm]
+  review_roles:
+    gate-1:
+      role: engineering-gate
+      profiles: [meta-pm]

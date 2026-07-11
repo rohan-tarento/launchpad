@@ -20,6 +20,7 @@ from launchpad.harness.skills_resolve import (
     HarnessResolveError,
     find_skill_source_dir,
     resolve_delivery_contract,
+    resolve_gate_resources,
     resolve_skill_names,
     slash_list,
 )
@@ -89,6 +90,15 @@ class TestResolveSkillNames:
     def test_delivery_contract_mismatch_fails_before_materialization(self):
         with pytest.raises(HarnessResolveError, match="mismatch"):
             _verify_delivery_contract(FIXTURES, "sdd-delivery/v1")
+
+    def test_gate_resources_are_profile_scoped(self):
+        labels, roles = resolve_gate_resources(FIXTURES, "meta-pm")
+        assert [label["name"] for label in labels] == ["impact-map-pending"]
+        assert roles == {"gate-1": "engineering-gate"}
+
+        app_labels, app_roles = resolve_gate_resources(FIXTURES, "python-backend")
+        assert app_labels == []
+        assert app_roles == {}
 
     def test_missing_profile_raises(self, tmp_path: Path):
         with pytest.raises(HarnessResolveError, match="profiles/meta-pm.yaml"):

@@ -9,13 +9,14 @@ and agent skills. The pinned Prayog contract defines delivery-stage semantics.
 
 ---
 
-## Five commands.  No arguments to remember.
+## Core commands
 
 ```
 launchpad onboard interview          # Day 0  — 4 questions → 5 YAML files + registry
 launchpad init-client --meta         # Day 1  — meta repo on GitHub (teams, gitflow, board)
 launchpad apply-scaffold --meta      # Day 1  — scaffold from YAML (optional)
 launchpad apply-harness  --meta      # Day 1  — pin constitution + seed skills
+launchpad apply-gates    --meta      # Day 1  — provision delivery labels + review roles
 launchpad status  --meta      # Any    — verify harness is correct
 ```
 

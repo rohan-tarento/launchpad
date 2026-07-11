@@ -1,6 +1,8 @@
 apiVersion: launchpad/v1
 kind: HarnessConfig
 delivery_contract: sdd-delivery/v2
+delivery_roles:
+  engineering-gate: pe-team
 
 # ─── Harness: constitution + agent skills + governance templates per stack ──
 # Rename to harness-<org>.yaml (e.g. harness-apex-common.yaml).
