@@ -1,0 +1,6 @@
+apiVersion: prayog/v1
+kind: DeliveryContract
+id: sdd-delivery
+version: 2
+status: rc
+workflow: workflow.yaml

@@ -27,6 +27,7 @@ from launchpad.harness.skills_materialize import lane_key_for_profile, materiali
 from launchpad.harness.skills_resolve import (
     HarnessResolveError,
     copy_harness_profile,
+    resolve_delivery_contract,
     resolve_skill_names,
     slash_list,
 )
@@ -88,6 +89,7 @@ def _seed_harness_pin(
     profile: HarnessProfile,
     profile_name: str,
     skill_names: list[str],
+    delivery_contract: str,
     *,
     apply: bool,
 ) -> None:
@@ -106,6 +108,7 @@ def _seed_harness_pin(
     skills_block = "\n".join(f"    - {name}" for name in skill_names)
 
     content = tpl_path.read_text(encoding="utf-8")
+    content = content.replace("{{DELIVERY_CONTRACT}}", delivery_contract)
     if con:
         content = content.replace("{{RULES_REF}}", con.ref)
         for rules_repo in (
@@ -137,29 +140,12 @@ def _seed_harness_pin(
     print(f"  ✔  harness-pin synced ← {tpl_name}  (profile: {profile_name})")
 
 
-_RUN_SECTION_RE = re.compile(
-    r"(## Run and verify\n.*?)(?=\n---\n)",
-    re.DOTALL,
-)
-
-
-def _preserve_agents_run_section(content: str, existing_path: Path) -> str:
-    """Keep an existing Run and verify block when re-applying harness."""
-    if not existing_path.is_file():
-        return content
-    existing = existing_path.read_text(encoding="utf-8")
-    run_match = _RUN_SECTION_RE.search(existing)
-    if not run_match or "{{" in run_match.group(1):
-        return content
-    preserved = run_match.group(1)
-    return _RUN_SECTION_RE.sub(preserved, content, count=1)
-
-
 def _seed_agents_md(
     repo_path: Path,
     profile_name: str,
     profile: HarnessProfile,
     skill_names: list[str],
+    delivery_contract: str,
     *,
     target: str,
     org: str,
@@ -173,7 +159,13 @@ def _seed_agents_md(
         return
 
     if not apply:
-        print(f"    [dry-run] AGENTS.md  ← {tpl_name}")
+        action = "preserve existing" if (repo_path / "AGENTS.md").is_file() else f"seed from {tpl_name}"
+        print(f"    [dry-run] AGENTS.md  ({action})")
+        return
+
+    dest = repo_path / "AGENTS.md"
+    if dest.is_file():
+        print("  –  AGENTS.md  (existing team file preserved)")
         return
 
     con = profile.constitution
@@ -186,6 +178,7 @@ def _seed_agents_md(
     content = content.replace("{{PROFILE}}", profile_name)
     content = content.replace("{{RULES_PIN}}", con.ref if con else "")
     content = content.replace("{{AGENT_SKILLS_REF}}", skill.ref if skill else "")
+    content = content.replace("{{DELIVERY_CONTRACT}}", delivery_contract)
     content = content.replace("{{AGENT_SKILLS_SLASH_LIST}}", slash_list(skill_names))
     content = content.replace("{{CHECK_COMMAND}}", "")
     content = content.replace("{{TEST_COMMAND}}", "")
@@ -195,9 +188,7 @@ def _seed_agents_md(
         "`.agents/skills/prayog-skills/` (git submodule",
         "`.agents/skills/<skill>/` (symlinks via `.harness/skills/` hub",
     )
-    content = _preserve_agents_run_section(content, repo_path / "AGENTS.md")
-
-    (repo_path / "AGENTS.md").write_text(content, encoding="utf-8")
+    dest.write_text(content, encoding="utf-8")
     print(f"  ✔  AGENTS.md  ← {tpl_name}")
 
 
@@ -301,11 +292,25 @@ def _preview_or_resolve_skills(
     return resolve_skill_names(prayog_submodule, profile, profile_name)
 
 
+def _verify_delivery_contract(prayog_submodule: Path, expected: str) -> str:
+    """Resolve and compare the pinned Prayog workflow contract."""
+    if not expected:
+        return ""
+    actual = resolve_delivery_contract(prayog_submodule)
+    if actual != expected:
+        raise HarnessResolveError(
+            f"delivery contract mismatch: harness expects {expected!r}, "
+            f"pinned prayog-skills provides {actual!r}"
+        )
+    return actual
+
+
 def _apply_harness_to_repo(
     repo_path: Path,
     profile: HarnessProfile,
     profile_name: str,
     org: str,
+    delivery_contract: str,
     *,
     target: str,
     meta_repo: str,
@@ -330,6 +335,15 @@ def _apply_harness_to_repo(
             )
         install_community_skills(repo_path, profile, apply=False)
         preview = _preview_or_resolve_skills(prayog_submodule, profile, profile_name)
+        if prayog_submodule.is_dir() and delivery_contract:
+            try:
+                actual_contract = _verify_delivery_contract(
+                    prayog_submodule, delivery_contract
+                )
+                print(f"    [dry-run] delivery contract: {actual_contract}")
+            except HarnessResolveError as exc:
+                print(f"ERROR: {exc}", file=sys.stderr)
+                return 1
         preview_names = (preview or []) + community_skill_names(profile)
         if preview is not None:
             materialize_skill_tree(
@@ -355,6 +369,7 @@ def _apply_harness_to_repo(
             profile,
             profile_name,
             skill_names=preview_names,
+            delivery_contract=delivery_contract,
             apply=False,
         )
         _seed_agents_md(
@@ -362,6 +377,7 @@ def _apply_harness_to_repo(
             profile_name,
             profile,
             skill_names=preview_names,
+            delivery_contract=delivery_contract,
             target=target,
             org=org,
             meta_repo=meta_repo,
@@ -403,6 +419,11 @@ def _apply_harness_to_repo(
         print(f"  ✔  skills pinned: {skill.org}/{skill.repo}@{skill_ref}")
 
     try:
+        actual_contract = _verify_delivery_contract(
+            prayog_submodule, delivery_contract
+        )
+        if actual_contract:
+            print(f"  ✔  delivery contract: {actual_contract}")
         skill_names = resolve_skill_names(prayog_submodule, profile, profile_name)
     except HarnessResolveError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
@@ -441,6 +462,7 @@ def _apply_harness_to_repo(
         profile,
         profile_name,
         skill_names=all_skill_names,
+        delivery_contract=delivery_contract,
         apply=True,
     )
     _seed_agents_md(
@@ -448,6 +470,7 @@ def _apply_harness_to_repo(
         profile_name,
         profile,
         skill_names=all_skill_names,
+        delivery_contract=delivery_contract,
         target=target,
         org=org,
         meta_repo=meta_repo,
@@ -538,6 +561,7 @@ def run_apply_harness(
         profile,
         profile_name,
         org,
+        h.delivery_contract,
         target=target,
         meta_repo=meta_repo,
         apply=apply,

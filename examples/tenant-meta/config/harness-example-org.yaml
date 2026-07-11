@@ -1,5 +1,6 @@
 apiVersion: launchpad/v1
 kind: HarnessConfig
+delivery_contract: sdd-delivery/v2
 
 # ─── Harness: constitution + agent skills + governance templates per stack ──
 # Rename to harness-<org>.yaml (e.g. harness-apex-common.yaml).
@@ -22,7 +23,7 @@ profiles:
   meta-pm:
     skills:
       - repo: prayog-skills
-        ref: v0.4.2
+        ref: v0.4.3-rc.1
     community_skills:
       - source: github/awesome-copilot
         ref: v1.0.0
@@ -39,8 +40,8 @@ profiles:
       repo: python-services-rules
       ref: v2.1.0
     skills:
-      - repo: python-agent-skills
-        ref: v1.0.0
+      - repo: prayog-skills
+        ref: v0.4.3-rc.1
     codeowners_template: CODEOWNERS.python-backend
     harness_pin_template: harness-pin.python-backend.yaml
 

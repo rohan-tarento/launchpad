@@ -11,6 +11,23 @@ Pick `<tag>` from the latest section below or [GitHub Releases](https://github.c
 
 ---
 
+## [0.5.18rc1] — local RC
+
+### Added
+
+- Delivery-contract/workflow verification against the pinned Prayog checkout.
+- Contract recording in generated harness pins and `status` output.
+- Initial AGENTS bootstrap for pinned workflow navigation.
+
+### Changed
+
+- Existing team-owned `AGENTS.md` files are preserved in full on re-apply.
+- Delivery playbook is an integration/binding guide; pinned Prayog owns stage transitions.
+- Full test suite runs in CI; Prayog fixtures cover the complete PM/dev bundles.
+- Version comparison supports prerelease tags such as `v0.5.18-rc.1`.
+
+---
+
 ## [0.5.17] — 2026-07-10
 
 ### Added

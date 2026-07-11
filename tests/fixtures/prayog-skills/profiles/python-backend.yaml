@@ -2,5 +2,10 @@ profile: python-backend
 
 development_skills:
   - spec-draft
+  - initiative-feasibility
+  - spec-technical-review
+  - spec-implementation-plan
   - pre-implement
+  - loop-spec
+  - ground-spec
   - verify

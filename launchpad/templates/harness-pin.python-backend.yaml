@@ -1,4 +1,5 @@
 profile: python-backend
+delivery_contract: {{DELIVERY_CONTRACT}}
 
 rules:
   repo: drivestream-lab/python-services-rules

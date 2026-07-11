@@ -210,7 +210,7 @@ make test
 
 | Step | Owner | Action |
 |------|-------|--------|
-| Spec PR | **Dev** | Branch `chore/INIT-*-spec-example-api`; run `/spec-draft` → `/spec-implementation-plan` |
+| Spec PR | **Dev** | Branch `chore/INIT-*-spec-example-api`; follow the pinned Prayog `workflow.yaml` |
 | Wave issues | **Dev** | `gh issue create` per wave from §9 |
 | W0+ | Dev | Feature PRs on foundation |
 

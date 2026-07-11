@@ -13,6 +13,7 @@ omit it.  apply-harness skips the submodule step when constitution is absent.
 Fields
 ------
 org             Must match programme.yaml org.
+delivery_contract Optional expected Prayog delivery contract (e.g. sdd-delivery/v2).
 profiles        Map of stack name → HarnessProfile.
   constitution  Optional. Omit for repos that need no .cursor/rules submodule.
     repo        GitHub repo slug for rules (e.g. "python-services-rules").
@@ -201,6 +202,7 @@ class HarnessSchema:
     def __init__(self, raw: dict[str, Any], *, path: str = "") -> None:
         self._path = path
         self.org: str = ""
+        self.delivery_contract: str = ""
         self.profiles: dict[str, HarnessProfile] = {}
         self.repos: dict[str, str] = {}
         self._validate(raw)
@@ -216,6 +218,8 @@ class HarnessSchema:
                 hint="Set org: to match your programme.yaml org",
             )
         self.org = org
+
+        self.delivery_contract = str(raw.get("delivery_contract") or "").strip()
 
         profiles_raw = raw.get("profiles") or {}
         if not isinstance(profiles_raw, dict):

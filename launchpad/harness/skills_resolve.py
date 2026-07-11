@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import yaml
+
 from launchpad.harness.paths import HARNESS_PROFILE_REL, PM_HARNESS_PROFILE
 from launchpad.schema.harness import HarnessProfile
 
@@ -15,6 +17,35 @@ _SKILL_LIST_KEYS = {
 
 class HarnessResolveError(Exception):
     """Prayog profile or skill list could not be resolved at the pinned ref."""
+
+
+def resolve_delivery_contract(submodule_root: Path) -> str:
+    """Return ``id/vN`` from the pinned Prayog delivery contract."""
+    contract_path = submodule_root / "delivery-contract.yaml"
+    workflow_path = submodule_root / "workflow.yaml"
+    if not contract_path.is_file():
+        raise HarnessResolveError(
+            "pinned prayog-skills has no delivery-contract.yaml; "
+            "use a compatible ref or omit delivery_contract for a legacy pin"
+        )
+    if not workflow_path.is_file():
+        raise HarnessResolveError(
+            "pinned prayog-skills has no workflow.yaml required by its delivery contract"
+        )
+    raw = yaml.safe_load(contract_path.read_text(encoding="utf-8")) or {}
+    contract_id = str(raw.get("id") or "").strip()
+    version = raw.get("version")
+    if not contract_id or version in (None, ""):
+        raise HarnessResolveError(
+            "delivery-contract.yaml must define non-empty id and version"
+        )
+    declared_workflow = str(raw.get("workflow") or "").strip()
+    if declared_workflow and declared_workflow != "workflow.yaml":
+        if not (submodule_root / declared_workflow).is_file():
+            raise HarnessResolveError(
+                f"delivery contract workflow not found: {declared_workflow}"
+            )
+    return f"{contract_id}/v{version}"
 
 
 def skill_list_key(harness_profile_name: str) -> str:

@@ -3,8 +3,9 @@
 **YAML-driven forge factory and harness engineering kit for multi-tenant engineering programmes.**
 
 Launchpad is not a "create GitHub repos" script.  It is a repeatable kit for running product delivery
-where **specs are truth**, **agents have a pinned constitution**, and **factory automation enforces
-the process** — gitflow, project board, constitution submodules, agent skills.
+where **specs are truth**, **agents have a pinned constitution**, and **factory automation enables
+the configured environment** — gitflow, project board, constitution submodules,
+and agent skills. The pinned Prayog contract defines delivery-stage semantics.
 
 ---
 

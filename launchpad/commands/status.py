@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from packaging.version import InvalidVersion, Version
 
 from launchpad import __version__
 from launchpad.forge.templates.render import (
@@ -44,7 +45,11 @@ from launchpad.forge.templates.render import (
 from launchpad.harness.community_skills import community_skill_names
 from launchpad.harness.paths import HARNESS_PROFILE_REL, PM_HARNESS_PROFILE, PRAYOG_SKILLS_SUBMODULE_REL
 from launchpad.harness.skills_materialize import all_runtime_skills_present, hub_skill_present, runtime_skill_present
-from launchpad.harness.skills_resolve import HarnessResolveError, resolve_skill_names
+from launchpad.harness.skills_resolve import (
+    HarnessResolveError,
+    resolve_delivery_contract,
+    resolve_skill_names,
+)
 from launchpad.schema import SchemaError
 from launchpad.ui import print_next_box
 
@@ -106,12 +111,12 @@ def _fetch_latest_kit_version() -> str | None:
     return None
 
 
-def _semver(v: str) -> tuple[int, ...]:
-    """Parse a loose semver string like '0.5.10' into a comparable tuple."""
+def _semver(v: str) -> Version:
+    """Parse stable and prerelease versions for comparison."""
     try:
-        return tuple(int(x) for x in v.split("."))
-    except ValueError:
-        return (0,)
+        return Version(v.replace("-rc.", "rc"))
+    except InvalidVersion:
+        return Version("0")
 
 
 def _print_kit_section() -> bool:
@@ -393,6 +398,24 @@ def _print_materialized_skills_check(profile_name: str, repo_path: Path, profile
     return drift
 
 
+def _print_delivery_contract_check(repo_path: Path, expected: str) -> bool:
+    """Print expected vs pinned Prayog delivery contract. Returns drift."""
+    if not expected:
+        return False
+    _section("Delivery contract")
+    submodule_root = repo_path / PRAYOG_SKILLS_SUBMODULE_REL
+    try:
+        actual = resolve_delivery_contract(submodule_root)
+    except HarnessResolveError as exc:
+        print(f"  [✗] {exc}")
+        return True
+    if actual == expected:
+        print(f"  [✔] {actual}  (matches harness)")
+        return False
+    print(f"  [✗] declared: {expected}  pinned: {actual}")
+    return True
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 
@@ -584,6 +607,9 @@ def run_status(
 
     # ── PM view: constitution pins + foundation freshness ────────────────────
     drift_detected = False
+    if profile and clone_ok and h:
+        if _print_delivery_contract_check(repo_path, h.delivery_contract):
+            drift_detected = True
     if meta:
         if h:
             _print_governance_pins(h)

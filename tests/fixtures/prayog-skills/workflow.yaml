@@ -1,0 +1,17 @@
+apiVersion: prayog/v1
+kind: SkillWorkflow
+id: sdd-delivery
+contract: sdd-delivery/v2
+nodes:
+  validate-requirements: {type: skill, profile: meta-pm}
+  review-findings: {type: skill, profile: meta-pm}
+  update-documents: {type: skill, profile: meta-pm}
+  prd-impact-map: {type: skill, profile: meta-pm}
+  spec-draft: {type: skill, profile: development}
+  initiative-feasibility: {type: skill, profile: development}
+  spec-technical-review: {type: skill, profile: development}
+  spec-implementation-plan: {type: skill, profile: development}
+  pre-implement: {type: skill, profile: development}
+  loop-spec: {type: skill, profile: development}
+  ground-spec: {type: skill, profile: development}
+  verify: {type: skill, profile: development}

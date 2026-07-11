@@ -1,80 +1,52 @@
-"""Tests for AGENTS.md run-section preservation during apply-harness."""
+"""Tests for initial AGENTS.md seeding and team-file preservation."""
 
 from __future__ import annotations
 
-from launchpad.commands.apply_harness import _preserve_agents_run_section
+from launchpad.commands.apply_harness import _seed_agents_md
+from launchpad.schema.harness import HarnessProfile
 
 
-def test_preserve_agents_run_section_keeps_existing_commands(tmp_path) -> None:
-    agents = tmp_path / "AGENTS.md"
-    agents.write_text(
-        """# Agent guide
-
-## Run and verify
-
-- Setup: [`README.md`](README.md)
-
-```bash
-make check
-make test
-
-make verify-smoke
-```
-
-Custom setup notes here.
-
----
-
-## Before changing behavior
-
-1. Read specs.
-""",
-        encoding="utf-8",
+def _profile(name: str) -> HarnessProfile:
+    return HarnessProfile(
+        name,
+        {"skills": [{"repo": "prayog-skills", "ref": "v0.4.3-rc.1"}]},
     )
 
-    template = """# Agent guide
 
-## Run and verify
-
-- Setup and run: [`README.md`](README.md)
-
-```bash
-{{CHECK_COMMAND}}
-{{TEST_COMMAND}}
-
-{{VERIFY_SMOKE}}
-```
-
-{{SETUP_NOTES}}
-
----
-
-## Before changing behavior
-
-1. Template step.
-"""
-
-    result = _preserve_agents_run_section(template, agents)
-
-    assert "make check" in result
-    assert "make verify-smoke" in result
-    assert "Custom setup notes here." in result
-    assert "{{CHECK_COMMAND}}" not in result
-
-
-def test_preserve_agents_run_section_no_existing_file(tmp_path) -> None:
-    template = "## Run and verify\n\n```bash\n{{CHECK_COMMAND}}\n```\n\n---\n"
-    result = _preserve_agents_run_section(template, tmp_path / "AGENTS.md")
-    assert "{{CHECK_COMMAND}}" in result
-
-
-def test_preserve_agents_run_section_skips_placeholder_existing(tmp_path) -> None:
-    agents = tmp_path / "AGENTS.md"
-    agents.write_text(
-        "## Run and verify\n\n```bash\n{{CHECK_COMMAND}}\n```\n\n---\n",
-        encoding="utf-8",
+def test_seed_agents_creates_initial_meta_guide(tmp_path) -> None:
+    _seed_agents_md(
+        tmp_path,
+        "meta-pm",
+        _profile("meta-pm"),
+        ["validate-requirements", "prd-impact-map"],
+        "sdd-delivery/v2",
+        target="example-meta",
+        org="example-org",
+        meta_repo="example-meta",
+        apply=True,
     )
-    template = "## Run and verify\n\n```bash\nmake lint\n```\n\n---\n"
-    result = _preserve_agents_run_section(template, agents)
-    assert "make lint" in result
-    assert "{{CHECK_COMMAND}}" not in result
+
+    text = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    assert "sdd-delivery/v2" in text
+    assert ".agents/skills/prayog-skills/workflow.yaml" in text
+    assert "what next?" in text
+
+
+def test_seed_agents_preserves_existing_team_file(tmp_path) -> None:
+    agents = tmp_path / "AGENTS.md"
+    original = "# Team guide\n\nDo not replace this repository-specific context.\n"
+    agents.write_text(original, encoding="utf-8")
+
+    _seed_agents_md(
+        tmp_path,
+        "python-backend",
+        _profile("python-backend"),
+        ["spec-draft"],
+        "sdd-delivery/v2",
+        target="example-api",
+        org="example-org",
+        meta_repo="example-meta",
+        apply=True,
+    )
+
+    assert agents.read_text(encoding="utf-8") == original

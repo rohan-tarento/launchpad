@@ -107,12 +107,13 @@ No kit-code changes required.  See [docs/stacks.md](stacks.md).
 apiVersion: launchpad/v1
 kind: HarnessConfig
 org: apex-common
+delivery_contract: sdd-delivery/v2
 
 profiles:
   meta-pm:
     skills:
       - repo: prayog-skills
-        ref: v0.4.2
+        ref: v0.4.3-rc.1
     community_skills:
       - source: github/awesome-copilot
         ref: v1.0.0
@@ -128,7 +129,7 @@ profiles:
       ref: v2.1.0
     skills:
       - repo: prayog-skills
-        ref: v0.4.2
+        ref: v0.4.3-rc.1
     skill_runtimes:
       - .agents/skills
       - .claude/skills
@@ -140,7 +141,7 @@ profiles:
       ref: v0.1.5
     skills:
       - repo: prayog-skills
-        ref: v0.4.2
+        ref: v0.4.3-rc.1
 
 repos:
   special-repo: python-backend
