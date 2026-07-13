@@ -77,6 +77,8 @@ policy:
 project_board:
   enabled: true
   name: KOLA Board
+  number: 3
+  url: https://github.com/orgs/apex-common/projects/3
 ```
 
 **Rules:**

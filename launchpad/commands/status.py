@@ -45,6 +45,7 @@ from launchpad.forge.templates.render import (
 )
 from launchpad.harness.community_skills import community_skill_names
 from launchpad.harness.paths import HARNESS_PROFILE_REL, PM_HARNESS_PROFILE, PRAYOG_SKILLS_SUBMODULE_REL
+from launchpad.programme.board_binding import resolve_board_binding
 from launchpad.harness.skills_materialize import all_runtime_skills_present, hub_skill_present, runtime_skill_present
 from launchpad.harness.skills_resolve import (
     HarnessResolveError,
@@ -568,6 +569,25 @@ def run_status(
     gov_ok = gov is not None and target in gov.repos
     stack_label = f"stack: {stack}" if gov_ok and stack else f"add '{target}' to governance repos:"
     print(f"  [{_mark(gov_ok)}] Governance declared       ({stack_label})")
+
+    board_detail = "not configured"
+    board_neutral = True
+    board_ok = False
+    if gov and gov.project_board:
+        binding = resolve_board_binding(org, gov.project_board)
+        if binding.configured:
+            board_neutral = False
+            board_ok = bool(binding.url or binding.number is not None)
+            board_detail = binding.name
+            if binding.number is not None:
+                board_detail += f" (#{binding.number})"
+            if binding.url:
+                board_detail += f" — {binding.url}"
+            if not meta and stack != PM_HARNESS_PROFILE:
+                board_detail += " — run /board-seed after spec merge"
+        else:
+            board_detail = "project_board disabled in governance"
+    print(f"  [{_mark(board_ok if not board_neutral else None, neutral=board_neutral)}] Programme board          ({board_detail})")
 
     repo_path = Path(ws).expanduser().resolve() / target
     clone_ok = (repo_path / ".git").is_dir()

@@ -9,4 +9,4 @@ v0.5.18rc1 — delivery-contract compatibility and team-owned AGENTS bootstrap.
   • onboard interview: 4 questions, auto-writes all 5 YAMLs + registry + env stub
 """
 
-__version__ = "0.5.18rc1"
+__version__ = "0.5.18rc2"

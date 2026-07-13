@@ -6,6 +6,7 @@ Public commands:
   apply-scaffold      Cookiecutter scaffold from scaffold-<org>.yaml
   apply-harness       Pin constitution + seed agent skills from harness-<org>.yaml
   apply-gates         Provision delivery labels + validate review-role bindings
+  board-bind          Resolve programme engineering board from governance config
   apply-forge-templates  Seed issue forms + PR template from kit + governance
   status              Readiness checklist + kit version + constitution drift check
   doctor              Preflight: token, config, version checks
@@ -154,6 +155,18 @@ def cmd_apply_gates(args: argparse.Namespace) -> int:
     )
 
 
+def cmd_board_bind(args: argparse.Namespace) -> int:
+    from launchpad.commands.board_bind import run_board_bind
+
+    return run_board_bind(
+        meta=args.meta,
+        repo_name=args.repo or "",
+        apply=getattr(args, "apply", False),
+        json_output=getattr(args, "json_output", False),
+        config_dir=_config_dir(args),
+    )
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     from launchpad.commands.status import run_status
 
@@ -262,6 +275,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="Override config/ dir (default: derived from clients.yaml)",
     )
     p.set_defaults(func=cmd_apply_gates)
+
+    # ── board-bind ────────────────────────────────────────────────────────────
+    p = sub.add_parser(
+        "board-bind",
+        help="Resolve programme engineering board; optionally link repo(s) to the project",
+    )
+    p.add_argument("--meta", action="store_true", help="link meta repo only (with --apply)")
+    p.add_argument("--repo", default="", metavar="NAME", help="link one app repo (with --apply)")
+    p.add_argument("--json", action="store_true", dest="json_output", help="emit binding as JSON")
+    _add_apply_flags(p)
+    p.add_argument(
+        "--config-dir",
+        default="",
+        help="Override config/ dir (default: derived from clients.yaml)",
+    )
+    p.set_defaults(func=cmd_board_bind)
 
     # ── status ────────────────────────────────────────────────────────────────
     p = sub.add_parser(

@@ -23,6 +23,8 @@ def test_seed_agents_creates_initial_meta_guide(tmp_path) -> None:
         target="example-meta",
         org="example-org",
         meta_repo="example-meta",
+        board_name="",
+        board_url="",
         apply=True,
     )
 
@@ -46,6 +48,8 @@ def test_seed_agents_preserves_existing_team_file(tmp_path) -> None:
         target="example-api",
         org="example-org",
         meta_repo="example-meta",
+        board_name="",
+        board_url="",
         apply=True,
     )
 

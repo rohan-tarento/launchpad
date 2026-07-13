@@ -58,6 +58,25 @@ def resolve_delivery_contract(submodule_root: Path) -> str:
     return f"{contract_id}/v{version}"
 
 
+_SKILL_LIST_KEYS = {
+    PM_HARNESS_PROFILE: "requirements_skills",
+}
+
+
+def _profile_matches(profile_name: str, profiles: list[str]) -> bool:
+    """Match harness profile against contract profile list.
+
+    Token ``app`` means any non-meta-pm delivery repo (stack-agnostic).
+    """
+    if not profiles:
+        return True
+    if profile_name in profiles:
+        return True
+    if "app" in profiles and profile_name != PM_HARNESS_PROFILE:
+        return True
+    return False
+
+
 def resolve_gate_resources(
     submodule_root: Path,
     profile_name: str,
@@ -73,7 +92,7 @@ def resolve_gate_resources(
         if not isinstance(entry, dict):
             raise HarnessResolveError("delivery contract labels must be mappings")
         profiles = [str(p) for p in (entry.get("profiles") or [])]
-        if profiles and profile_name not in profiles:
+        if profiles and not _profile_matches(profile_name, profiles):
             continue
         name = str(entry.get("name") or "").strip()
         color = str(entry.get("color") or "").strip().lstrip("#")
@@ -89,7 +108,7 @@ def resolve_gate_resources(
         if not isinstance(entry, dict):
             raise HarnessResolveError("review role entries must be mappings")
         profiles = [str(p) for p in (entry.get("profiles") or [])]
-        if profiles and profile_name not in profiles:
+        if profiles and not _profile_matches(profile_name, profiles):
             continue
         role = str(entry.get("role") or "").strip()
         if role:

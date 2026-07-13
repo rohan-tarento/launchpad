@@ -13,15 +13,15 @@ github:
     - name: spec-pending
       color: BFD4F2
       description: Gate 2 awaiting PE review
-      profiles: [python-backend]
+      profiles: [app]
     - name: spec-lgtm
       color: 0E8A16
       description: Gate 2 approved for current spec PR head
-      profiles: [python-backend]
+      profiles: [app]
   review_roles:
     gate-1:
       role: engineering-gate
       profiles: [meta-pm]
     gate-2:
       role: engineering-gate
-      profiles: [python-backend]
+      profiles: [app]

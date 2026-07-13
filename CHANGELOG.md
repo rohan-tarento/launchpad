@@ -11,6 +11,23 @@ Pick `<tag>` from the latest section below or [GitHub Releases](https://github.c
 
 ---
 
+## [0.5.18rc2] — local RC
+
+### Added
+
+- `board-bind` command — resolve programme engineering board from governance YAML
+  (read-only meta); optional `--apply` links repo(s) to the org Project.
+- `programme.board_binding` helper — `project_board.number` and `url` support.
+- `status --repo` prints programme board name/URL from governance.
+- Delivery contract profile token `app` — stack-agnostic Gate 2 labels for any
+  non-meta-pm harness profile.
+
+### Changed
+
+- `AGENTS.md` template includes programme board section (`{{BOARD_NAME}}`,
+  `{{BOARD_URL}}`) for app repos with delivery contract.
+- Delivery playbook and engineer-setup document `/board-seed` + `board-bind`.
+
 ## [0.5.18rc1] — local RC
 
 ### Added

@@ -32,6 +32,7 @@ from launchpad.harness.skills_resolve import (
     slash_list,
 )
 from launchpad.harness.submodules import pin_submodule
+from launchpad.programme.board_binding import resolve_board_binding
 from launchpad.schema import SchemaError
 from launchpad.schema.harness import HarnessProfile, load_harness
 from launchpad.schema.governance import load_governance
@@ -150,6 +151,8 @@ def _seed_agents_md(
     target: str,
     org: str,
     meta_repo: str,
+    board_name: str,
+    board_url: str,
     apply: bool,
 ) -> None:
     is_meta = profile_name == PM_HARNESS_PROFILE
@@ -179,6 +182,8 @@ def _seed_agents_md(
     content = content.replace("{{RULES_PIN}}", con.ref if con else "")
     content = content.replace("{{AGENT_SKILLS_REF}}", skill.ref if skill else "")
     content = content.replace("{{DELIVERY_CONTRACT}}", delivery_contract)
+    content = content.replace("{{BOARD_NAME}}", board_name or "Engineering board")
+    content = content.replace("{{BOARD_URL}}", board_url or f"https://github.com/orgs/{org}/projects")
     content = content.replace("{{AGENT_SKILLS_SLASH_LIST}}", slash_list(skill_names))
     content = content.replace("{{CHECK_COMMAND}}", "")
     content = content.replace("{{TEST_COMMAND}}", "")
@@ -362,6 +367,8 @@ def _apply_harness_to_repo(
     *,
     target: str,
     meta_repo: str,
+    board_name: str = "",
+    board_url: str = "",
     apply: bool = False,
 ) -> int:
     prayog_submodule = repo_path / PRAYOG_SKILLS_SUBMODULE_REL
@@ -429,6 +436,8 @@ def _apply_harness_to_repo(
             target=target,
             org=org,
             meta_repo=meta_repo,
+            board_name=board_name,
+            board_url=board_url,
             apply=False,
         )
         _seed_gitignore_harness(repo_path, apply=False)
@@ -528,6 +537,8 @@ def _apply_harness_to_repo(
         target=target,
         org=org,
         meta_repo=meta_repo,
+        board_name=board_name,
+        board_url=board_url,
         apply=True,
     )
     _seed_gitignore_harness(repo_path, apply=True)
@@ -608,6 +619,9 @@ def run_apply_harness(
 
     profile = h.profiles[profile_name]
     repo_path = Path(ws).expanduser().resolve() / target
+    binding = resolve_board_binding(org, gov.project_board)
+    board_name = binding.name if binding.configured and profile_name != PM_HARNESS_PROFILE else ""
+    board_url = binding.url if binding.configured and profile_name != PM_HARNESS_PROFILE else ""
 
     print(f"apply-harness  →  {h.org}/{target}  [profile: {profile_name}]")
     if not repo_path.is_dir():
@@ -624,6 +638,8 @@ def run_apply_harness(
         h.delivery_contract,
         target=target,
         meta_repo=meta_repo,
+        board_name=board_name,
+        board_url=board_url,
         apply=apply,
     )
     if result != 0:

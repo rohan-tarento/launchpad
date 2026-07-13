@@ -19,6 +19,7 @@ repos           Map of repo slug → RepoEntry.
   description   Optional.
 policy          Optional gitflow / branch-protection policy.
 project_board   Optional GitHub Project board setup.
+                Fields: enabled, name, number (int), url (https://github.com/orgs/.../projects/N).
 """
 
 from __future__ import annotations
@@ -160,7 +161,20 @@ class GovernanceSchema:
             )
 
         self.policy = dict(raw.get("policy") or {})
-        self.project_board = dict(raw.get("project_board") or {})
+        pb_raw = raw.get("project_board") or {}
+        if pb_raw and not isinstance(pb_raw, dict):
+            raise SchemaError("'project_board' must be a mapping", path=p)
+        self.project_board = dict(pb_raw)
+        number_raw = self.project_board.get("number")
+        if number_raw is not None and str(number_raw).strip() != "":
+            try:
+                self.project_board["number"] = int(number_raw)
+            except (TypeError, ValueError) as exc:
+                raise SchemaError(
+                    "project_board.number must be an integer",
+                    path=p,
+                    hint="Example: number: 3",
+                ) from exc
 
     @property
     def team_names(self) -> list[str]:

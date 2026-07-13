@@ -105,17 +105,20 @@ artifacts:
 
 ## Board seed binding
 
-Board seeding is an engineering-owned GitHub external action **after spec PR
-merge**. Preconditions:
+Board seeding uses **`/board-seed`** (development lane, **stack-agnostic**) after
+spec PR merge. Preconditions:
 
 1. Merged spec PR head had **`spec-lgtm`**
 2. `Implementation-Plan-{initiative}.md` and valid §9 WorkManifest on `develop`
-3. Explicit developer authorization before `gh issue create`
+3. Programme board resolved from read-only meta governance (`launchpad board-bind`)
+4. Explicit developer authorization before `gh issue create`
 
-The agent reads plan §9, checks existing issues, verifies `gh` auth, and
-creates only missing wave issues. If `gh` is unavailable, it provides exact
-commands. `/pre-implement` remains blocked until every expected wave issue
-exists and the spec merge gate passes.
+The skill reads plan §9 and governance `project_board`, creates **EPIC + wave
+sub-issues** on the org Project (`--parent`, `--project`), and groups under the
+initiative label. If `gh` is unavailable, it prints exact commands.
+`/pre-implement` remains blocked until the epic tree is complete.
+
+Requires `gh auth refresh -s project` and **Project WRITER** on the programme board.
 
 Optional: enable `github/workflows/board-seed-gate.yml` from the launchpad
 template to fail CI when a spec PR merges without `spec-lgtm` or without a
