@@ -107,8 +107,8 @@ class TestResolveSkillNames:
         assert roles == {"gate-1": "engineering-gate"}
 
         app_labels, app_roles = resolve_gate_resources(FIXTURES, "python-backend")
-        assert app_labels == []
-        assert app_roles == {}
+        assert [label["name"] for label in app_labels] == ["spec-pending", "spec-lgtm"]
+        assert app_roles == {"gate-2": "engineering-gate"}
 
     def test_terraform_iac_from_profile_yaml(self):
         names = resolve_skill_names(FIXTURES, _terraform_profile(), "terraform-iac")
