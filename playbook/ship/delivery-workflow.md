@@ -56,12 +56,44 @@ PE owns engineering decisions; PE does not choose product behavior.
 
 - Branch: `chore/INIT-{COMPONENT}-{NUMBER}-spec-<repo>`
 - Target: `develop`
-- Contains no product code.
-- Engineering clarification happens on this PR.
-- Product questions link back to a PRD amendment surface.
-- Gate 2 requires the current Prayog workflow artifacts and applicable PE/dev
-  reviews.
-- Merge means the repo slice is ready to build.
+- Type: **Draft PR** for the entire spec lifecycle
+- Contains no product domain code (docs/specification only; light verify stubs optional)
+- Engineering clarification happens on this PR
+- Product questions link back to a PRD amendment surface
+- Initial Gate 2 label: **`spec-pending`** (provision with `launchpad apply-gates --repo <name> --apply`)
+- PE sets **`spec-lgtm`** only when spec + feasibility + TDD + Accepted ADRs +
+  implementation plan §9 are on the current head
+- PE also submits GitHub **Approve** with attestation (initiative, head SHA,
+  digests, artifact paths) — never infer approval from the label alone
+- Mark **Ready for review** before merge (Draft PRs cannot merge while Draft)
+- New commits after `spec-lgtm` → add `spec-revised`, remove `spec-lgtm`
+- Merge means the repo slice is ready to build; then board-seed from plan §9
+
+#### Gate 2 label transitions (PE)
+
+| Action | Remove | Add |
+|--------|--------|-----|
+| Draft opened / new revision | `spec-lgtm`, `spec-blocked` | `spec-pending` |
+| Request changes | `spec-pending`, `spec-lgtm` | `spec-blocked` |
+| Full package approved | `spec-pending`, `spec-blocked`, `spec-revised`, `spec-stale` | `spec-lgtm` |
+
+#### Approve attestation (spec package)
+
+```text
+Spec package approved
+initiative: INIT-{id}
+spec_pr_head_sha: {SHA}
+meta_pr_head_sha: {SHA}
+impact_map_revision: {N}
+prd_digest: sha256:{hex}
+scope_digest: sha256:{hex}
+plan_digest: sha256:{hex}
+artifacts:
+  - docs/specification/product/INIT-{id}.md
+  - docs/specification/reports/Initiative-Feasibility-Report-{INIT-id}.md
+  - docs/specification/reports/Technical-Review-{INIT-id}.md
+  - docs/specification/reports/Implementation-Plan-{INIT-id}.md
+```
 
 ### Wave PR
 
@@ -73,11 +105,21 @@ PE owns engineering decisions; PE does not choose product behavior.
 
 ## Board seed binding
 
-Board seeding is an engineering-owned GitHub external action after spec PR
-merge. The agent reads plan §9, checks existing issues, verifies `gh` auth, and
-creates only missing wave issues after explicit authorization. If `gh` is
-unavailable, it provides exact commands. `/pre-implement` remains blocked until
-every expected wave issue exists.
+Board seeding is an engineering-owned GitHub external action **after spec PR
+merge**. Preconditions:
+
+1. Merged spec PR head had **`spec-lgtm`**
+2. `Implementation-Plan-{initiative}.md` and valid §9 WorkManifest on `develop`
+3. Explicit developer authorization before `gh issue create`
+
+The agent reads plan §9, checks existing issues, verifies `gh` auth, and
+creates only missing wave issues. If `gh` is unavailable, it provides exact
+commands. `/pre-implement` remains blocked until every expected wave issue
+exists and the spec merge gate passes.
+
+Optional: enable `github/workflows/board-seed-gate.yml` from the launchpad
+template to fail CI when a spec PR merges without `spec-lgtm` or without a
+plan file on the merge commit.
 
 ## Q&A routing
 

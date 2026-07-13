@@ -23,6 +23,10 @@ Pick `<tag>` from the latest section below or [GitHub Releases](https://github.c
 
 ### Changed
 
+- Delivery playbook documents Draft spec PR, Gate 2 labels, PE attestation,
+  and merge/board-seed/pre-implement sequencing.
+- `INIT-spec-PR.md` template updated for `/spec-draft` PR-readiness flow.
+- Optional `board-seed-gate.yml` workflow template validates `spec-lgtm` on merge.
 - Existing team-owned `AGENTS.md` files are preserved in full on re-apply.
 - Delivery playbook is an integration/binding guide; pinned Prayog owns stage transitions.
 - Full test suite runs in CI; Prayog fixtures cover the complete PM/dev bundles.
