@@ -118,10 +118,14 @@ def resolve_skill_names(
     profile_file = profile.prayog_profile
     profile_path = submodule_root / "profiles" / f"{profile_file}.yaml"
     if not profile_path.is_file():
+        hint = (
+            f"Add profiles/{profile_file}.yaml in prayog-skills and bump skills[].ref, "
+            f"or set prayog_profile: <existing-profile> in harness YAML "
+            f"(e.g. python-backend for IaC until terraform-iac ships)."
+        )
         raise HarnessResolveError(
             f"prayog profile not found: profiles/{profile_file}.yaml "
-            f"in pinned prayog-skills submodule. "
-            f"Bump skills[].ref in harness YAML or add the profile in prayog-skills."
+            f"in pinned prayog-skills submodule. {hint}"
         )
 
     key = skill_list_key(harness_profile_name)

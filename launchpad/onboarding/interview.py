@@ -181,15 +181,15 @@ profiles:
   #   codeowners_template: CODEOWNERS.nextjs-frontend
   #   harness_pin_template: harness-pin.nextjs-frontend.yaml
 
-  # terraform-iac:
-  #   constitution:
-  #     repo: terraform-infra-rules
-  #     ref: v0.1.2
-  #   skills:
-  #     - repo: prayog-skills
-  #       ref: v0.4.0
-  #   codeowners_template: CODEOWNERS.terraform-iac
-  #   harness_pin_template: harness-pin.terraform-iac.yaml
+  terraform-iac:
+    constitution:
+      repo: terraform-infra-rules
+      ref: v0.1.2
+    skills:
+      - repo: prayog-skills
+        ref: v0.4.3-rc.1
+    codeowners_template: CODEOWNERS.terraform-iac
+    harness_pin_template: harness-pin.terraform-iac.yaml
 
 # Per-repo harness_profile overrides (optional).
 # If absent, a repo's harness_profile defaults to its stack from governance.yaml.

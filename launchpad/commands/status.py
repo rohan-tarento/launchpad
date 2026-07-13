@@ -683,17 +683,21 @@ def run_status(
     drift_detected = False
     gate_drift = False
     if profile and clone_ok and h:
-        if _print_delivery_contract_check(repo_path, h.delivery_contract):
-            drift_detected = True
-        if _print_delivery_gates_check(
-            repo_path,
-            profile_name,
-            h.delivery_roles,
-            org,
-            target,
-        ):
-            drift_detected = True
-            gate_drift = True
+        if not h.delivery_contract:
+            _section("Delivery contract")
+            print("  [–] not declared  (legacy Prayog pin; gate checks skipped)")
+        else:
+            if _print_delivery_contract_check(repo_path, h.delivery_contract):
+                drift_detected = True
+            if _print_delivery_gates_check(
+                repo_path,
+                profile_name,
+                h.delivery_roles,
+                org,
+                target,
+            ):
+                drift_detected = True
+                gate_drift = True
     if meta:
         if h:
             _print_governance_pins(h)
