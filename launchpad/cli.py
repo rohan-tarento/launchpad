@@ -162,7 +162,6 @@ def cmd_board_bind(args: argparse.Namespace) -> int:
         meta=args.meta,
         repo_name=args.repo or "",
         apply=getattr(args, "apply", False),
-        json_output=getattr(args, "json_output", False),
         config_dir=_config_dir(args),
     )
 
@@ -283,7 +282,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--meta", action="store_true", help="link meta repo only (with --apply)")
     p.add_argument("--repo", default="", metavar="NAME", help="link one app repo (with --apply)")
-    p.add_argument("--json", action="store_true", dest="json_output", help="emit binding as JSON")
     _add_apply_flags(p)
     p.add_argument(
         "--config-dir",

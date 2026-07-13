@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -25,7 +24,6 @@ def run_board_bind(
     meta: bool = False,
     repo_name: str = "",
     apply: bool = False,
-    json_output: bool = False,
     config_dir: Path | None = None,
     workspace: Path | None = None,
 ) -> int:
@@ -59,25 +57,12 @@ def run_board_bind(
         except Exception as exc:  # noqa: BLE001 — surface token/API issues clearly
             print(f"WARN: could not enrich board from GitHub API: {exc}", file=sys.stderr)
 
-    payload = {
-        "org": binding.org,
-        "enabled": binding.enabled,
-        "name": binding.name,
-        "number": binding.number,
-        "url": binding.url,
-        "governance_path": str(governance_path),
-        "meta_repo": programme.meta_repo,
-    }
-
-    if json_output:
-        print(json.dumps(payload, indent=2))
-    else:
-        print(f"Programme board binding ({org})")
-        print(f"  enabled:  {binding.enabled}")
-        print(f"  name:     {binding.name or '(not set)'}")
-        print(f"  number:   {binding.number if binding.number is not None else '(not set)'}")
-        print(f"  url:      {binding.url or '(not set)'}")
-        print(f"  source:   {governance_path}")
+    print(f"Programme board binding ({org})")
+    print(f"  enabled:  {binding.enabled}")
+    print(f"  name:     {binding.name or '(not set)'}")
+    print(f"  number:   {binding.number if binding.number is not None else '(not set)'}")
+    print(f"  url:      {binding.url or '(not set)'}")
+    print(f"  source:   {governance_path}")
 
     if not binding.configured:
         print(
@@ -87,14 +72,13 @@ def run_board_bind(
         return 1
 
     if not apply:
-        if not json_output:
-            target_flag = "--meta" if meta else f"--repo {repo_name or programme.meta_repo}"
-            print_next_box(
-                [
-                    f"launchpad board-bind {target_flag} --apply  # link repo(s) to board",
-                    "/board-seed INIT-<id>  # after spec merge (in app repo)",
-                ]
-            )
+        target_flag = "--meta" if meta else f"--repo {repo_name or programme.meta_repo}"
+        print_next_box(
+            [
+                f"launchpad board-bind {target_flag} --apply  # link repo(s) to board",
+                "/board-seed INIT-<id>  # after spec merge (in app repo)",
+            ]
+        )
         return 0
 
     if meta:
