@@ -212,6 +212,54 @@ def _upgrade_harness_gitignore_patterns(text: str) -> str:
     return updated
 
 
+_DELIVERY_WORKFLOW_TEMPLATES: tuple[str, ...] = (
+    "github/workflows/ci.yml",
+    "github/workflows/policy-branch-name.yml",
+    "github/workflows/board-seed-gate.yml",
+)
+
+
+def _seed_delivery_workflows(
+    repo_path: Path,
+    *,
+    delivery_contract: str,
+    profile_name: str,
+    apply: bool,
+) -> None:
+    """Seed SDD delivery GitHub workflows into app repos (skip meta-pm)."""
+    if profile_name == PM_HARNESS_PROFILE or not delivery_contract:
+        return
+
+    for kit_rel in _DELIVERY_WORKFLOW_TEMPLATES:
+        tpl_path = _resolve_kit_template(kit_rel)
+        workflow_name = Path(kit_rel).name
+        dest = repo_path / ".github" / "workflows" / workflow_name
+
+        if tpl_path is None:
+            print(
+                f"  WARN: workflow template '{kit_rel}' not found in kit — skipping",
+                file=sys.stderr,
+            )
+            continue
+
+        if not apply:
+            if dest.is_file():
+                print(f"    [dry-run] skip (exists)  .github/workflows/{workflow_name}")
+            else:
+                print(
+                    f"    [dry-run] .github/workflows/{workflow_name}  ← {kit_rel}"
+                )
+            continue
+
+        if dest.is_file():
+            print(f"  –  skip (exists)  .github/workflows/{workflow_name}")
+            continue
+
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(tpl_path.read_text(encoding="utf-8"), encoding="utf-8")
+        print(f"  ✔  workflow  ← {kit_rel}  →  .github/workflows/{workflow_name}")
+
+
 def _seed_gitignore_harness(repo_path: Path, *, apply: bool) -> None:
     block = _harness_gitignore_block()
     if block is None:
@@ -384,6 +432,12 @@ def _apply_harness_to_repo(
             apply=False,
         )
         _seed_gitignore_harness(repo_path, apply=False)
+        _seed_delivery_workflows(
+            repo_path,
+            delivery_contract=delivery_contract,
+            profile_name=profile_name,
+            apply=False,
+        )
         return 0
 
     con = profile.constitution
@@ -477,6 +531,12 @@ def _apply_harness_to_repo(
         apply=True,
     )
     _seed_gitignore_harness(repo_path, apply=True)
+    _seed_delivery_workflows(
+        repo_path,
+        delivery_contract=delivery_contract,
+        profile_name=profile_name,
+        apply=True,
+    )
     return 0
 
 
@@ -576,6 +636,12 @@ def run_apply_harness(
         client_id = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
         client_prefix = f"--client {client_id} " if client_id else ""
         target_flag = "--meta" if meta else f"--repo {target}"
-        print_next_box([f"launchpad {client_prefix}status {target_flag}".strip()])
+        next_steps = [f"launchpad {client_prefix}status {target_flag}".strip()]
+        if not meta and h.delivery_contract:
+            next_steps.insert(
+                0,
+                'git add .harness-pin.yaml .github/workflows/ && git commit -m "chore: sync harness and delivery workflows"',
+            )
+        print_next_box(next_steps)
 
     return 0
