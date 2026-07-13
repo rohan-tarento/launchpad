@@ -4,7 +4,9 @@ kind: GovernanceConfig
 # Day N: one app repo added after meta is live.
 org: apex-common
 
-stack_profiles: {}
+stack_profiles:
+  meta-pm: Programme management & ADR meta repo
+  python-backend: Python / FastAPI microservice
 
 teams:
   - name: platform-core

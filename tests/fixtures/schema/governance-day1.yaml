@@ -4,7 +4,8 @@ kind: GovernanceConfig
 # Day 1: meta repo only.  App repos are added incrementally on Day N.
 org: apex-common
 
-stack_profiles: {}  # starter set merged in automatically (meta-pm, python-backend, nextjs-frontend, terraform-iac)
+stack_profiles:
+  meta-pm: Programme management & ADR meta repo
 
 teams:
   - name: platform-core

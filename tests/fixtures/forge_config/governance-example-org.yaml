@@ -3,6 +3,10 @@ kind: GovernanceConfig
 
 org: example-org
 
+stack_profiles:
+  meta-pm: Programme management & ADR meta repo
+  python-backend: Python / FastAPI microservice
+
 teams:
   - name: example-devs
     description: Developers

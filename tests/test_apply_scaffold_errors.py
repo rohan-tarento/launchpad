@@ -6,7 +6,7 @@ from launchpad.commands.apply_scaffold import _parse_cookiecutter_output
 
 
 SAMPLE_HOOK_OUTPUT = """
-ERROR: state storage account name 'stratumstratumtfstatestage' exceeds 24 chars — shorten org_prefix/client, or adjust naming in bootstrap + backend.tf together.
+ERROR: state storage account name 'acmeacmetfstatestage' exceeds 24 chars — shorten org_prefix/client, or adjust naming in bootstrap + backend.tf together.
 Stopping generation because post_gen_project hook script didn't exit successfully
 Traceback (most recent call last):
   File "/Users/me/.local/pipx/venvs/launchpad/lib/python3.14/site-packages/cookiecutter/hooks.py", line 165, in run_hook_from_repo_dir

@@ -131,21 +131,18 @@ launchpad status --repo kola-platform-core
 
 ## Stacks
 
-Starter stacks built in (no configuration needed):
+Stacks are declared in `governance-<org>.yaml` → `stack_profiles` (YAML SSOT).
+The kit does not merge a built-in list. Each stack needs a matching harness profile;
+scaffold is optional per repo in `scaffold-<org>.yaml`.
 
-| Stack | Use |
-|---|---|
-| `meta-pm` | Programme management meta repo |
-| `python-backend` | Python / FastAPI microservice |
-| `nextjs-frontend` | Next.js frontend or BFF |
-| `terraform-iac` | Terraform infrastructure-as-code |
-
-Add custom stacks in `governance-<org>.yaml` — no kit-code changes required.  
-See [docs/stacks.md](docs/stacks.md).
+See [docs/stacks.md](docs/stacks.md) for example stack names and wiring.
 
 ---
 
 ## Scaffold is fully YAML-driven
+
+Scaffolding is **optional per repo**. No block in `scaffold-<org>.yaml`, or
+`enabled: false` → launchpad does not scaffold (brownfield path).
 
 The kit does not own any template keys.  All `context:` fields are passed
 free-form to cookiecutter.  Template owners evolve their `cookiecutter.json`

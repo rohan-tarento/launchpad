@@ -24,7 +24,6 @@ import yaml
 
 from launchpad.clients import CLIENTS_FILE, CONFIG_DIR, ENV_D_DIR
 from launchpad.onboarding.errors import OnboardingError
-from launchpad.schema.governance import STARTER_STACKS
 from launchpad.ui import format_next_box, shorten_path
 
 _SLUG_RE = re.compile(r"^[a-z][a-z0-9-]{0,62}$")
@@ -97,7 +96,6 @@ forge:
 
 
 def _render_governance(org: str, meta_repo: str) -> str:
-    stacks_block = "\n".join(f"  # {k}: {v}" for k, v in STARTER_STACKS.items())
     return f"""\
 apiVersion: launchpad/v1
 kind: GovernanceConfig
@@ -107,10 +105,11 @@ kind: GovernanceConfig
 org: {org}
 
 stack_profiles:
-  # Starter stacks are always available — list here for reference only.
-{stacks_block}
-  #
-  # Add custom stacks:
+  meta-pm: Programme management & ADR meta repo
+  # Add a stack for each technology profile you use; each needs a harness profile.
+  # python-backend: Python / FastAPI microservice
+  # nextjs-frontend: Next.js frontend or BFF
+  # terraform-iac: Terraform infrastructure-as-code
   # go-backend: Go microservice
 
 teams:

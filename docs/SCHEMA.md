@@ -53,8 +53,10 @@ apiVersion: launchpad/v1
 kind: GovernanceConfig
 org: apex-common
 
-stack_profiles:             # Optional — starter set is always merged in
-  go-backend: Go microservice   # Extend with custom stacks without kit changes
+stack_profiles:             # Declare every stack you use (YAML SSOT — kit merges nothing)
+  meta-pm: Programme management & ADR meta repo
+  python-backend: Python / FastAPI microservice
+  go-backend: Go microservice   # extend as needed
 
 teams:
   - name: platform-core
@@ -78,24 +80,11 @@ project_board:
 ```
 
 **Rules:**
-- `repos.<name>.stack` must exist in `stack_profiles` (starter + custom).
+- `repos.<name>.stack` must exist in `stack_profiles`.
 - `repos.<name>.teams` must reference declared team names — prevents typos.
 
----
-
-## Starter Stack Registry
-
-These stacks are always available without any configuration.
-
-| Stack | Default use |
-|---|---|
-| `meta-pm` | Programme management & ADR meta repo |
-| `python-backend` | Python / FastAPI microservice |
-| `nextjs-frontend` | Next.js frontend or BFF |
-| `terraform-iac` | Terraform infrastructure-as-code |
-
-To add a new stack: add an entry to `stack_profiles` in `governance-<org>.yaml`.
-No kit-code changes required.  See [docs/stacks.md](stacks.md).
+Declare stacks, harness profiles, and scaffold blocks in YAML — the kit does not
+inject a built-in stack list. See [docs/stacks.md](stacks.md).
 
 ---
 
