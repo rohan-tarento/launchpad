@@ -11,59 +11,36 @@ Pick `<tag>` from the latest section below or [GitHub Releases](https://github.c
 
 ---
 
-## [0.5.18rc3] — local RC
+## [0.5.18] — 2026-07-14
+
+### Added
+
+- **`board-bind`** — resolve programme engineering board from governance YAML
+  (read-only meta); optional `--apply` links repo(s) to the org Project.
+- Delivery-contract / workflow verification against the pinned Prayog checkout;
+  contract recorded in harness pins and `status`.
+- **`apply-gates`** — dry-run/apply for contract-declared labels and review-role
+  access validation.
+- Profile token `app` — stack-agnostic Gate 2 labels for any non-meta-pm harness.
+- `apply-harness --repo` seeds delivery workflows (`ci.yml`,
+  `policy-branch-name.yml`, `board-seed-gate.yml`) when `delivery_contract` is set.
+- `AGENTS.md` programme board section (`{{BOARD_NAME}}`, `{{BOARD_URL}}`) for
+  app repos with a delivery contract.
 
 ### Changed
 
-- **`workspace` moved to `~/.config/launchpad/clients.yaml`** (machine-local).
+- **`workspace` lives in `~/.config/launchpad/clients.yaml`** (machine-local).
   Shared `programme.yaml` must not contain `workspace` — schema fails closed.
 - Clone layout: `clients[].workspace` or default `path.parent`.
 - `onboard interview` writes `path` + `workspace` into clients.yaml only.
+- Delivery playbook documents Draft spec PR, Gate 2, PE attestation, and
+  merge → `/board-seed` → `/pre-implement` sequencing (pairs with Prayog v0.4.3).
+- Existing team-owned `AGENTS.md` preserved in full on re-apply.
 
 ### Removed
 
 - **`LAUNCHPAD_TENANT_ROOT`** — unused env override; docs and examples purged.
   Use `--client` / `clients.yaml`, or `--config-dir` for scripts.
-
-## [0.5.18rc2] — local RC
-
-### Added
-
-- `board-bind` command — resolve programme engineering board from governance YAML
-  (read-only meta); optional `--apply` links repo(s) to the org Project.
-- `programme.board_binding` helper — `project_board.number` and `url` support.
-- `status --repo` prints programme board name/URL from governance.
-- Delivery contract profile token `app` — stack-agnostic Gate 2 labels for any
-  non-meta-pm harness profile.
-
-### Changed
-
-- `AGENTS.md` template includes programme board section (`{{BOARD_NAME}}`,
-  `{{BOARD_URL}}`) for app repos with delivery contract.
-- Delivery playbook and engineer-setup document `/board-seed` + `board-bind`.
-
-## [0.5.18rc1] — local RC
-
-### Added
-
-- Delivery-contract/workflow verification against the pinned Prayog checkout.
-- Contract recording in generated harness pins and `status` output.
-- Initial AGENTS bootstrap for pinned workflow navigation.
-- `apply-gates` dry-run/apply command for contract-declared labels and
-  tenant review-role access validation.
-
-### Changed
-
-- Delivery playbook documents Draft spec PR, Gate 2 labels, PE attestation,
-  and merge/board-seed/pre-implement sequencing.
-- `INIT-spec-PR.md` template updated for `/spec-draft` PR-readiness flow.
-- Optional `board-seed-gate.yml` workflow template validates `spec-lgtm` on merge.
-- `apply-harness --repo` seeds delivery workflows (`ci.yml`, `policy-branch-name.yml`,
-  `board-seed-gate.yml`) when `delivery_contract` is set on the harness profile.
-- Existing team-owned `AGENTS.md` files are preserved in full on re-apply.
-- Delivery playbook is an integration/binding guide; pinned Prayog owns stage transitions.
-- Full test suite runs in CI; Prayog fixtures cover the complete PM/dev bundles.
-- Version comparison supports prerelease tags such as `v0.5.18-rc.1`.
 
 ---
 
