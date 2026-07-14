@@ -1,39 +1,42 @@
 # Stacks Reference
 
-A **stack** is a named technology profile that drives two things:
-1. Which harness profile (constitution + skills) to apply to a repo
-2. Which cookiecutter template to scaffold from (optional)
+A **stack** is a named technology profile declared in YAML. It drives **harness**
+(which rules + prayog profile apply). Scaffold is separate — opt-in per repo in
+`scaffold-<org>.yaml`.
 
 ---
 
-## Starter Stack Registry
+## YAML is SSOT
 
-These four stacks are built into Launchpad and always available.
-No YAML configuration required to use them.
+The kit does **not** ship a built-in stack registry. Everything is declared in
+your meta repo:
 
-| Stack | Default use | Typical constitution repo |
-|---|---|---|
-| `meta-pm` | Programme management & ADR meta repo | `meta-governance-rules` |
-| `python-backend` | Python / FastAPI microservice | `python-services-rules` |
-| `nextjs-frontend` | Next.js frontend or BFF | `nextjs-frontend-rules` |
-| `terraform-iac` | Terraform infrastructure-as-code | `terraform-infra-rules` |
+| File | What you declare |
+|------|------------------|
+| `governance-<org>.yaml` → `stack_profiles` | Stack names your programme uses |
+| `governance-<org>.yaml` → `repos.*.stack` | Which stack each repo uses |
+| `harness-<org>.yaml` → `profiles` | Constitution + skills per stack |
+| `scaffold-<org>.yaml` → `repos.*` | Cookiecutter source **only if** you scaffold |
+
+**Brownfield:** omit or disable scaffold — run `apply-harness` only.
+
+**Greenfield:** add a scaffold block with `enabled: true`, `template`, `ref`, and
+`context`. No scaffold YAML entry → launchpad does not scaffold that repo.
 
 ---
 
-## Adding a Custom Stack
+## Adding a stack
 
-You do not need to change any Launchpad kit code to add a new stack.
-Add it to `stack_profiles` in `config/governance-<org>.yaml`:
+1. Add to `stack_profiles` in `config/governance-<org>.yaml`:
 
 ```yaml
 stack_profiles:
+  meta-pm: Programme management & ADR meta repo
+  python-backend: Python / FastAPI microservice
   go-backend: Go microservice
-  java-spring: Java Spring Boot service
-  data-pipeline: Python data/ML pipeline
 ```
 
-Then:
-1. Add a matching profile to `config/harness-<org>.yaml`:
+2. Add a matching profile to `config/harness-<org>.yaml`:
 
 ```yaml
 profiles:
@@ -44,7 +47,7 @@ profiles:
     skills: []
 ```
 
-2. Add a scaffold block to `config/scaffold-<org>.yaml` if you want to scaffold new repos:
+3. **Optional** — scaffold block in `config/scaffold-<org>.yaml` (greenfield only):
 
 ```yaml
 repos:
@@ -58,7 +61,7 @@ repos:
       has_grpc: true
 ```
 
-3. Declare the repo in `config/governance-<org>.yaml`:
+4. Declare the repo in `config/governance-<org>.yaml`:
 
 ```yaml
 repos:
@@ -68,7 +71,22 @@ repos:
     visibility: private
 ```
 
-That's it — no Launchpad code change required.
+No Launchpad kit code change required.
+
+---
+
+## Example stacks (documentation only)
+
+These are common Drivestream patterns — **not** merged into your config automatically.
+Copy into `stack_profiles` / `harness` / `scaffold` when you adopt them.
+
+| Stack | Typical use | Typical constitution repo |
+|---|---|---|
+| `meta-pm` | Programme management & ADR meta repo | (none — meta repos) |
+| `python-backend` | Python / FastAPI microservice | `python-services-rules` |
+| `nextjs-frontend` | Next.js frontend or BFF | `nextjs-bff-rules` |
+| `terraform-iac` | Terraform infrastructure-as-code | `terraform-infra-rules` |
+| `data-platform` | Data platform / analytics | `data-platform-rules` |
 
 ---
 
@@ -80,15 +98,15 @@ When you run `apply-harness --repo <name>`:
 3. Falls back to the stack name as the profile name
 4. If no profile found → prints a hint to add the profile and exits cleanly
 
-This means a repo can have a different harness profile than its stack
-(useful for monorepos or special repos that share a stack but need
-different rules).
+A repo can use a different harness profile than its stack (monorepos, special cases).
 
 ---
 
-## Scaffold is Independent of Stack
+## Scaffold is independent of stack
 
 Scaffold configuration in `scaffold-<org>.yaml` is fully independent.
-The `stack` on a repo only drives the harness — not the scaffold template.
-This lets the same stack (e.g. `python-backend`) use different templates
-for different repos (e.g. async-heavy vs sync-heavy foundations).
+`stack` drives harness only — not which cookiecutter template runs.
+
+The same stack (e.g. `python-backend`) can use different foundation templates per
+repo. If a repo has no scaffold block or `enabled: false`, `apply-scaffold` does
+nothing for that repo.

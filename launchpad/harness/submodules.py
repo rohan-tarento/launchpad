@@ -51,14 +51,21 @@ def pin_git_ref(repo_dir: Path, ref: str, *, label: str = "") -> bool:
         ["git", "fetch", "origin", f"refs/tags/{ref}:refs/tags/{ref}"],
         cwd=repo_dir,
     )
+    checkout_target = f"refs/tags/{ref}"
     if fetch.returncode != 0:
         fetch = run_git(["git", "fetch", "origin", ref], cwd=repo_dir)
+        checkout_target = "FETCH_HEAD"
     if fetch.returncode != 0:
         print(f"  WARN: fetch {ref!r} failed: {fetch.stderr.strip()}", file=sys.stderr)
         return False
 
     print(f"{prefix}checkout {ref!r} …")
-    checkout = run_git(["git", "checkout", "-f", ref], cwd=repo_dir)
+    # Detach at the exact fetched commit. Checking out a same-named local branch
+    # can silently leave mutable branch pins behind origin/<ref>.
+    checkout = run_git(
+        ["git", "checkout", "--detach", "-f", checkout_target],
+        cwd=repo_dir,
+    )
     if checkout.returncode != 0:
         print(f"  WARN: checkout {ref!r} failed: {checkout.stderr.strip()}", file=sys.stderr)
         return False

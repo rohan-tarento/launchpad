@@ -3,6 +3,7 @@
 # Docs: https://github.com/drivestream-lab/launchpad/blob/main/playbook/harness/harness-pins.md
 
 profile: meta-pm
+delivery_contract: {{DELIVERY_CONTRACT}}
 
 agent_skills:
   repo: drivestream-lab/prayog-skills

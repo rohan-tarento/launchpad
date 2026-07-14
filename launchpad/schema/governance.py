@@ -6,9 +6,8 @@ Kind: GovernanceConfig
 Fields
 ------
 org             Must match programme.yaml org.
-stack_profiles  Map of stack name → display label.
-                Starter set: meta-pm, python-backend, nextjs-frontend, terraform-iac.
-                Operator may add custom stacks — no kit-code changes required.
+stack_profiles  Map of stack name → display label (YAML SSOT — kit merges nothing).
+                Declare every stack you use; repos.stack must reference a key here.
 teams           List of GitHub team definitions.
   name          Team slug on GitHub.
   description   Short description (optional).
@@ -20,6 +19,7 @@ repos           Map of repo slug → RepoEntry.
   description   Optional.
 policy          Optional gitflow / branch-protection policy.
 project_board   Optional GitHub Project board setup.
+                Fields: enabled, name, number (int), url (https://github.com/orgs/.../projects/N).
 """
 
 from __future__ import annotations
@@ -33,13 +33,6 @@ from launchpad.schema.errors import SchemaError
 
 API_VERSION = "launchpad/v1"
 KIND = "GovernanceConfig"
-
-STARTER_STACKS: dict[str, str] = {
-    "meta-pm":          "Programme management & ADR meta repo",
-    "python-backend":   "Python / FastAPI microservice",
-    "nextjs-frontend":  "Next.js frontend or BFF",
-    "terraform-iac":    "Terraform infrastructure-as-code",
-}
 
 _VALID_PRIVACY = {"closed", "secret"}
 _VALID_VISIBILITY = {"private", "public", "internal"}
@@ -145,8 +138,7 @@ class GovernanceSchema:
         stacks_raw = raw.get("stack_profiles") or {}
         if not isinstance(stacks_raw, dict):
             raise SchemaError("'stack_profiles' must be a mapping", path=p)
-        merged = {**STARTER_STACKS, **{k: str(v) for k, v in stacks_raw.items()}}
-        self.stack_profiles = merged
+        self.stack_profiles = {k: str(v) for k, v in stacks_raw.items()}
 
         teams_raw = raw.get("teams") or []
         if not isinstance(teams_raw, list):
@@ -169,7 +161,20 @@ class GovernanceSchema:
             )
 
         self.policy = dict(raw.get("policy") or {})
-        self.project_board = dict(raw.get("project_board") or {})
+        pb_raw = raw.get("project_board") or {}
+        if pb_raw and not isinstance(pb_raw, dict):
+            raise SchemaError("'project_board' must be a mapping", path=p)
+        self.project_board = dict(pb_raw)
+        number_raw = self.project_board.get("number")
+        if number_raw is not None and str(number_raw).strip() != "":
+            try:
+                self.project_board["number"] = int(number_raw)
+            except (TypeError, ValueError) as exc:
+                raise SchemaError(
+                    "project_board.number must be an integer",
+                    path=p,
+                    hint="Example: number: 3",
+                ) from exc
 
     @property
     def team_names(self) -> list[str]:

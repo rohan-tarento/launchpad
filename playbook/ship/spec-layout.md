@@ -23,7 +23,7 @@ docs/specification/
 
 | Layer | Required files | Owner |
 |-------|----------------|-------|
-| **product/** | `00-service-profile.md`, `02-api-contract.md`, …; `INIT-*.md` per product initiative | PM drafts in spec handoff PR; dev maintains after merge |
+| **product/** | `00-service-profile.md`, `02-api-contract.md`, …; `INIT-*.md` per product initiative | **Dev** drafts via pinned Prayog workflow and maintains after merge |
 | **as-built/** | `implementation-status.md` (live vs deferred + verification table; optional `## Testing harness` for layout/overlap policy — **Option B**) | **Dev** — update in same PR as code/test changes |
 | **adr/** | Accepted ADRs before or with architecture changes | Dev + architecture review |
 

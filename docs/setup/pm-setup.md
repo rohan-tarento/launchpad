@@ -41,6 +41,7 @@ pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@<tag>
 clients:
   - id: example
     path: ~/Workspace/example/example-meta
+    workspace: ~/Workspace/example
     forge: github
 ```
 

@@ -41,8 +41,8 @@ jobs:
       - name: Install pytest
         run: pip install pytest
 
-      - name: Schema unit tests
-        run: pytest tests/test_schema.py -v
+      - name: Full unit test suite
+        run: pytest tests/ -v
 
       - name: Schema smoke — example config validates
         run: |

@@ -20,15 +20,10 @@ Skills CLI installs to **`.agents/skills/`** (project) or **`~/.agents/skills/`*
 
 ---
 
-## PM pipeline (meta — PRD PR)
+## PM bundle (meta)
 
-| Step | Skill | Source |
-|------|-------|--------|
-| Draft | `prd` | Community — [awesome-copilot](https://github.com/github/awesome-copilot) |
-| Audit | `validate-requirements` | prayog-skills |
-| Decide | `review-findings` | prayog-skills |
-| Apply | `update-documents` | prayog-skills |
-| Impact map | `prd-impact-map` | prayog-skills |
+Skill names are resolved from the pinned Prayog `meta-pm` profile. The order
+and transitions come from the pinned `workflow.yaml`, not this document.
 
 Install:
 
@@ -37,41 +32,24 @@ launchpad apply-harness --meta --apply
 launchpad status --meta
 ```
 
-Invoke: `/prd`, `/validate-requirements`, `/review-findings`, `/update-documents`, `/prd-impact-map`
+Community `/prd` and the Prayog PM bundle are materialized into configured
+runtime roots.
 
 ---
 
-## Dev pipeline (app repo — spec PR)
+## Development bundle (app repo)
 
-| Step | Skill |
-|------|-------|
-| Spec slice | `spec-draft` |
-| Feasibility | `initiative-feasibility` |
-| PE review (conditional) | `spec-technical-review` |
-| Plan + §9 | `spec-implementation-plan` |
-| Per wave | `pre-implement` → `loop-spec` → `ground-spec` → `verify` |
-
-```text
-Eng opens spec PR (chore/INIT-{COMPONENT}-{NUMBER}-spec-<repo>)
-  → /spec-draft → /initiative-feasibility
-  → /spec-technical-review (if NEW-ADR) — PE Approve on same spec PR
-  → /spec-implementation-plan — plan + §9 on spec branch
-  → merge spec PR
-  → gh issue create per wave from §9
-  → /pre-implement → /loop-spec → /ground-spec → feature PR
-```
+Skill names are resolved from the pinned Prayog development profile. Agents
+route by reading the latest handoff and pinned `workflow.yaml`.
 
 Harness: `launchpad apply-harness --repo <name> --apply` — see [harness-pins.md](harness-pins.md).
 
 ---
 
-## PRD refinement loop
+## Routing
 
-```text
-/prd → /validate-requirements → /review-findings → /update-documents → /validate-requirements (incremental)
-```
-
-Detail: [delivery-workflow.md](../ship/delivery-workflow.md) · [pm-workflow.md](../../docs/setup/pm-setup.md)
+See [delivery-workflow.md](../ship/delivery-workflow.md) for repository/role
+bindings and the pinned Prayog workflow for stage transitions.
 
 ---
 

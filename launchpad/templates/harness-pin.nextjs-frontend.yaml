@@ -1,4 +1,5 @@
 profile: frontend
+delivery_contract: {{DELIVERY_CONTRACT}}
 
 rules:
   repo: drivestream-lab/nextjs-bff-rules

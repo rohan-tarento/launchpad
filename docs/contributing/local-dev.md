@@ -21,9 +21,7 @@ Or use `./bin/launchpad` without pipx — it sets `PYTHONPATH` to the repo root.
 ## Run from source
 
 ```bash
-export LAUNCHPAD_TENANT_ROOT=~/Workspace/drivestream-lab/launchpad/examples/tenant-meta
-
-# Schema smoke
+# Use --config-dir against the example tenant (no clients.yaml required for smoke)
 launchpad init-client --meta \
   --config-dir examples/tenant-meta/config \
   --dry-run
@@ -34,6 +32,17 @@ launchpad status --meta \
 
 # Doctor (no PAT required for config checks)
 launchpad doctor
+```
+
+For a full client registry entry when testing against a real clone:
+
+```yaml
+# ~/.config/launchpad/clients.yaml
+clients:
+  - id: example
+    path: ~/Workspace/drivestream-lab/launchpad/examples/tenant-meta
+    workspace: ~/Workspace/drivestream-lab/launchpad/examples
+    forge: github
 ```
 
 ---

@@ -1,302 +1,159 @@
-# Delivery workflow
+# Delivery workflow integration
 
-How an initiative moves from PRD to shipped code. **Start here.**
+Launchpad supplies repository, role, GitHub, pinning, and factory bindings for
+the delivery workflow installed from Prayog.
 
-Skills define *what runs* ([prayog-skills](https://github.com/drivestream-lab/prayog-skills)). This document defines *where* — which repo, which PR, who merges, and when.
+## Workflow source of truth
 
-**Related:** [delivery-model.md](delivery-model.md) · [skills-matrix.md](../harness/skills-matrix.md) · [branching-policy.md](branching-policy.md) · [teams-and-rbac.md](teams-and-rbac.md)
-
----
-
-## Two repos, two PRs
+The normative stage graph is the pinned Prayog file:
 
 ```text
-META (<client>-meta)                    APP (example-api, …)
-────────────────────                    ────────────────────
-
-PRD PR  (PM opens, PM merges)           SPEC PR  (ENG opens, ENG merges)
-branch: chore/INIT-*-prd                branch: chore/INIT-*-spec-<repo>
-
-Skills 1–5                              Skills 7–10 (while PR open)
-  product Q&A HERE                        engineering Q&A HERE
-  impact map LGTM                         spec + feasibility + TDD + plan
-        │                                         │
-        │  parallel OK after impact LGTM          │
-        └─────────────────────────────────────────┘
-                          │
-              spec PR merge = ready to build
-                          │
-                          ▼
-                   board seed (gh issue create)
-                          │
-                          ▼
-                   skills 12–15 per wave
+.agents/skills/prayog-skills/workflow.yaml
 ```
 
-**PM never writes spec files. Dev never writes PRD files. PM never authors `work/INIT-*.yaml` for product INITs.**
+Its contract is recorded in:
 
----
+```text
+.harness-pin.yaml
+.agents/skills/prayog-skills/delivery-contract.yaml
+```
 
-## Mental model (RBAC)
+Do not copy skill transitions, checks, or output schemas into this playbook.
+When asked “what next?”, agents read the latest persistent handoff and the
+pinned workflow.
 
-| Layer | Repo | Who merges `develop` | Contents |
-|-------|------|----------------------|----------|
-| **Initiative** | `<client>-meta` | **`pm-team`** | PRD, validation reports, playbook updates |
-| **Repo slice** | each app repo | **Profile dev team** | Spec, feasibility, TDD, plan, `02-api-contract` |
-| **Implementation** | each app repo | **Profile dev team** | Code, verify, `as-built` |
+## Repository and role bindings
 
-PM has **Write on all repos** but **does not merge** app-repo `develop`. Devs have **Read on meta** (PRD only).
+| Surface | Owner | Purpose |
+|---------|-------|---------|
+| `<client>-meta` PRD PR | PM team | Product clarification, PRD, impact map, Gate 1 |
+| App spec PR | Profile developer team | Repo spec, feasibility, optional TDD, plan, Gate 2 |
+| App wave PR | Profile developer team | Code, tests, verify evidence, ground report |
+| Gate 1 | PE / tech lead | Engineering handoff readiness |
+| Gate 2 | PE / engineering gate | Coding readiness |
+| Wave checkpoint | Peer/tech lead | Grounded implementation evidence |
 
----
+PM owns product decisions and PRD artifacts. Developers own app specs and code.
+PE owns engineering decisions; PE does not choose product behavior.
 
-## Skill chain — execution order
+## GitHub surfaces
 
-### PM phase (`<client>-meta` workspace)
+### PRD PR
 
-| Step | Skill | Output | PR surface |
-|------|-------|--------|------------|
-| 1 | `/prd` | `prd/INIT-*.md` | PRD PR |
-| 2 | `/validate-requirements` | validation report | PRD PR |
-| 3 | `/review-findings` | resolution report | PRD PR |
-| 4 | `/update-documents` | refined PRD | PRD PR |
-| 5 | `/prd-impact-map` | impact map comment | PRD PR → **tech lead LGTM** |
+- Branch: `chore/INIT-{COMPONENT}-{NUMBER}-prd`
+- Target: `develop`
+- Initial impact map is generated locally before the PR exists.
+- PR creation/update requires explicit user authorization.
+- Product/domain clarification happens on this PR.
+- Decisions are committed into PRD/map artifacts before threads resolve.
+- Gate 1 labels: `impact-map-pending`, `impact-map-blocked`,
+  `impact-map-lgtm`; `impact-map-revised` or `impact-map-stale` closes the gate.
+- Labels are projections; matching review/head/artifact evidence remains
+  authoritative.
+- Pilot default: merge this PR before opening app spec PRs.
 
-### Dev phase (app repo workspace)
+### App spec PR
 
-| Step | Skill | Output | When |
-|------|-------|--------|------|
-| 6 | *(eng opens spec PR)* | branch `chore/INIT-*-spec-<repo>` | After impact map LGTM; may parallel open PRD PR |
-| 7 | `/spec-draft` | `product/INIT-*.md`, `02-api-contract.md` | Spec PR open |
-| 8 | `/initiative-feasibility` | feasibility report + 4-lane triage | Spec PR open |
-| 9 | `/spec-technical-review` | TDD + draft ADRs — **conditional** (NEW-ADR) | Spec PR open; PE Approve on **same spec PR** |
-| 10 | `/spec-implementation-plan` | plan + §9 WorkManifest YAML | Spec PR open; **before spec merge** |
-| 11 | *(board seed)* | `gh issue create` per wave | **After spec PR merge only** |
+- Branch: `chore/INIT-{COMPONENT}-{NUMBER}-spec-<repo>`
+- Target: `develop`
+- Type: **Draft PR** for the entire spec lifecycle
+- Contains no product domain code (docs/specification only; light verify stubs optional)
+- Engineering clarification happens on this PR
+- Product questions link back to a PRD amendment surface
+- Initial Gate 2 label: **`spec-pending`** (provision with `launchpad apply-gates --repo <name> --apply`)
+- PE sets **`spec-lgtm`** only when spec + feasibility + TDD + Accepted ADRs +
+  implementation plan §9 are on the current head
+- PE also submits GitHub **Approve** with attestation (initiative, head SHA,
+  digests, artifact paths) — never infer approval from the label alone
+- Mark **Ready for review** before merge (Draft PRs cannot merge while Draft)
+- New commits after `spec-lgtm` → add `spec-revised`, remove `spec-lgtm`
+- Merge means the repo slice is ready to build; then board-seed from plan §9
 
-### Wave loop (per wave W0 → Wn)
+#### Gate 2 label transitions (PE)
 
-| Step | Skill | Output |
-|------|-------|--------|
-| 12 | `/pre-implement` | pre-flight checklist |
-| 13 | `/loop-spec` | implementation until green |
-| 14 | `/ground-spec` | ground report + §Contracts produced |
-| 15 | *(human gate)* | tech lead approves wave PR → `as-built` = `human_approved` |
+| Action | Remove | Add |
+|--------|--------|-----|
+| Draft opened / new revision | `spec-lgtm`, `spec-blocked` | `spec-pending` |
+| Request changes | `spec-pending`, `spec-lgtm` | `spec-blocked` |
+| Full package approved | `spec-pending`, `spec-blocked`, `spec-revised`, `spec-stale` | `spec-lgtm` |
 
----
+#### Approve attestation (spec package)
+
+```text
+Spec package approved
+initiative: INIT-{id}
+spec_pr_head_sha: {SHA}
+meta_pr_head_sha: {SHA}
+impact_map_revision: {N}
+prd_digest: sha256:{hex}
+scope_digest: sha256:{hex}
+plan_digest: sha256:{hex}
+artifacts:
+  - docs/specification/product/INIT-{id}.md
+  - docs/specification/reports/Initiative-Feasibility-Report-{INIT-id}.md
+  - docs/specification/reports/Technical-Review-{INIT-id}.md
+  - docs/specification/reports/Implementation-Plan-{INIT-id}.md
+```
+
+### Wave PR
+
+- Branch: `feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug}`
+- Target: `develop`
+- One issue maps to one wave PR.
+- Applicable live verification runs before grounding.
+- Ground Report is committed before human approval.
+
+## Board seed binding
+
+Board seeding uses **`/board-seed`** (development lane, **stack-agnostic**) after
+spec PR merge. Preconditions:
+
+1. Merged spec PR head had **`spec-lgtm`**
+2. `Implementation-Plan-{initiative}.md` and valid §9 WorkManifest on `develop`
+3. Programme board resolved from read-only meta governance (`launchpad board-bind`)
+4. Explicit developer authorization before `gh issue create`
+
+The skill reads plan §9 and governance `project_board`, creates **EPIC + wave
+sub-issues** on the org Project (`--parent`, `--project`), and groups under the
+initiative label. If `gh` is unavailable, it prints exact commands.
+`/pre-implement` remains blocked until the epic tree is complete.
+
+Requires `gh auth refresh -s project` and **Project WRITER** on the programme board.
+
+Optional: enable `github/workflows/board-seed-gate.yml` from the launchpad
+template to fail CI when a spec PR merges without `spec-lgtm` or without a
+plan file on the merge commit.
 
 ## Q&A routing
 
-| Lane | Ask on | Answered by | Blocks |
-|------|--------|-------------|--------|
-| **Product** — scope, UX, priority | **Meta PRD PR** | PM | Spec merge if blocking |
-| **Engineering / PE** — ADR, architecture, test policy | **App spec PR** | PE / senior eng | Plan skill / spec merge |
-| **Domain** — business source-of-truth | Meta PRD PR or issue | Domain SME | Spec merge if blocking |
-| **Impact map** | Meta PRD PR comment | Tech lead | Eng opening spec PR |
-| **Auto-fix** — naming drift | Spec branch commit | Dev / agent | Nothing |
-
-Do **not** route engineering decisions to PM. Do **not** route product scope questions only on the spec PR — use meta PRD PR.
-
----
-
-## Merge gates
-
-| Gate | Owner | Done when |
-|------|-------|-----------|
-| **Impact map** | Tech lead | LGTM on meta PRD PR |
-| **PRD PR merge** | PM team | Skills 1–5 clean; blocking product Q&A resolved |
-| **Spec PR merge** | Eng | Spec + feasibility + TDD (if needed) + plan on branch; PE Approve if TDD present; dev lead Approve |
-| **Post-merge** | Eng | Board seed from plan §9 → wave coding |
-
-Spec PR merge means: **requirements clear, engineering ready to build.** Feasibility and planning complete **while spec PR is open** — not after merge.
-
----
-
-## Work manifest
-
-| Question | Answer |
-|----------|--------|
-| Who **writes** wave manifest content? | **Dev** — `/spec-implementation-plan` §9 on spec branch |
-| Who **merges** `work/INIT-*.yaml` into meta? | **PM** — only if dev archives §9 manifest in meta for traceability |
-| Is manifest required **before spec merge**? | **No** |
-| When is board seeded? | **After spec PR merge** — `gh issue create` per wave from §9 |
-
-See [delivery-model.md](delivery-model.md).
-
----
-
-## PR types
-
-### Meta PR — PRD (PM merges)
-
-| Item | Detail |
-|------|--------|
-| **Branch** | `chore/INIT-*-prd` or `chore/INIT-*-meta` from `develop` |
-| **Target** | `<client>-meta` → `develop` |
-| **Files** | `prd/INIT-*.md`, validation reports, playbook updates |
-| **Must not include** | `work/INIT-*.yaml` |
-| **Merge** | **`pm-team` only** |
-
-### App PR — spec (eng merges)
-
-| Item | Detail |
-|------|--------|
-| **Branch** | `chore/INIT-*-spec-<repo>` from `develop` |
-| **Target** | app repo → `develop` |
-| **Eng opens with** | Link to meta PRD PR; scope for this repo from impact map |
-| **Eng adds** | spec slice, feasibility report, TDD (if needed), plan — **no product code** |
-| **Label** | `spec` |
-| **Merge** | **Profile dev team only** |
-
-### Meta PR — work manifest (optional, post-spec-merge)
-
-Optional: copy §9 YAML → `work/INIT-*.yaml` in meta for traceability (PM may merge the archive file). Board seeding is always `gh issue create` per wave — v0.5.10 has no `seed-work` CLI.
-
-### Implementation PR (dev merges)
-
-| Item | Detail |
-|------|--------|
-| **Branch** | `feature/INIT-*-w{N}-<slug>` from `develop` |
-| **Files** | Code + spec status + `as-built` |
-| **Merge** | Profile dev team |
-
----
-
-## Checklists
-
-### PM — before / during PRD PR
-
-- [ ] PRD validation clean ([skills-matrix](../harness/skills-matrix.md) PRD loop)
-- [ ] `/prd-impact-map` run; tech lead explicit LGTM on PRD PR
-- [ ] **PRD PR only** — no `work/INIT-*.yaml`
-- [ ] Answer blocking product questions from eng on **this PR**
-
-### Eng — open spec PR (may parallel PRD PR)
-
-- [ ] Impact map tech-lead LGTM received
-- [ ] Branch `chore/INIT-{COMPONENT}-{NUMBER}-spec-<repo>` from `develop`
-- [ ] PR links meta PRD PR URL
-- [ ] PR title: `[INIT-…] Spec — <repo>`
-
-### Eng — while spec PR is open
-
-- [ ] Read PRD from meta PR branch or merged develop
-- [ ] Run `/spec-draft` → review/edit spec slice
-- [ ] Run `/initiative-feasibility` — report on spec branch
-- [ ] Post product questions on **meta PRD PR** (not spec PR)
-- [ ] If NEW-ADR: run `/spec-technical-review` → commit TDD → PE Approve on **spec PR**
-- [ ] Run `/spec-implementation-plan` → commit plan + §9 on spec branch
-- [ ] Wave parity: spec `delivery_model` and wave IDs match PRD §4.0 ([delivery-model](delivery-model.md))
-
-### Eng — spec PR merge gate
-
-- [ ] All blocking PM questions answered on meta PRD PR
-- [ ] All blocking domain clarifications recorded
-- [ ] Feasibility re-run clean if spec/PRD changed materially
-- [ ] PE Approve on spec PR when TDD present
-- [ ] Dev lead Approve → merge spec PR
-
-### Eng — after spec PR merge
-
-- [ ] Seed board: `gh issue create` per wave from plan §9
-
-### Eng — per wave
-
-- [ ] Branch `feature/INIT-{COMPONENT}-{NUMBER}-w{N}-{slug}` from `develop`
-- [ ] `/pre-implement` → `/loop-spec` until green
-- [ ] `/ground-spec` — ground report last commit on wave branch
-- [ ] Open wave PR → `@dev-leads` approves → merge → `as-built` = `human_approved`
-
-### PM — PRD PR merge
-
-- [ ] `/validate-requirements` clean if specs changed in meta workspace
-- [ ] Merge PRD PR → `<client>-meta/develop`
-- [ ] PM does **not** merge app spec PRs
-
----
-
-## Sign-off workflow (GitHub-first)
-
-Every skill gate uses explicit GitHub Approve — not approval by silence.
-
-| Artifact | Branch | Required reviewer | Deadline |
-|----------|--------|-------------------|----------|
-| Spec + feasibility + TDD + plan | `chore/INIT-*-spec-<repo>` | `@pe-team` (when TDD present) · `@dev-leads` | 5 / 3 business days |
-| Wave W{N} + ground report | `feature/INIT-*-w{N}-{slug}` | `@dev-leads` | 2 business days |
-
-CODEOWNERS: `launchpad/templates/CODEOWNERS.backend` (or profile variant). Branch protection: **Require review from Code Owners** on `develop`.
-
----
-
-## Ship criteria
-
-| Gate | Done when |
-|------|-----------|
-| PRD | Validation clean; impact map LGTM; product Q&A resolved |
-| Spec pipeline | Spec PR merged (spec + feasibility + TDD + plan on `develop`) |
-| Board | Issues created per wave from §9 |
-| Each wave | Wave PR merged; `as-built` W{N} = `human_approved` |
-| INIT | All waves approved; live verify passes; PM closes epic |
-
----
-
-## Automation phases
-
-Incremental automation via `anthropics/claude-code-action` (BYOK). Start manual; enable phases as output quality is proven.
-
-### Day 1 — fully manual
-
-All steps run by a human in Cursor.
-
-### Phase A — read-only (safe first)
-
-| Step | Trigger | Action |
-|------|---------|--------|
-| `/prd-impact-map` | meta PRD PR opened | Posts impact map comment |
-| `/initiative-feasibility` | `@claude` on spec PR | Posts feasibility + triage |
-| `/pre-implement` | Wave issue labeled `in-progress` | Posts checklist comment |
-
-### Phase B — doc commits
-
-| Step | Trigger | Action |
-|------|---------|--------|
-| `/spec-draft` | Push to `chore/INIT-*-spec-*` | Writes spec slice |
-| `/spec-implementation-plan` | PE Approve on spec PR | Writes plan + §9 |
-| Board seed | Spec PR merged | `gh issue create` per wave |
-| `/ground-spec` | `@claude` on wave PR | Ground report commit |
-
-### Phase C — code automation
-
-| Step | Trigger | Action |
-|------|---------|--------|
-| `/loop-spec` | Pre-implement + `go-ahead` label | Implement loop; opens wave PR |
-
-### Always human
-
-PRD authorship, PM findings decisions, PM product answers, domain SME, PE Approve, tech lead wave review, INIT closure.
-
----
-
-## Truth hierarchy
-
-| Document | Owner |
-|----------|-------|
-| `<client>-meta/prd/INIT-*.md` | PM |
-| `<client>-meta/work/INIT-*.yaml` | Dev generates §9; PM merges file only for bulk path |
-| `docs/specification/product/` | Dev |
-| `docs/specification/as-built/` | Dev only |
-
----
-
-## GitHub setup
-
-```bash
-launchpad init-client --meta --apply
-launchpad init-client --repo example-api --apply
-```
-
-Config: [`examples/tenant-meta/config/governance-example-org.yaml`](../../examples/tenant-meta/config/governance-example-org.yaml) (resolved via `--client <id>` → `clients.yaml`)
-
----
-
-## Tenant customisation
-
-Kit default. For org deltas, add `delivery-workflow-{org}.md` under tenant `playbook/` — document differences only.
+| Lane | GitHub surface | Owner |
+|------|----------------|-------|
+| Product scope, UX, priority | PRD PR | PM |
+| Engineering, ADR, interfaces, test policy | Spec PR | PE / senior engineer |
+| Domain source of truth | PRD PR or linked issue | Domain SME |
+| Auto-fixable naming/reference drift | Current artifact branch | Agent/developer |
+
+## Launchpad responsibility
+
+Launchpad:
+
+- creates repositories/teams/project bindings,
+- applies configured GitHub protection,
+- scaffolds repositories,
+- pins constitutions and Prayog,
+- materializes runtime skill symlinks,
+- provisions contract-declared labels and validates review-role bindings with
+  `apply-gates`,
+- writes the initial `AGENTS.md` when absent,
+- verifies refs, contract, workflow, and runtime paths.
+
+Launchpad does not redefine Prayog skill behavior or automatically cross human
+and external-write gates.
+
+## Related
+
+- [Delivery model](delivery-model.md)
+- [Branching policy](branching-policy.md)
+- [Teams and RBAC](teams-and-rbac.md)
+- [Harness pins](../harness/harness-pins.md)
+- [Skills matrix](../harness/skills-matrix.md)

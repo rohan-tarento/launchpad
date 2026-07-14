@@ -9,13 +9,14 @@ kind: Programme
 # programme_slug Lowercase machine id — must match ~/.config/launchpad/clients.yaml id.
 # org            GitHub organisation slug — exact spelling.
 # meta_repo      Control-plane repo name (created by init-client --meta).
-# workspace      Parent directory where repo clones live (supports ~).
 # forge.provider "github" only in v0.5.10; "gitlab" is planned (v0.6).
+#
+# Clone layout (workspace) is machine-local — set path + workspace in
+# ~/.config/launchpad/clients.yaml, never in this shared file.
 
 programme: EXAMPLE
 programme_slug: example
 org: example-org
 meta_repo: example-meta
-workspace: ~/Workspace/example
 forge:
   provider: github

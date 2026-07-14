@@ -51,6 +51,7 @@ pipx install "launchpad @ git+https://github.com/drivestream-lab/launchpad@<tag>
 clients:
   - id: example
     path: ~/Workspace/example/example-meta
+    workspace: ~/Workspace/example
     forge: github
 ```
 
@@ -89,6 +90,14 @@ make setup && make check && make test
 
 Open **`example-api`** in Cursor. Read `AGENTS.md` for process links and skill names.
 
+After a spec PR merges to `develop`:
+
+```bash
+launchpad --client example board-bind          # programme board from meta governance
+/board-seed INIT-<id>                          # EPIC + waves on board (any app stack)
+gh auth refresh -s project                     # once per machine — Project scope
+```
+
 ---
 
 ## PM vs engineer
@@ -112,7 +121,7 @@ Open **`example-api`** in Cursor. Read `AGENTS.md` for process links and skill n
 | Implement feature | Cursor + dev skills in app repo |
 | Open PR | `gh` / GitHub |
 | Read PRD | GitHub `example-meta/prd/` or local meta clone |
-| Board | GitHub project / issue links |
+| Board | `launchpad board-bind` → `/board-seed` after spec merge |
 | Process | `AGENTS.md` → [playbook](../../playbook/README.md) |
 
 Do **not** run `apply-harness --meta` or commit to meta unless explicitly asked.

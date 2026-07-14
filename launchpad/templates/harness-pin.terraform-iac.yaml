@@ -3,6 +3,7 @@
 # Docs: https://github.com/drivestream-lab/launchpad/blob/main/playbook/harness/harness-pins.md
 
 profile: terraform-iac
+delivery_contract: {{DELIVERY_CONTRACT}}
 
 rules:
   repo: drivestream-lab/terraform-infra-rules

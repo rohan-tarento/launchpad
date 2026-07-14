@@ -3,18 +3,20 @@
 **YAML-driven forge factory and harness engineering kit for multi-tenant engineering programmes.**
 
 Launchpad is not a "create GitHub repos" script.  It is a repeatable kit for running product delivery
-where **specs are truth**, **agents have a pinned constitution**, and **factory automation enforces
-the process** — gitflow, project board, constitution submodules, agent skills.
+where **specs are truth**, **agents have a pinned constitution**, and **factory automation enables
+the configured environment** — gitflow, project board, constitution submodules,
+and agent skills. The pinned Prayog contract defines delivery-stage semantics.
 
 ---
 
-## Five commands.  No arguments to remember.
+## Core commands
 
 ```
 launchpad onboard interview          # Day 0  — 4 questions → 5 YAML files + registry
 launchpad init-client --meta         # Day 1  — meta repo on GitHub (teams, gitflow, board)
 launchpad apply-scaffold --meta      # Day 1  — scaffold from YAML (optional)
 launchpad apply-harness  --meta      # Day 1  — pin constitution + seed skills
+launchpad apply-gates    --meta      # Day 1  — provision delivery labels + review roles
 launchpad status  --meta      # Any    — verify harness is correct
 ```
 
@@ -28,7 +30,7 @@ YAML is the single source of truth — no CLI arguments override config.
 
 | File | Purpose |
 |---|---|
-| `config/programme.yaml` | Identity: name, org, workspace, forge provider |
+| `config/programme.yaml` | Identity: name, org, meta_repo, forge provider |
 | `config/governance-<org>.yaml` | GitHub: teams, repos, gitflow policy, project board |
 | `config/harness-<org>.yaml` | Constitution (rules submodule) + agent skills per stack |
 | `config/scaffold-<org>.yaml` | Cookiecutter template sources per repo |
@@ -68,12 +70,12 @@ launchpad onboard interview
 Writes:
 ```
 ~/Workspace/kola/kola-meta/config/
-  programme.yaml
+  programme.yaml          ← shared (no workspace path)
   governance-apex-common.yaml
   harness-apex-common.yaml
   scaffold-apex-common.yaml
   service-catalog-apex-common.yaml
-~/.config/launchpad/clients.yaml     ← id: kola registered
+~/.config/launchpad/clients.yaml     ← id: kola, path + workspace (local)
 ~/.config/launchpad/env.d/kola.env  ← PAT stub
 ```
 
@@ -129,21 +131,18 @@ launchpad status --repo kola-platform-core
 
 ## Stacks
 
-Starter stacks built in (no configuration needed):
+Stacks are declared in `governance-<org>.yaml` → `stack_profiles` (YAML SSOT).
+The kit does not merge a built-in list. Each stack needs a matching harness profile;
+scaffold is optional per repo in `scaffold-<org>.yaml`.
 
-| Stack | Use |
-|---|---|
-| `meta-pm` | Programme management meta repo |
-| `python-backend` | Python / FastAPI microservice |
-| `nextjs-frontend` | Next.js frontend or BFF |
-| `terraform-iac` | Terraform infrastructure-as-code |
-
-Add custom stacks in `governance-<org>.yaml` — no kit-code changes required.  
-See [docs/stacks.md](docs/stacks.md).
+See [docs/stacks.md](docs/stacks.md) for example stack names and wiring.
 
 ---
 
 ## Scaffold is fully YAML-driven
+
+Scaffolding is **optional per repo**. No block in `scaffold-<org>.yaml`, or
+`enabled: false` → launchpad does not scaffold (brownfield path).
 
 The kit does not own any template keys.  All `context:` fields are passed
 free-form to cookiecutter.  Template owners evolve their `cookiecutter.json`

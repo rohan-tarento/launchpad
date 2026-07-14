@@ -12,12 +12,13 @@ kind: GovernanceConfig
 
 org: example-org
 
-# stack_profiles: the starter set is always available — list here only what you add.
-# Starter stacks: meta-pm, python-backend, nextjs-frontend, terraform-iac
+# stack_profiles: declare every stack you use — YAML is SSOT (kit merges nothing).
 stack_profiles:
-  # Add custom stacks here without any kit-code change:
-  # go-backend: Go microservice
-  # java-spring: Java Spring Boot
+  meta-pm: Programme management & ADR meta repo
+  # Add stacks as you onboard repos; each needs a matching harness profile:
+  # python-backend: Python / FastAPI microservice
+  # nextjs-frontend: Next.js frontend or BFF
+  # terraform-iac: Terraform infrastructure-as-code
 
 teams:
   - name: platform-devs
@@ -36,7 +37,7 @@ teams:
 repos:
   # ─── Day 1: meta repo (required) ─────────────────────────────────────────
   example-meta:
-    stack: meta-pm                  # must be a key in stack_profiles (starter or custom)
+    stack: meta-pm                  # must be a key in stack_profiles
     teams: [platform-devs, pm-team] # must reference entries in teams[] above
     visibility: private
     description: Control-plane for example-org

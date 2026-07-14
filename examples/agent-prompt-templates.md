@@ -101,7 +101,8 @@ Also align: (list spec paths on open PR branches if any)
 
 ## 5 — Impact map (before eng opens spec PRs)
 
-**When:** PRD validated; before engineering opens spec PRs in app repos.
+**When:** PRD validated and initiative identity collisions are resolved; before
+the PRD PR and before app spec PRs.
 
 ```text
 /prd-impact-map
@@ -110,8 +111,10 @@ Initiative: INIT-EXAMPLE-002
 PRD: prd/INIT-EXAMPLE-002.md
 Service catalog: config/service-catalog.yaml
 
-Post impact map as comment on meta PRD PR.
-Tech lead must LGTM before eng opens spec PRs.
+Generate prd/reports/Impact-Map-INIT-EXAMPLE-002.md locally.
+Present the PR-readiness handoff and stop without GitHub side effects.
+After I explicitly authorize PR creation, use gh when configured; otherwise
+provide exact commands. Initialize impact-map-pending for PE Gate 1.
 ```
 
 ---

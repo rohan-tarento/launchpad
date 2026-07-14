@@ -1,10 +1,12 @@
-"""CLI entry point for launchpad (v0.5.15).
+"""CLI entry point for launchpad.
 
 Public commands:
   onboard interview   4-question setup → writes 5 config YAMLs locally
   init-client         Day-1 / Day-N GitHub setup (teams, repos, gitflow, board)
   apply-scaffold      Cookiecutter scaffold from scaffold-<org>.yaml
   apply-harness       Pin constitution + seed agent skills from harness-<org>.yaml
+  apply-gates         Provision delivery labels + validate review-role bindings
+  board-bind          Resolve programme engineering board from governance config
   apply-forge-templates  Seed issue forms + PR template from kit + governance
   status              Readiness checklist + kit version + constitution drift check
   doctor              Preflight: token, config, version checks
@@ -142,6 +144,28 @@ def cmd_apply_forge_templates(args: argparse.Namespace) -> int:
     )
 
 
+def cmd_apply_gates(args: argparse.Namespace) -> int:
+    from launchpad.commands.apply_gates import run_apply_gates
+
+    return run_apply_gates(
+        meta=args.meta,
+        repo_name=args.repo or "",
+        apply=getattr(args, "apply", False),
+        config_dir=_config_dir(args),
+    )
+
+
+def cmd_board_bind(args: argparse.Namespace) -> int:
+    from launchpad.commands.board_bind import run_board_bind
+
+    return run_board_bind(
+        meta=args.meta,
+        repo_name=args.repo or "",
+        apply=getattr(args, "apply", False),
+        config_dir=_config_dir(args),
+    )
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     from launchpad.commands.status import run_status
 
@@ -159,7 +183,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="launchpad",
         description=(
-            "Launchpad factory automation (v0.5.15 · GitHub only).\n"
+            f"Launchpad factory automation (v{__version__} · GitHub only).\n"
             "Pass --client <id> to select your programme (see: launchpad clients).\n"
             "All commands are dry-run by default — pass --apply to execute."
         ),
@@ -236,6 +260,35 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--force", action="store_true", help="Overwrite existing forge template files")
     p.add_argument("--config-dir", default="", help="Override config/ dir (default: derived from clients.yaml)")
     p.set_defaults(func=cmd_apply_forge_templates)
+
+    # ── apply-gates ──────────────────────────────────────────────────────────
+    p = sub.add_parser(
+        "apply-gates",
+        help="Provision delivery labels and validate review-role bindings",
+    )
+    _add_scope_flags(p)
+    _add_apply_flags(p)
+    p.add_argument(
+        "--config-dir",
+        default="",
+        help="Override config/ dir (default: derived from clients.yaml)",
+    )
+    p.set_defaults(func=cmd_apply_gates)
+
+    # ── board-bind ────────────────────────────────────────────────────────────
+    p = sub.add_parser(
+        "board-bind",
+        help="Resolve programme engineering board; optionally link repo(s) to the project",
+    )
+    p.add_argument("--meta", action="store_true", help="link meta repo only (with --apply)")
+    p.add_argument("--repo", default="", metavar="NAME", help="link one app repo (with --apply)")
+    _add_apply_flags(p)
+    p.add_argument(
+        "--config-dir",
+        default="",
+        help="Override config/ dir (default: derived from clients.yaml)",
+    )
+    p.set_defaults(func=cmd_board_bind)
 
     # ── status ────────────────────────────────────────────────────────────────
     p = sub.add_parser(

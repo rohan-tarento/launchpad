@@ -15,30 +15,26 @@ Re-sync after clone: `launchpad apply-harness --meta --apply`
 
 ---
 
-## Process
+## Delivery bootstrap
 
-Playbook SSOT: **launchpad** `playbook/` (from tenant meta or pip install).
+- Contract: **{{DELIVERY_CONTRACT}}**
+- Workflow: `.agents/skills/prayog-skills/workflow.yaml`
+- Pin record: `.harness-pin.yaml`
+- Skill hub: `.harness/skills/`
 
-| Topic | Where |
-|-------|--------|
-| PM workflow | launchpad `docs/setup/pm-setup.md` |
-| Delivery workflow | launchpad `playbook/ship/delivery-workflow.md` |
-| Skills matrix | launchpad `playbook/harness/skills-matrix.md` |
-| Harness pins | launchpad `playbook/harness/harness-pins.md` |
-| Program board | Your forge engineering board |
+When asked “what next?”, read the latest persistent handoff and the pinned
+workflow, then explain the current stage, blockers, and next candidate. Do not
+perform file or GitHub mutations unless the user explicitly authorizes them.
 
 ---
 
-## Product pipeline
+## Repository truth
 
-| Phase | Skill | Output |
-|-------|--------|--------|
-| Draft | `/prd` | `prd/INIT-<id>.md` |
-| Audit | `/validate-requirements` | `prd/reports/Validation-Report-*.md` |
-| Decide | `/review-findings` | `prd/reports/Resolution-*.md` |
-| Apply | `/update-documents` | PRD + cross-repo spec drafts |
-| Impact | `/prd-impact-map` | Impact map PR comment — affected repos, merge order |
+- PRDs: `prd/`
+- Reports and impact maps: `prd/reports/`
+- Service ownership: `config/service-catalog*.yaml`
+- Programme/harness configuration: `config/`
 
-Engineering opens **spec PRs** in app repos after impact map LGTM. Devs run dev harness skills in app repos — not here.
-
-See launchpad `playbook/ship/delivery-workflow.md`.
+Product decisions must be committed into PRD artifacts. Engineering decisions
+are routed to engineering. Check existing branches and PRs before proposing a
+new initiative PR.
