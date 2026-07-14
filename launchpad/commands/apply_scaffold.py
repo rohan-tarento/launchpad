@@ -11,13 +11,71 @@ Usage:
 
 from __future__ import annotations
 
+import io
 import os
 import sys
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
+from launchpad.clients import resolve_programme_workspace
 from launchpad.schema import SchemaError
 from launchpad.schema.scaffold import ScaffoldEntry, ScaffoldSchema, load_scaffold
 from launchpad.ui import print_next_box
+
+
+class ScaffoldTemplateError(Exception):
+    """Cookiecutter template or hook failed — operator-facing message only."""
+
+    def __init__(self, message: str, *, hints: list[str] | None = None) -> None:
+        super().__init__(message)
+        self.hints = hints or []
+
+
+def _parse_cookiecutter_output(captured: str) -> list[str]:
+    """Extract hook/template messages; drop cookiecutter tracebacks."""
+    messages: list[str] = []
+    for raw in captured.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if line.startswith("Traceback (most recent call last):"):
+            break
+        if line.startswith("File ") and "site-packages" in line:
+            break
+        if line.startswith("ERROR:"):
+            messages.append(line[len("ERROR:") :].strip())
+        elif "Stopping generation because" in line:
+            messages.append(line)
+    return messages
+
+
+def _print_scaffold_template_error(
+    exc: ScaffoldTemplateError,
+    *,
+    sca_path: Path,
+    label: str,
+    meta: bool,
+    repo_name: str,
+) -> None:
+    print(f"ERROR: scaffold template failed — {exc}", file=sys.stderr)
+    for hint in exc.hints:
+        print(f"  {hint}", file=sys.stderr)
+    client_id = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
+    client_prefix = f"--client {client_id} " if client_id else ""
+    target_flag = "--meta" if meta else f"--repo {repo_name}"
+    block = sca_path.name if label == "meta" else f"{sca_path.name} → repos.{label}.context"
+    print(
+        f"\n  Fix template context in config/{block}, then re-run:",
+        file=sys.stderr,
+    )
+    print(
+        f"    launchpad {client_prefix}apply-scaffold {target_flag} --apply --force",
+        file=sys.stderr,
+    )
+    print(
+        "  Validation rules live in the cookiecutter template (not launchpad).",
+        file=sys.stderr,
+    )
 
 
 def _find_config(config_dir: Path, pattern: str) -> Path | None:
@@ -89,17 +147,36 @@ def _run_cookiecutter(
     """Invoke cookiecutter against the template."""
     try:
         from cookiecutter.main import cookiecutter
+        from cookiecutter.exceptions import FailedHookException
     except ImportError:
         raise RuntimeError("cookiecutter is not installed.  Run: pip install cookiecutter")
 
-    cookiecutter(
-        template_url,
-        checkout=ref,
-        no_input=True,
-        extra_context=context,
-        output_dir=str(output_dir),
-        overwrite_if_exists=force,
-    )
+    stderr_capture = io.StringIO()
+    stdout_capture = io.StringIO()
+    try:
+        with redirect_stderr(stderr_capture), redirect_stdout(stdout_capture):
+            cookiecutter(
+                template_url,
+                checkout=ref,
+                no_input=True,
+                extra_context=context,
+                output_dir=str(output_dir),
+                overwrite_if_exists=force,
+            )
+    except FailedHookException as exc:
+        captured = stderr_capture.getvalue() + stdout_capture.getvalue()
+        messages = _parse_cookiecutter_output(captured)
+        primary = messages[0] if messages else str(exc).strip() or "template hook failed"
+        extra = messages[1:] if len(messages) > 1 else []
+        raise ScaffoldTemplateError(primary, hints=extra) from None
+    except Exception as exc:
+        captured = stderr_capture.getvalue() + stdout_capture.getvalue()
+        messages = _parse_cookiecutter_output(captured)
+        if messages:
+            raise ScaffoldTemplateError(messages[0], hints=messages[1:]) from None
+        if not force and "already exists" in str(exc).lower():
+            raise
+        raise ScaffoldTemplateError(str(exc).strip() or "cookiecutter failed") from None
 
 
 def run_apply_scaffold(
@@ -137,13 +214,15 @@ def run_apply_scaffold(
         if prog_path.is_file():
             from launchpad.schema.programme import load_programme
             prog = load_programme(prog_path)
-            workspace = prog.workspace
-        else:
-            workspace = Path(".").resolve().parent
-    except SchemaError:
-        workspace = Path(".").resolve().parent
+    except SchemaError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
-    ws = Path(workspace).expanduser().resolve()
+    try:
+        ws = resolve_programme_workspace(config_dir=cdir)
+    except Exception as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
     if meta:
         entry = sca.meta
@@ -192,6 +271,15 @@ def run_apply_scaffold(
 
     try:
         _run_cookiecutter(template_url, ref, context, output_dir=output_dir, force=force)
+    except ScaffoldTemplateError as exc:
+        _print_scaffold_template_error(
+            exc,
+            sca_path=sca_path,
+            label=label,
+            meta=meta,
+            repo_name=repo_name,
+        )
+        return 1
     except Exception as exc:
         if not force and "already exists" in str(exc).lower():
             _print_exists_hint(target=target_dir, meta=meta, repo_name=repo_name)

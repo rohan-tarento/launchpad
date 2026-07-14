@@ -1,6 +1,9 @@
 # Playbook
 
-**How we ship** — process SSOT for delivery, harness, GitHub, and wiki. Factory install and tenant onboarding live in [docs/](../docs/README.md).
+**How the factory enables shipping** — repository, harness, GitHub, and wiki
+bindings. Delivery-stage semantics come from the pinned Prayog
+`workflow.yaml`. Factory install and tenant onboarding live in
+[docs/](../docs/README.md).
 
 Pick install tag from [CHANGELOG.md](../CHANGELOG.md).
 

@@ -8,6 +8,7 @@
 #
 # To use this file as a reference when hand-authoring:
 #   Copy to <workspace>/kola-meta/config/programme.yaml and adjust.
+#   Set path + workspace in ~/.config/launchpad/clients.yaml (machine-local).
 
 apiVersion: launchpad/v1
 kind: Programme
@@ -15,6 +16,5 @@ programme: KOLA
 programme_slug: kola
 org: apex-common
 meta_repo: kola-meta
-workspace: ~/Workspace/kola
 forge:
   provider: github

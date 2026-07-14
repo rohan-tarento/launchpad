@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "launchpad"
-version = "0.5.17"
+version = "0.5.18"
 description = "Repeatable engineering kit — forge factory, playbook, tenant scaffolding"
 readme = "README.md"
 license = { text = "MIT" }
@@ -14,6 +14,7 @@ dependencies = [
   "httpx>=0.27.0",
   "PyYAML>=6.0.1",
   "python-dotenv>=1.0.0",
+  "packaging>=24.0",
 ]
 
 [project.scripts]

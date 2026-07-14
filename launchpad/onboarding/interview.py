@@ -4,11 +4,12 @@ Flow:
   1. Ask: programme name (human, e.g. "KOLA")
   2. Derive programme_slug, show it, confirm or override
   3. Ask: GitHub org (exact spelling, e.g. "apex-common")
-  4. Ask: workspace path (where meta repo will be cloned)
+  4. Ask: workspace path (where meta repo will be cloned) — local only
 
 After the 4 questions:
   • Creates <workspace>/<slug>-meta/config/ with all 5 YAML files
-  • Patches ~/.config/launchpad/clients.yaml
+    (programme.yaml has no workspace field)
+  • Patches ~/.config/launchpad/clients.yaml with path + workspace
   • Writes env.d/<slug>.env stub with GitHub PAT instructions
   • Prints a single NEXT: step
 """
@@ -24,7 +25,6 @@ import yaml
 
 from launchpad.clients import CLIENTS_FILE, CONFIG_DIR, ENV_D_DIR
 from launchpad.onboarding.errors import OnboardingError
-from launchpad.schema.governance import STARTER_STACKS
 from launchpad.ui import format_next_box, shorten_path
 
 _SLUG_RE = re.compile(r"^[a-z][a-z0-9-]{0,62}$")
@@ -82,7 +82,7 @@ def _derive_slug(name: str) -> str:
 # ─── 5-YAML renderer ────────────────────────────────────────────────────────
 
 
-def _render_programme(slug: str, programme: str, org: str, workspace: str, meta_repo: str) -> str:
+def _render_programme(slug: str, programme: str, org: str, meta_repo: str) -> str:
     return f"""\
 apiVersion: launchpad/v1
 kind: Programme
@@ -90,14 +90,12 @@ programme: {programme}
 programme_slug: {slug}
 org: {org}
 meta_repo: {meta_repo}
-workspace: {workspace}
 forge:
   provider: github
 """
 
 
 def _render_governance(org: str, meta_repo: str) -> str:
-    stacks_block = "\n".join(f"  # {k}: {v}" for k, v in STARTER_STACKS.items())
     return f"""\
 apiVersion: launchpad/v1
 kind: GovernanceConfig
@@ -107,10 +105,11 @@ kind: GovernanceConfig
 org: {org}
 
 stack_profiles:
-  # Starter stacks are always available — list here for reference only.
-{stacks_block}
-  #
-  # Add custom stacks:
+  meta-pm: Programme management & ADR meta repo
+  # Add a stack for each technology profile you use; each needs a harness profile.
+  # python-backend: Python / FastAPI microservice
+  # nextjs-frontend: Next.js frontend or BFF
+  # terraform-iac: Terraform infrastructure-as-code
   # go-backend: Go microservice
 
 teams:
@@ -181,15 +180,15 @@ profiles:
   #   codeowners_template: CODEOWNERS.nextjs-frontend
   #   harness_pin_template: harness-pin.nextjs-frontend.yaml
 
-  # terraform-iac:
-  #   constitution:
-  #     repo: terraform-infra-rules
-  #     ref: v0.1.2
-  #   skills:
-  #     - repo: prayog-skills
-  #       ref: v0.4.0
-  #   codeowners_template: CODEOWNERS.terraform-iac
-  #   harness_pin_template: harness-pin.terraform-iac.yaml
+  terraform-iac:
+    constitution:
+      repo: terraform-infra-rules
+      ref: v0.1.2
+    skills:
+      - repo: prayog-skills
+        ref: v0.4.3-rc.1
+    codeowners_template: CODEOWNERS.terraform-iac
+    harness_pin_template: harness-pin.terraform-iac.yaml
 
 # Per-repo harness_profile overrides (optional).
 # If absent, a repo's harness_profile defaults to its stack from governance.yaml.
@@ -287,7 +286,7 @@ services:
 # ─── Registry helpers ────────────────────────────────────────────────────────
 
 
-def _patch_clients_yaml(slug: str, meta_path: Path) -> None:
+def _patch_clients_yaml(slug: str, meta_path: Path, *, workspace: Path) -> None:
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     if CLIENTS_FILE.is_file():
         with CLIENTS_FILE.open(encoding="utf-8") as f:
@@ -300,7 +299,12 @@ def _patch_clients_yaml(slug: str, meta_path: Path) -> None:
     if not isinstance(clients, list):
         clients = []
 
-    entry = {"id": slug, "path": str(meta_path), "forge": "github"}
+    entry = {
+        "id": slug,
+        "path": str(meta_path),
+        "workspace": str(workspace),
+        "forge": "github",
+    }
     clients = [c for c in clients if not (isinstance(c, dict) and c.get("id") == slug)]
     clients.append(entry)
     data["clients"] = clients
@@ -374,7 +378,8 @@ def run_interview(
     workspace = _ask("Workspace path", default_ws, input_fn=input_fn, out=out)
 
     meta_repo = f"{slug}-meta"
-    meta_path = Path(workspace).expanduser().resolve() / meta_repo
+    workspace_path = Path(workspace).expanduser().resolve()
+    meta_path = workspace_path / meta_repo
     config_dir = meta_path / "config"
 
     out.write("\n")
@@ -383,6 +388,7 @@ def run_interview(
     out.write(f"  slug:            {slug}\n")
     out.write(f"  org:             {org}\n")
     out.write(f"  meta repo:       {meta_repo}\n")
+    out.write(f"  workspace:       {workspace_path}\n")
     out.write(f"  local path:      {meta_path}\n")
     out.write("─" * 50 + "\n\n")
 
@@ -390,7 +396,7 @@ def run_interview(
     config_dir.mkdir(parents=True, exist_ok=True)
 
     files: dict[str, str] = {
-        "programme.yaml": _render_programme(slug, programme, org, workspace, meta_repo),
+        "programme.yaml": _render_programme(slug, programme, org, meta_repo),
         f"governance-{org}.yaml": _render_governance(org, meta_repo),
         f"harness-{org}.yaml": _render_harness(org),
         f"scaffold-{org}.yaml": _render_scaffold(org),
@@ -405,9 +411,11 @@ def run_interview(
         else:
             out.write(f"  –  {fpath.relative_to(meta_path)}  (already exists, skipped)\n")
 
-    # Patch registry
-    _patch_clients_yaml(slug, meta_path)
+    # Patch registry (machine-local path + workspace — never in programme.yaml)
+    _patch_clients_yaml(slug, meta_path, workspace=workspace_path)
     out.write(f"\n  ✔  ~/.config/launchpad/clients.yaml  (id: {slug})\n")
+    out.write(f"       path:      {meta_path}\n")
+    out.write(f"       workspace: {workspace_path}\n")
 
     env_path = _write_env_stub(slug, org, meta_path)
     out.write(f"  ✔  {env_path}  (PAT stub)\n")

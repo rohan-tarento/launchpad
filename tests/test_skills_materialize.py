@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from launchpad.commands.apply_harness import _verify_delivery_contract
 from launchpad.harness.paths import HARNESS_SKILLS_HUB_REL, PRAYOG_SKILLS_SUBMODULE_REL
 from launchpad.harness.skills_materialize import (
     all_runtime_skills_present,
@@ -18,6 +19,8 @@ from launchpad.harness.skills_materialize import (
 from launchpad.harness.skills_resolve import (
     HarnessResolveError,
     find_skill_source_dir,
+    resolve_delivery_contract,
+    resolve_gate_resources,
     resolve_skill_names,
     slash_list,
 )
@@ -50,6 +53,16 @@ def _python_profile() -> HarnessProfile:
     )
 
 
+def _terraform_profile() -> HarnessProfile:
+    return HarnessProfile(
+        "terraform-iac",
+        {
+            "skills": [{"repo": "prayog-skills", "ref": "v0.4.3-rc.1"}],
+            "skill_runtimes": RUNTIMES,
+        },
+    )
+
+
 class TestResolveSkillNames:
     def test_meta_pm_from_profile_yaml(self):
         names = resolve_skill_names(FIXTURES, _meta_profile(), "meta-pm")
@@ -62,7 +75,59 @@ class TestResolveSkillNames:
 
     def test_python_backend_from_profile_yaml(self):
         names = resolve_skill_names(FIXTURES, _python_profile(), "python-backend")
-        assert names == ["spec-draft", "pre-implement", "verify"]
+        assert names == [
+            "spec-draft",
+            "initiative-feasibility",
+            "spec-technical-review",
+            "spec-implementation-plan",
+            "board-seed",
+            "pre-implement",
+            "loop-spec",
+            "ground-spec",
+            "verify",
+        ]
+
+    def test_delivery_contract_from_pinned_fixture(self):
+        assert resolve_delivery_contract(FIXTURES) == "sdd-delivery/v2"
+
+    def test_delivery_contract_requires_workflow(self, tmp_path: Path):
+        (tmp_path / "delivery-contract.yaml").write_text(
+            "id: sdd-delivery\nversion: 2\nworkflow: workflow.yaml\n",
+            encoding="utf-8",
+        )
+        with pytest.raises(HarnessResolveError, match="workflow.yaml"):
+            resolve_delivery_contract(tmp_path)
+
+    def test_delivery_contract_mismatch_fails_before_materialization(self):
+        with pytest.raises(HarnessResolveError, match="mismatch"):
+            _verify_delivery_contract(FIXTURES, "sdd-delivery/v1")
+
+    def test_gate_resources_are_profile_scoped(self):
+        labels, roles = resolve_gate_resources(FIXTURES, "meta-pm")
+        assert [label["name"] for label in labels] == ["impact-map-pending"]
+        assert roles == {"gate-1": "engineering-gate"}
+
+        app_labels, app_roles = resolve_gate_resources(FIXTURES, "python-backend")
+        assert [label["name"] for label in app_labels] == ["spec-pending", "spec-lgtm"]
+        assert app_roles == {"gate-2": "engineering-gate"}
+
+    def test_terraform_iac_from_profile_yaml(self):
+        names = resolve_skill_names(FIXTURES, _terraform_profile(), "terraform-iac")
+        assert names == [
+            "spec-draft",
+            "initiative-feasibility",
+            "spec-technical-review",
+            "spec-implementation-plan",
+            "board-seed",
+            "pre-implement",
+            "loop-spec",
+            "ground-spec",
+            "verify",
+        ]
+
+    def test_missing_profile_suggests_prayog_profile(self, tmp_path: Path):
+        with pytest.raises(HarnessResolveError, match="prayog_profile"):
+            resolve_skill_names(tmp_path, _meta_profile(), "meta-pm")
 
     def test_missing_profile_raises(self, tmp_path: Path):
         with pytest.raises(HarnessResolveError, match="profiles/meta-pm.yaml"):

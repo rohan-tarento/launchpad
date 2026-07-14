@@ -1,4 +1,5 @@
 profile: data-platform
+delivery_contract: {{DELIVERY_CONTRACT}}
 
 rules:
   repo: drivestream-lab/data-platform-rules

@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 # Local smoke test — no PAT required (dry-run only).
-# Uses examples/tenant-meta as LAUNCHPAD_TENANT_ROOT.
+# Uses examples/tenant-meta via --config-dir (no LAUNCHPAD_* env overrides).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TENANT="${ROOT}/examples/tenant-meta"
 CFG="${TENANT}/config"
 
-export LAUNCHPAD_TENANT_ROOT="${TENANT}"
-
-echo "=== launchpad local smoke (v0.5.13) ==="
+echo "=== launchpad local smoke ==="
 
 "${ROOT}/bin/launchpad" --version
 "${ROOT}/bin/launchpad" --help >/dev/null
@@ -20,7 +18,7 @@ echo "=== launchpad local smoke (v0.5.13) ==="
   --config-dir "${CFG}" \
   --dry-run
 
-# Status smoke
+# Status smoke (workspace derived from --config-dir → parent of meta)
 "${ROOT}/bin/launchpad" status --meta \
   --config-dir "${CFG}" || true  # exits 1 if not all checks pass — expected in smoke
 

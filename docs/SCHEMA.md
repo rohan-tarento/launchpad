@@ -33,7 +33,6 @@ programme: KOLA                # Human name of the initiative
 programme_slug: kola           # Lowercase machine id; auto-derived if omitted
 org: apex-common               # GitHub org slug (exact spelling)
 meta_repo: kola-meta           # Control-plane repo name
-workspace: ~/Workspace/kola    # Local parent dir for clones (supports ~)
 forge:
   provider: github                # Only "github" is supported in v0.5.10
 ```
@@ -41,6 +40,16 @@ forge:
 **Rules:**
 - `programme_slug` must match `~/.config/launchpad/clients.yaml` `id` field.
 - `forge.provider: gitlab` is **rejected** with a clear error (planned v0.6).
+- **Do not** put `workspace` (or any machine path) in this file — use `clients.yaml`:
+
+```yaml
+# ~/.config/launchpad/clients.yaml (per machine)
+clients:
+  - id: kola
+    path: ~/Workspace/kola/kola-meta      # meta clone
+    workspace: ~/Workspace/kola           # parent for sibling repos (optional; default path.parent)
+    forge: github
+```
 
 ---
 
@@ -53,8 +62,10 @@ apiVersion: launchpad/v1
 kind: GovernanceConfig
 org: apex-common
 
-stack_profiles:             # Optional — starter set is always merged in
-  go-backend: Go microservice   # Extend with custom stacks without kit changes
+stack_profiles:             # Declare every stack you use (YAML SSOT — kit merges nothing)
+  meta-pm: Programme management & ADR meta repo
+  python-backend: Python / FastAPI microservice
+  go-backend: Go microservice   # extend as needed
 
 teams:
   - name: platform-core
@@ -75,27 +86,16 @@ policy:
 project_board:
   enabled: true
   name: KOLA Board
+  number: 3
+  url: https://github.com/orgs/apex-common/projects/3
 ```
 
 **Rules:**
-- `repos.<name>.stack` must exist in `stack_profiles` (starter + custom).
+- `repos.<name>.stack` must exist in `stack_profiles`.
 - `repos.<name>.teams` must reference declared team names — prevents typos.
 
----
-
-## Starter Stack Registry
-
-These stacks are always available without any configuration.
-
-| Stack | Default use |
-|---|---|
-| `meta-pm` | Programme management & ADR meta repo |
-| `python-backend` | Python / FastAPI microservice |
-| `nextjs-frontend` | Next.js frontend or BFF |
-| `terraform-iac` | Terraform infrastructure-as-code |
-
-To add a new stack: add an entry to `stack_profiles` in `governance-<org>.yaml`.
-No kit-code changes required.  See [docs/stacks.md](stacks.md).
+Declare stacks, harness profiles, and scaffold blocks in YAML — the kit does not
+inject a built-in stack list. See [docs/stacks.md](stacks.md).
 
 ---
 
@@ -107,12 +107,15 @@ No kit-code changes required.  See [docs/stacks.md](stacks.md).
 apiVersion: launchpad/v1
 kind: HarnessConfig
 org: apex-common
+delivery_contract: sdd-delivery/v2
+delivery_roles:
+  engineering-gate: pe-team
 
 profiles:
   meta-pm:
     skills:
       - repo: prayog-skills
-        ref: v0.4.2
+        ref: v0.4.3-rc.1
     community_skills:
       - source: github/awesome-copilot
         ref: v1.0.0
@@ -128,7 +131,7 @@ profiles:
       ref: v2.1.0
     skills:
       - repo: prayog-skills
-        ref: v0.4.2
+        ref: v0.4.3-rc.1
     skill_runtimes:
       - .agents/skills
       - .claude/skills
@@ -140,7 +143,7 @@ profiles:
       ref: v0.1.5
     skills:
       - repo: prayog-skills
-        ref: v0.4.2
+        ref: v0.4.3-rc.1
 
 repos:
   special-repo: python-backend
