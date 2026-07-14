@@ -11,6 +11,16 @@ Pick `<tag>` from the latest section below or [GitHub Releases](https://github.c
 
 ---
 
+## [0.5.19] — 2026-07-14
+
+### Fixed
+
+- **`env.d/<client>.env` is SSOT for factory PATs** — `load_dotenv(..., override=True)`
+  so a stale shell `GITHUB_TOKEN` / `GH_TOKEN` no longer shadows the client file
+  (avoids private-repo label 404s when ambient env wins).
+
+---
+
 ## [0.5.18] — 2026-07-14
 
 ### Added

@@ -64,6 +64,10 @@ chmod 600 ~/.config/launchpad/env.d/example.env
 ```
 
 **Secrets SSOT:** `~/.config/launchpad/env.d/<slug>.env` — never commit.
+When you run `launchpad --client <slug> …`, values in that file **override** any
+ambient `GITHUB_TOKEN` / `GH_TOKEN` in the shell. Each operator uses their own
+PAT in their own `env.d` file — do not share tokens. `gh auth` / `hosts.yml` is
+separate and is **not** read by launchpad.
 
 ---
 
