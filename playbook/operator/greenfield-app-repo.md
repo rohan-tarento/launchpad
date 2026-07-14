@@ -103,7 +103,7 @@ Creates: GitHub repo, assigns teams, seeds `main` + `develop` branches, applies 
 Clone locally (checked out on `develop` automatically):
 
 ```bash
-# init-client clones into programme.workspace/<repo> when the directory is missing
+# init-client clones into clients.yaml workspace/<repo> when the directory is missing
 launchpad init-client --repo example-api --apply
 cd ~/Workspace/<slug>/example-api   # already on develop
 ```

@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from launchpad.clients import ClientRegistryError, resolve_programme_workspace
 from launchpad.forge.providers.github import GitHubForgeProvider
 from launchpad.harness.paths import PM_HARNESS_PROFILE, PRAYOG_SKILLS_SUBMODULE_REL
 from launchpad.harness.skills_resolve import (
@@ -69,7 +70,13 @@ def run_apply_gates(
         print(f"ERROR: no harness profile for {target}", file=sys.stderr)
         return 1
 
-    repo_path = (workspace or programme.workspace).expanduser().resolve() / target
+    try:
+        repo_path = resolve_programme_workspace(
+            config_dir=config_dir, override=workspace
+        ) / target
+    except ClientRegistryError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
     prayog_root = repo_path / PRAYOG_SKILLS_SUBMODULE_REL
     if not prayog_root.is_dir():
         print(

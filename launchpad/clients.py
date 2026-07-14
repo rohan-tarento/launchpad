@@ -8,6 +8,10 @@ Resolution order (first match wins):
 
 If none match, commands that need a client raise ClientRegistryError with
 a clear message pointing to clients.yaml.
+
+Layout fields (per machine):
+  path       — local meta clone
+  workspace  — parent dir for sibling repo clones (optional; default path.parent)
 """
 
 from __future__ import annotations
@@ -73,6 +77,7 @@ def list_clients() -> list[dict[str, Any]]:
                 {
                     "id": str(item["id"]),
                     "path": str(item.get("path", "")),
+                    "workspace": str(item.get("workspace", "")),
                     "forge": str(item.get("forge", "")),
                 }
             )
@@ -103,6 +108,52 @@ def resolve_client_path(client_id: str) -> Path:
             f"client {client_id!r} path is not a directory: {path}"
         )
     return path
+
+
+def resolve_workspace(client_id: str) -> Path:
+    """Return the programme workspace root for sibling repo clones.
+
+    Prefer clients[].workspace; otherwise parent of the meta path.
+    """
+    client = _client_by_id(client_id)
+    if not client:
+        known = ", ".join(c["id"] for c in list_clients()) or "(none)"
+        raise ClientRegistryError(
+            f"unknown client {client_id!r} — known: {known}. "
+            f"Edit {CLIENTS_FILE}"
+        )
+    raw_ws = client.get("workspace", "").strip()
+    if raw_ws:
+        return Path(raw_ws).expanduser().resolve()
+    return resolve_client_path(client_id).parent
+
+
+def workspace_from_config_dir(config_dir: Path) -> Path:
+    """Derive workspace when using --config-dir without a client registry entry.
+
+    Layout: <workspace>/<meta-repo>/config/ → workspace is config_dir.parent.parent.
+    """
+    return Path(config_dir).expanduser().resolve().parent.parent
+
+
+def resolve_programme_workspace(
+    *,
+    client_id: str | None = None,
+    config_dir: Path | None = None,
+    override: Path | None = None,
+) -> Path:
+    """Resolve clone workspace — clients.yaml only (never programme.yaml)."""
+    if override is not None:
+        return Path(override).expanduser().resolve()
+    cid = (client_id or os.environ.get("LAUNCHPAD_CLIENT", "")).strip()
+    if cid:
+        return resolve_workspace(cid)
+    if config_dir is not None:
+        return workspace_from_config_dir(config_dir)
+    raise ClientRegistryError(
+        "cannot resolve workspace — pass --client <id> "
+        f"or register path/workspace in {CLIENTS_FILE}"
+    )
 
 
 def resolve_client_id(explicit: str = "") -> str | None:
@@ -150,11 +201,8 @@ def apply_client_context(explicit_client: str = "") -> str | None:
     return client_id
 
 
-def config_dir_for_client(client_id: str) -> "Path":
-    """Return the config/ directory for a resolved client_id.
-
-    Derives the path from clients.yaml — no LAUNCHPAD_TENANT_ROOT needed.
-    """
+def config_dir_for_client(client_id: str) -> Path:
+    """Return the config/ directory for a resolved client_id."""
     return resolve_client_path(client_id) / "config"
 
 
@@ -175,7 +223,11 @@ def format_clients_table() -> str:
         env_file = ENV_D_DIR / f"{client['id']}.env"
         secrets = "secrets: yes" if env_file.is_file() else "secrets: no env.d file"
         lines.append(f"  {client['id']}{marker}{forge}")
-        lines.append(f"    path: {client['path']}")
+        lines.append(f"    path:      {client['path']}")
+        if client.get("workspace"):
+            lines.append(f"    workspace: {client['workspace']}")
+        else:
+            lines.append("    workspace: (default: parent of path)")
         lines.append(f"    {secrets}")
         lines.append("")
     lines.append(f"Registry: {CLIENTS_FILE}")

@@ -32,6 +32,7 @@ from launchpad.harness.skills_resolve import (
     slash_list,
 )
 from launchpad.harness.submodules import pin_submodule
+from launchpad.clients import ClientRegistryError, resolve_programme_workspace
 from launchpad.programme.board_binding import resolve_board_binding
 from launchpad.schema import SchemaError
 from launchpad.schema.harness import HarnessProfile, load_harness
@@ -585,21 +586,24 @@ def run_apply_harness(
         return 1
 
     org = gov.org
-
+    prog = None
+    meta_repo = cdir.parent.name
     try:
         prog_path = cdir / "programme.yaml"
         if prog_path.is_file():
             from launchpad.schema.programme import load_programme
 
             prog = load_programme(prog_path)
-            ws = workspace or prog.workspace
             meta_repo = prog.meta_repo
-        else:
-            ws = workspace or Path(".").resolve().parent
-            meta_repo = cdir.parent.name
-    except SchemaError:
-        ws = workspace or Path(".").resolve().parent
-        meta_repo = cdir.parent.name
+    except SchemaError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    try:
+        ws = resolve_programme_workspace(config_dir=cdir, override=workspace)
+    except ClientRegistryError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
     if meta:
         target = meta_repo

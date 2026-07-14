@@ -44,8 +44,9 @@ from launchpad.forge.templates.render import (
     render_template,
 )
 from launchpad.harness.community_skills import community_skill_names
-from launchpad.harness.paths import HARNESS_PROFILE_REL, PM_HARNESS_PROFILE, PRAYOG_SKILLS_SUBMODULE_REL
+from launchpad.clients import resolve_programme_workspace
 from launchpad.programme.board_binding import resolve_board_binding
+from launchpad.harness.paths import HARNESS_PROFILE_REL, PM_HARNESS_PROFILE, PRAYOG_SKILLS_SUBMODULE_REL
 from launchpad.harness.skills_materialize import all_runtime_skills_present, hub_skill_present, runtime_skill_present
 from launchpad.harness.skills_resolve import (
     HarnessResolveError,
@@ -518,8 +519,9 @@ def run_status(
         try:
             from launchpad.schema.programme import load_programme
             prog = load_programme(prog_path)
-        except SchemaError:
-            pass
+        except SchemaError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
 
     gov_path = _find_config(cdir, "governance-*.yaml")
     if gov_path:
@@ -545,7 +547,11 @@ def run_status(
         except SchemaError:
             pass
 
-    ws = workspace or (prog.workspace if prog else Path(".").resolve().parent)
+    try:
+        ws = resolve_programme_workspace(config_dir=cdir, override=workspace)
+    except Exception as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
     meta_repo = prog.meta_repo if prog else (
         cdir.parent.name if cdir.parent.name.endswith("-meta") else "unknown-meta"
     )

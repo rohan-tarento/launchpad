@@ -11,6 +11,20 @@ Pick `<tag>` from the latest section below or [GitHub Releases](https://github.c
 
 ---
 
+## [0.5.18rc3] — local RC
+
+### Changed
+
+- **`workspace` moved to `~/.config/launchpad/clients.yaml`** (machine-local).
+  Shared `programme.yaml` must not contain `workspace` — schema fails closed.
+- Clone layout: `clients[].workspace` or default `path.parent`.
+- `onboard interview` writes `path` + `workspace` into clients.yaml only.
+
+### Removed
+
+- **`LAUNCHPAD_TENANT_ROOT`** — unused env override; docs and examples purged.
+  Use `--client` / `clients.yaml`, or `--config-dir` for scripts.
+
 ## [0.5.18rc2] — local RC
 
 ### Added

@@ -10,10 +10,12 @@ programme_slug  Lowercase registry id; derived from programme if omitted.
                 Must match clients.yaml entry id.
 org             GitHub organisation slug (exact spelling, e.g. "apex-common").
 meta_repo       Control-plane repo name (e.g. "kola-meta").
-workspace       Local parent directory for repo clones (supports ~).
 forge           Forge configuration.
   provider      "github" (only supported provider in v0.5.10).
                 "gitlab" is planned — rejected with a clear message if supplied.
+
+Local clone layout (workspace) lives in ~/.config/launchpad/clients.yaml —
+never in this shared file.
 """
 
 from __future__ import annotations
@@ -48,12 +50,22 @@ class ProgrammeSchema:
         self.programme_slug: str = ""
         self.org: str = ""
         self.meta_repo: str = ""
-        self.workspace: Path = Path("~").expanduser()
         self.forge_provider: str = "github"
         self._validate(raw)
 
     def _validate(self, raw: dict[str, Any]) -> None:
         p = self._path
+
+        if "workspace" in raw:
+            raise SchemaError(
+                "programme.yaml must not contain 'workspace' — it is machine-local",
+                path=p,
+                hint=(
+                    "Move workspace to ~/.config/launchpad/clients.yaml under your "
+                    "client entry (path = meta clone; workspace = parent of sibling "
+                    "repos). Remove workspace: from programme.yaml and commit."
+                ),
+            )
 
         programme = str(raw.get("programme") or "").strip()
         if not programme:
@@ -88,9 +100,6 @@ class ProgrammeSchema:
             meta_repo = f"{self.programme_slug}-meta"
         self.meta_repo = meta_repo
 
-        workspace_raw = str(raw.get("workspace") or "..").strip()
-        self.workspace = Path(workspace_raw).expanduser()
-
         forge = raw.get("forge") or {}
         if not isinstance(forge, dict):
             raise SchemaError("programme.yaml 'forge' must be a mapping", path=p)
@@ -117,7 +126,6 @@ class ProgrammeSchema:
             "programme_slug": self.programme_slug,
             "org": self.org,
             "meta_repo": self.meta_repo,
-            "workspace": str(self.workspace),
             "forge": {"provider": self.forge_provider},
         }
 

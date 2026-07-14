@@ -30,7 +30,7 @@ YAML is the single source of truth — no CLI arguments override config.
 
 | File | Purpose |
 |---|---|
-| `config/programme.yaml` | Identity: name, org, workspace, forge provider |
+| `config/programme.yaml` | Identity: name, org, meta_repo, forge provider |
 | `config/governance-<org>.yaml` | GitHub: teams, repos, gitflow policy, project board |
 | `config/harness-<org>.yaml` | Constitution (rules submodule) + agent skills per stack |
 | `config/scaffold-<org>.yaml` | Cookiecutter template sources per repo |
@@ -70,12 +70,12 @@ launchpad onboard interview
 Writes:
 ```
 ~/Workspace/kola/kola-meta/config/
-  programme.yaml
+  programme.yaml          ← shared (no workspace path)
   governance-apex-common.yaml
   harness-apex-common.yaml
   scaffold-apex-common.yaml
   service-catalog-apex-common.yaml
-~/.config/launchpad/clients.yaml     ← id: kola registered
+~/.config/launchpad/clients.yaml     ← id: kola, path + workspace (local)
 ~/.config/launchpad/env.d/kola.env  ← PAT stub
 ```
 

@@ -33,7 +33,6 @@ programme: KOLA                # Human name of the initiative
 programme_slug: kola           # Lowercase machine id; auto-derived if omitted
 org: apex-common               # GitHub org slug (exact spelling)
 meta_repo: kola-meta           # Control-plane repo name
-workspace: ~/Workspace/kola    # Local parent dir for clones (supports ~)
 forge:
   provider: github                # Only "github" is supported in v0.5.10
 ```
@@ -41,6 +40,16 @@ forge:
 **Rules:**
 - `programme_slug` must match `~/.config/launchpad/clients.yaml` `id` field.
 - `forge.provider: gitlab` is **rejected** with a clear error (planned v0.6).
+- **Do not** put `workspace` (or any machine path) in this file — use `clients.yaml`:
+
+```yaml
+# ~/.config/launchpad/clients.yaml (per machine)
+clients:
+  - id: kola
+    path: ~/Workspace/kola/kola-meta      # meta clone
+    workspace: ~/Workspace/kola           # parent for sibling repos (optional; default path.parent)
+    forge: github
+```
 
 ---
 

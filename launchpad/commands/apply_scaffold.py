@@ -17,6 +17,7 @@ import sys
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
+from launchpad.clients import resolve_programme_workspace
 from launchpad.schema import SchemaError
 from launchpad.schema.scaffold import ScaffoldEntry, ScaffoldSchema, load_scaffold
 from launchpad.ui import print_next_box
@@ -213,13 +214,15 @@ def run_apply_scaffold(
         if prog_path.is_file():
             from launchpad.schema.programme import load_programme
             prog = load_programme(prog_path)
-            workspace = prog.workspace
-        else:
-            workspace = Path(".").resolve().parent
-    except SchemaError:
-        workspace = Path(".").resolve().parent
+    except SchemaError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
-    ws = Path(workspace).expanduser().resolve()
+    try:
+        ws = resolve_programme_workspace(config_dir=cdir)
+    except Exception as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
     if meta:
         entry = sca.meta
