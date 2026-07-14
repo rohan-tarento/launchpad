@@ -32,12 +32,18 @@ class ClientRegistryError(RuntimeError):
 
 
 def _load_dotenv_file(path: Path) -> None:
+    """Load client secrets from env.d; file values win over ambient env.
+
+    ``~/.config/launchpad/env.d/<client>.env`` is SSOT for factory PATs on
+    operator machines. Ambient ``GITHUB_TOKEN`` / ``GH_TOKEN`` must not shadow
+    the file (common cause of private-repo 404s when a stale shell export wins).
+    """
     if not path.is_file():
         return
     try:
         from dotenv import load_dotenv
 
-        load_dotenv(path, override=False)
+        load_dotenv(path, override=True)
     except ImportError:
         for line in path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
@@ -50,7 +56,7 @@ def _load_dotenv_file(path: Path) -> None:
             key, _, value = line.partition("=")
             key = key.strip()
             value = value.strip().strip("'\"")
-            if key and key not in os.environ:
+            if key:
                 os.environ[key] = value
 
 
