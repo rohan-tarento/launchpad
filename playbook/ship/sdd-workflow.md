@@ -23,7 +23,7 @@ How agents and engineers use the **truth hierarchy** in Launchpad repos. Constit
 | `.cursor/rules/*.mdc` | Rules submodule | **Constitution** — how to build (never list prayog skills here) |
 | `AGENTS.md` | App or meta repo root | **Router** — pins, verify commands, skill names |
 | `.harness/skills/<skill>/` | Hub + mirrors (gitignored symlinks) | **Procedures** — prayog slash-command workflows |
-| `.agents/skills/prayog-skills/` | Git submodule | Skill **source** tree @ pinned ref |
+| `prayog-skills/` | Git submodule (root) | Skill **source** tree @ pinned ref |
 
 See [harness-pins.md](../harness/harness-pins.md) for the full boundary table.
 
