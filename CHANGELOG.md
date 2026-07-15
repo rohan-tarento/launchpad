@@ -11,6 +11,19 @@ Pick `<tag>` from the latest section below or [GitHub Releases](https://github.c
 
 ---
 
+## [0.5.20] — 2026-07-15
+
+### Changed
+
+- **`prayog-skills` submodule mounts at repo root** (`prayog-skills/`) instead of
+  `.agents/skills/prayog-skills/`, so only hub-selected skills are activated under
+  `.agents/skills/` / `.claude/skills/`. Re-run `apply-harness --apply` and commit
+  the updated gitlink after upgrading.
+- Constitution `repo` accepts `org/repo` slugs (e.g.
+  `drivestream-lab/python-services-rules`); org is parsed from the slug when present.
+
+---
+
 ## [0.5.19] — 2026-07-14
 
 ### Fixed
