@@ -4,5 +4,6 @@
 .harness/skills/
 .agents/skills/*
 !.agents/skills/prayog-skills/
+!prayog-skills/
 .claude/skills/*
 .cursor/skills/

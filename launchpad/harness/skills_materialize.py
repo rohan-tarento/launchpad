@@ -13,7 +13,7 @@ from launchpad.harness.paths import (
 )
 from launchpad.harness.skills_resolve import find_skill_source_dir, skill_list_key
 
-_PRAYOG_SUBMODULE_NAME = Path(PRAYOG_SKILLS_SUBMODULE_REL).name
+_PRAYOG_SUBMODULE_NAME = "prayog-skills"
 
 
 def _remove_skill_entry(path: Path) -> None:
@@ -59,6 +59,10 @@ def materialize_skill_tree(
         )
         return materialized
 
+    # prayog-skills at root has no nested submodule_root path
+    if prayog_submodule_rel.endswith("/prayog-skills"):
+        submodule_root = repo
+
     if not apply:
         for name in skill_names:
             src = find_skill_source_dir(submodule_root, name, lane_key=lane_key)
@@ -97,6 +101,12 @@ def materialize_skill_tree(
         print(f"  ✔  hub skill: {HARNESS_SKILLS_HUB_REL}/{name}")
         for runtime in runtime_roots:
             print(f"  ✔  runtime skill: {runtime}/{name}")
+
+    # prayog-skills at root: symlink submodule itself to runtime roots
+    runtime_dest = repo / runtime_roots[0] / "prayog-skills" if runtime_roots else None
+    if runtime_dest is not None:
+        runtime_rel = os.path.relpath(submodule_root, runtime_dest.parent)
+        _symlink(runtime_rel, runtime_dest)
 
     _cleanup_stale(
         repo,
@@ -229,7 +239,7 @@ def _stale_hub_skills(hub_root: Path, keep_names: list[str]) -> list[str]:
 def _stale_runtime_skills(runtime_root: Path, keep_names: list[str]) -> list[str]:
     if not runtime_root.is_dir():
         return []
-    keep = set(keep_names) | {_PRAYOG_SUBMODULE_NAME}
+    keep = set(keep_names)
     stale: list[str] = []
     for entry in runtime_root.iterdir():
         if entry.name in keep or entry.name.startswith("."):

@@ -203,6 +203,25 @@ class TestHarnessSchema:
         h = HarnessSchema(raw)
         assert h.profiles["meta-pm"].constitution is None
 
+    def test_constitution_repo_accepts_org_prefixed_slug(self):
+        raw = {
+            "org": "acme",
+            "profiles": {
+                "python-backend": {
+                    "constitution": {
+                        "repo": "drivestream-lab/python-services-rules",
+                        "ref": "v1",
+                    }
+                }
+            },
+        }
+        constitution = HarnessSchema(raw).profiles["python-backend"].constitution
+        assert constitution.repo == "python-services-rules"
+        assert constitution.org == "drivestream-lab"
+        assert constitution.submodule_url == (
+            "https://github.com/drivestream-lab/python-services-rules"
+        )
+
     def test_constitution_missing_ref_raises(self):
         raw = {
             "org": "acme",
@@ -355,3 +374,4 @@ class TestCatalogSchema:
     def test_invalid_status_raises(self):
         with pytest.raises(SchemaError, match="invalid"):
             CatalogSchema({"org": "acme", "services": {"svc": {"stack": "meta-pm", "status": "unknown"}}})
+
