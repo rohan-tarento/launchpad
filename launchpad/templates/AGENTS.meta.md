@@ -18,7 +18,7 @@ Re-sync after clone: `launchpad apply-harness --meta --apply`
 ## Delivery bootstrap
 
 - Contract: **{{DELIVERY_CONTRACT}}**
-- Workflow: `.agents/skills/prayog-skills/workflow.yaml`
+- Workflow: `.agents/skills/<skill>/workflow.yaml`
 - Pin record: `.harness-pin.yaml`
 - Skill hub: `.harness/skills/`
 

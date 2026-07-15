@@ -22,7 +22,9 @@ from launchpad.harness.paths import (
     HARNESS_PROFILE_REL,
     PM_HARNESS_PROFILE,
     PRAYOG_SKILLS_SUBMODULE_REL,
+    SKILLS_LOCK_REL,
 )
+from launchpad.harness.skills_lock import write_skills_lock
 from launchpad.harness.skills_materialize import lane_key_for_profile, materialize_skill_tree
 from launchpad.harness.skills_resolve import (
     HarnessResolveError,
@@ -448,6 +450,17 @@ def _apply_harness_to_repo(
             profile_name=profile_name,
             apply=False,
         )
+        # Generate skills lock in dry-run mode
+        preview_names = (preview or []) + community_skill_names(profile)
+        if preview is not None:
+            write_skills_lock(
+                repo_path,
+                prayog_root=prayog_submodule,
+                profile=profile,
+                skill_names=preview,
+                lane_key=lane_key,
+                apply=False,
+            )
         return 0
 
     con = profile.constitution
@@ -492,6 +505,16 @@ def _apply_harness_to_repo(
     except HarnessResolveError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
+
+    # Generate skills lock after resolving Prayog skills
+    write_skills_lock(
+        repo_path,
+        prayog_root=prayog_submodule,
+        profile=profile,
+        skill_names=skill_names,
+        lane_key=lane_key,
+        apply=True,
+    )
 
     materialized = materialize_skill_tree(
         repo_path,
