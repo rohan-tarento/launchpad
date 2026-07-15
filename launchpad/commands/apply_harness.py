@@ -44,6 +44,21 @@ from launchpad.ui import print_next_box
 _TEMPLATE_ORG_PLACEHOLDER = "example-org"
 
 
+def _normalize_rules_repo(repo: str, con_org: str | None) -> str:
+    """Normalize rules repository path.
+    
+    - If repo is already org-qualified (contains '/'), return unchanged
+    - If repo is bare, prefix with con_org if provided
+    
+    Used only for rules.repo in harness-pin templates.
+    """
+    if "/" in repo:
+        return repo
+    if con_org is None:
+        return repo
+    return f"{con_org}/{repo}"
+
+
 def _find_config(config_dir: Path, pattern: str) -> Path | None:
     matches = list(config_dir.glob(pattern))
     return matches[0] if matches else None
@@ -115,13 +130,9 @@ def _seed_harness_pin(
     content = content.replace("{{DELIVERY_CONTRACT}}", delivery_contract)
     if con:
         content = content.replace("{{RULES_REF}}", con.ref)
-        for rules_repo in (
-            "drivestream-lab/python-services-rules",
-            "drivestream-lab/nextjs-bff-rules",
-            "drivestream-lab/terraform-infra-rules",
-            "drivestream-lab/data-platform-rules",
-        ):
-            content = content.replace(f"repo: {rules_repo}", f"repo: {con.org}/{con.repo}")
+        # Normalize rules.repo: preserve org-qualified, prefix bare repos
+        normalized_rules = _normalize_rules_repo(con.repo, con.org)
+        content = content.replace(f"repo: {con.repo}", f"repo: {normalized_rules}")
 
     if skill:
         content = content.replace("{{AGENT_SKILLS_REF}}", skill.ref or "HEAD")
