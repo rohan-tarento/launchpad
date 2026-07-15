@@ -9,7 +9,7 @@ Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. 
 | Repo | Mount / path | Owner | Contents |
 |------|----------------|-------|----------|
 | `drivestream-lab/python-services-rules` | `.cursor/rules/` submodule | Platform (OSS) | `.mdc` constitution |
-| [prayog-skills](https://github.com/drivestream-lab/prayog-skills) | `.agents/skills/prayog-skills/` submodule | Public | Dev workflow skills |
+| [prayog-skills](https://github.com/drivestream-lab/prayog-skills) | `prayog-skills/` submodule (root) | Public | Dev workflow skills |
 | `<client>-meta` (private) | (tenant workspace) | Tenant | PRDs, manifests, factory config, templates |
 
 ---
@@ -76,18 +76,19 @@ Bump via harness PR after platform publishes a new approved rules + skills pair.
 1. Write `.harness-pin.yaml` and `AGENTS.md`
 2. Pin **rules** submodule @ declared ref → `.cursor/rules/`
 3. Remove legacy **`.cursor/skills`** submodule if present
-4. Pin **prayog-skills** submodule @ declared ref → `.agents/skills/prayog-skills/`
+4. Pin **prayog-skills** submodule @ declared ref → `prayog-skills/`
 5. Resolve skill names from prayog `profiles/{prayog_profile}.yaml` at the pinned ref
    (`requirements_skills` for `meta-pm`, `development_skills` for app profiles)
 6. Materialize **hub** symlinks → `.harness/skills/<skill-name>/`
 7. Mirror hub into each path in `skill_runtimes` (default: `.agents/skills`, `.claude/skills`)
 8. Pin **community** submodules under `.harness/community/<repo>/` when declared in harness YAML
 9. **App repos only:** copy prayog profile → `.harness/profile.yaml`
-10. Stage gitlinks — commit `.harness-pin.yaml`, `AGENTS.md`, `.gitmodules`, submodule paths
+10. **prayog-skills at root:** symlink `prayog-skills/` into runtime roots
+10. Stage gitlinks — commit `.harness-pin.yaml`, `AGENTS.md`, `.gitmodules`, submodule paths (prayog-skills at root)
 
-**Gitignored (local only):** `.harness/skills/<skill>/` hub symlinks and mirrors under `skill_runtimes` (e.g. `.agents/skills/<skill>/` except the **prayog-skills** submodule). Re-run `apply-harness --apply` on every machine after clone.
+**Gitignored (local only):** `.harness/skills/<skill>/` hub symlinks and mirrors under `skill_runtimes` (e.g. `.agents/skills/<skill>/` except the **prayog-skills** submodule at root). Re-run `apply-harness --apply` on every machine after clone.
 
-**Tracked submodules:** `.cursor/rules/` (constitution), `.agents/skills/prayog-skills/`, and any **community** repos under `.harness/community/`.
+**Tracked submodules:** `.cursor/rules/` (constitution), `prayog-skills/` (root), and any **community** repos under `.harness/community/`.
 
 **PM pipeline skills** (`validate-requirements`, `prd-impact-map`, …) install in **`<slug>-meta`** only — not app repos.
 
@@ -119,7 +120,7 @@ Short harness-only path (repo already exists with code):
 1. Add entry under `repos:` in `harness-<org>.yaml`.
 2. Ensure clone lives next to `<slug>-meta` in the workspace.
 3. `launchpad apply-harness --repo <name> --apply`
-4. Commit pin, `AGENTS.md`, rules submodule, skills submodule (`.agents/skills/`).
+4. Commit pin, `AGENTS.md`, rules submodule, skills submodule (`prayog-skills/` at root).
 5. `launchpad status --repo <name>` before opening PR.
 
 ---
@@ -134,7 +135,7 @@ launchpad apply-harness --meta --apply
 launchpad status --meta
 ```
 
-Commit `.harness-pin.yaml`, `AGENTS.md`, and skills submodule gitlinks under `.agents/skills/`.
+Commit `.harness-pin.yaml`, `AGENTS.md`, and skills submodule gitlinks (prayog-skills at root).
 
 Meta structure comes from `apply-scaffold --meta` (cookiecutter `tenant-meta-foundation`).
 

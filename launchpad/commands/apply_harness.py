@@ -109,12 +109,12 @@ def _seed_harness_pin(
     if con:
         content = content.replace("{{RULES_REF}}", con.ref)
         for rules_repo in (
-            "drivestream-lab/python-services-rules",
-            "drivestream-lab/nextjs-bff-rules",
-            "drivestream-lab/terraform-infra-rules",
-            "drivestream-lab/data-platform-rules",
+            "python-services-rules",
+            "nextjs-bff-rules",
+            "terraform-infra-rules",
+            "data-platform-rules",
         ):
-            content = content.replace(f"repo: {rules_repo}", f"repo: {con.org}/{con.repo}")
+            content = content.replace(f"repo: drivestream-lab/{rules_repo}", f"repo: {con.org}/{con.repo}")
 
     if skill:
         content = content.replace("{{AGENT_SKILLS_REF}}", skill.ref or "HEAD")
@@ -193,7 +193,7 @@ def _seed_agents_md(
     content = content.replace("{{SETUP_NOTES}}", "")
     content = content.replace(
         "`.agents/skills/prayog-skills/` (git submodule",
-        "`.agents/skills/<skill>/` (symlinks via `.harness/skills/` hub",
+        "`.agents/skills/prayog-skills/` (git submodule at root)",
     )
     content = _preserve_agents_run_section(content, repo_path / "AGENTS.md")
 

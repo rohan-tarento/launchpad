@@ -106,8 +106,14 @@ class ConstitutionRef:
                 f"profiles.{profile!r}.constitution missing required field 'repo'",
                 path=path,
             )
+        configured_org = str(raw.get("org") or _PLATFORM_ORG).strip()
+        if "/" in repo:
+            repo_org, repo_name = repo.split("/", 1)
+            if repo_org:
+                configured_org = repo_org
+            repo = repo_name
         self.repo = repo
-        self.org = str(raw.get("org") or _PLATFORM_ORG).strip()
+        self.org = configured_org
         ref = str(raw.get("ref") or "").strip()
         if not ref:
             raise SchemaError(
@@ -254,3 +260,4 @@ def load_harness(path: str | Path) -> HarnessSchema:
     if not isinstance(raw, dict):
         raise SchemaError(f"Harness YAML must be a YAML mapping: {p}")
     return HarnessSchema(raw, path=str(p))
+

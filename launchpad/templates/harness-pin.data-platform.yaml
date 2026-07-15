@@ -1,5 +1,4 @@
 profile: data-platform
-
 rules:
   repo: drivestream-lab/data-platform-rules
   ref: {{RULES_REF}}
