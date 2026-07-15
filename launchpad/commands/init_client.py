@@ -37,7 +37,11 @@ from launchpad.schema import SchemaError
 from launchpad.schema.catalog import load_catalog
 from launchpad.schema.governance import load_governance
 from launchpad.schema.programme import load_programme
-from launchpad.clients import CLIENTS_FILE, CONFIG_DIR
+from launchpad.clients import (
+    CLIENTS_FILE,
+    CONFIG_DIR,
+    resolve_programme_workspace,
+)
 from launchpad.ui import print_next_box
 
 
@@ -74,7 +78,7 @@ def _load_all_schemas(config_dir: Path) -> tuple[Any, Any, Any]:
     return prog, gov, cat
 
 
-def _patch_clients_yaml(slug: str, meta_path: Path) -> None:
+def _patch_clients_yaml(slug: str, meta_path: Path, *, workspace: Path | None = None) -> None:
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     if CLIENTS_FILE.is_file():
         with CLIENTS_FILE.open(encoding="utf-8") as f:
@@ -86,7 +90,22 @@ def _patch_clients_yaml(slug: str, meta_path: Path) -> None:
     clients: list[dict[str, Any]] = data.get("clients") or []
     if not isinstance(clients, list):
         clients = []
-    entry = {"id": slug, "path": str(meta_path), "forge": "github"}
+    existing = next(
+        (c for c in clients if isinstance(c, dict) and c.get("id") == slug),
+        None,
+    )
+    ws = workspace if workspace is not None else meta_path.parent
+    if existing and str(existing.get("workspace") or "").strip():
+        # Preserve an explicit local workspace if the operator already set one
+        ws_value = str(existing["workspace"]).strip()
+    else:
+        ws_value = str(ws)
+    entry = {
+        "id": slug,
+        "path": str(meta_path),
+        "workspace": ws_value,
+        "forge": "github",
+    }
     clients = [c for c in clients if not (isinstance(c, dict) and c.get("id") == slug)]
     clients.append(entry)
     data["clients"] = clients
@@ -216,6 +235,7 @@ def run_init_client(
     org = prog.org
     slug = prog.programme_slug
     dr = dry_run or not apply
+    ws = resolve_programme_workspace(config_dir=cdir)
 
     from launchpad.forge.providers.github import GitHubForgeProvider
 
@@ -302,8 +322,8 @@ def run_init_client(
 
     # 6. Re-ensure clients.yaml + local git setup (meta only)
     if meta:
-        meta_path = Path(prog.workspace).expanduser().resolve() / prog.meta_repo
-        _patch_clients_yaml(slug, meta_path)
+        meta_path = ws / prog.meta_repo
+        _patch_clients_yaml(slug, meta_path, workspace=ws)
         if dr:
             print(f"  [dry-run] ensure clients.yaml entry: id={slug}")
         else:
@@ -320,8 +340,7 @@ def run_init_client(
         )
     else:
         # For app repos: clone locally if the workspace directory doesn't exist
-        ws_path = Path(prog.workspace).expanduser().resolve()
-        repo_path = ws_path / repo_name
+        repo_path = ws / repo_name
         _setup_local_repo(
             repo_path,
             org,

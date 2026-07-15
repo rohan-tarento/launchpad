@@ -14,6 +14,7 @@ import os
 import sys
 from pathlib import Path
 
+from launchpad.clients import resolve_programme_workspace
 from launchpad.forge.templates.render import (
     build_render_context,
     get_layout,
@@ -119,7 +120,7 @@ def run_apply_forge_templates(
         )
         return 1
 
-    ws = workspace or prog.workspace
+    ws = resolve_programme_workspace(config_dir=config_dir, override=workspace)
     meta_repo = prog.meta_repo
     target = meta_repo if meta else repo_name
 

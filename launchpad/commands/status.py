@@ -32,8 +32,10 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from packaging.version import InvalidVersion, Version
 
 from launchpad import __version__
+from launchpad import github_ops
 from launchpad.forge.templates.render import (
     build_render_context,
     forge_templates_present,
@@ -42,9 +44,17 @@ from launchpad.forge.templates.render import (
     render_template,
 )
 from launchpad.harness.community_skills import community_skill_names
+from launchpad.clients import resolve_programme_workspace
+from launchpad.programme.board_binding import resolve_board_binding
 from launchpad.harness.paths import HARNESS_PROFILE_REL, PM_HARNESS_PROFILE, PRAYOG_SKILLS_SUBMODULE_REL
 from launchpad.harness.skills_materialize import all_runtime_skills_present, hub_skill_present, runtime_skill_present
-from launchpad.harness.skills_resolve import HarnessResolveError, resolve_skill_names
+from launchpad.harness.skills_resolve import (
+    HarnessResolveError,
+    resolve_delivery_contract,
+    resolve_gate_resources,
+    resolve_skill_names,
+)
+from launchpad.github_client import GitHubClient, GitHubError
 from launchpad.schema import SchemaError
 from launchpad.ui import print_next_box
 
@@ -106,12 +116,12 @@ def _fetch_latest_kit_version() -> str | None:
     return None
 
 
-def _semver(v: str) -> tuple[int, ...]:
-    """Parse a loose semver string like '0.5.10' into a comparable tuple."""
+def _semver(v: str) -> Version:
+    """Parse stable and prerelease versions for comparison."""
     try:
-        return tuple(int(x) for x in v.split("."))
-    except ValueError:
-        return (0,)
+        return Version(v.replace("-rc.", "rc"))
+    except InvalidVersion:
+        return Version("0")
 
 
 def _print_kit_section() -> bool:
@@ -254,7 +264,27 @@ def _print_submodule_drift(
         print("  [✗] local:     not pinned yet")
         return True
 
-    if local_ref == declared_ref:
+    sub_path = repo_path / submodule_rel
+    head_result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=sub_path,
+        capture_output=True,
+        text=True,
+    )
+    local_sha = head_result.stdout.strip()
+    declared_sha = ""
+    for candidate in (f"origin/{declared_ref}", declared_ref):
+        result = subprocess.run(
+            ["git", "rev-parse", "--verify", candidate],
+            cwd=sub_path,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            declared_sha = result.stdout.strip()
+            break
+
+    if local_ref == declared_ref or (local_sha and local_sha == declared_sha):
         print(f"  [✔] local:     {repo_label} @ {local_ref}  (in sync)")
         return False
 
@@ -393,6 +423,75 @@ def _print_materialized_skills_check(profile_name: str, repo_path: Path, profile
     return drift
 
 
+def _print_delivery_contract_check(repo_path: Path, expected: str) -> bool:
+    """Print expected vs pinned Prayog delivery contract. Returns drift."""
+    if not expected:
+        return False
+    _section("Delivery contract")
+    submodule_root = repo_path / PRAYOG_SKILLS_SUBMODULE_REL
+    try:
+        actual = resolve_delivery_contract(submodule_root)
+    except HarnessResolveError as exc:
+        print(f"  [✗] {exc}")
+        return True
+    if actual == expected:
+        print(f"  [✔] {actual}  (matches harness)")
+        return False
+    print(f"  [✗] declared: {expected}  pinned: {actual}")
+    return True
+
+
+def _print_delivery_gates_check(
+    repo_path: Path,
+    profile_name: str,
+    delivery_roles: dict[str, str],
+    org: str,
+    repo: str,
+) -> bool:
+    """Print contract label and review-role readiness. Returns drift."""
+    submodule_root = repo_path / PRAYOG_SKILLS_SUBMODULE_REL
+    try:
+        labels, review_roles = resolve_gate_resources(submodule_root, profile_name)
+    except HarnessResolveError as exc:
+        _section("Delivery gates")
+        print(f"  [✗] {exc}")
+        return True
+    if not labels and not review_roles:
+        return False
+
+    _section("Delivery gates")
+    drift = False
+    try:
+        with GitHubClient(dry_run=False) as client:
+            for expected in labels:
+                actual = github_ops.get_label(client, org, repo, expected["name"])
+                if actual is None:
+                    print(f"  [✗] label missing: {expected['name']}")
+                    drift = True
+                    continue
+                color_ok = str(actual.get("color") or "").upper() == expected["color"].upper()
+                description_ok = str(actual.get("description") or "") == expected["description"]
+                ok = color_ok and description_ok
+                print(f"  [{'✔' if ok else '✗'}] label: {expected['name']}")
+                drift = drift or not ok
+
+            for gate, role in review_roles.items():
+                team = delivery_roles.get(role, "")
+                if not team:
+                    print(f"  [✗] {gate}: no team mapped for role {role!r}")
+                    drift = True
+                    continue
+                permission = github_ops.team_repo_permission(client, org, repo, team)
+                if permission is None:
+                    print(f"  [✗] {gate}: {role} → {team} has no repository access")
+                    drift = True
+                    continue
+                print(f"  [✔] {gate}: {role} → {team}  (permission: {permission})")
+    except GitHubError as exc:
+        print(f"  [?] gate check unavailable: {exc}")
+    return drift
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 
@@ -420,8 +519,9 @@ def run_status(
         try:
             from launchpad.schema.programme import load_programme
             prog = load_programme(prog_path)
-        except SchemaError:
-            pass
+        except SchemaError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
 
     gov_path = _find_config(cdir, "governance-*.yaml")
     if gov_path:
@@ -447,7 +547,11 @@ def run_status(
         except SchemaError:
             pass
 
-    ws = workspace or (prog.workspace if prog else Path(".").resolve().parent)
+    try:
+        ws = resolve_programme_workspace(config_dir=cdir, override=workspace)
+    except Exception as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
     meta_repo = prog.meta_repo if prog else (
         cdir.parent.name if cdir.parent.name.endswith("-meta") else "unknown-meta"
     )
@@ -471,6 +575,25 @@ def run_status(
     gov_ok = gov is not None and target in gov.repos
     stack_label = f"stack: {stack}" if gov_ok and stack else f"add '{target}' to governance repos:"
     print(f"  [{_mark(gov_ok)}] Governance declared       ({stack_label})")
+
+    board_detail = "not configured"
+    board_neutral = True
+    board_ok = False
+    if gov and gov.project_board:
+        binding = resolve_board_binding(org, gov.project_board)
+        if binding.configured:
+            board_neutral = False
+            board_ok = bool(binding.url or binding.number is not None)
+            board_detail = binding.name
+            if binding.number is not None:
+                board_detail += f" (#{binding.number})"
+            if binding.url:
+                board_detail += f" — {binding.url}"
+            if not meta and stack != PM_HARNESS_PROFILE:
+                board_detail += " — run /board-seed after spec merge"
+        else:
+            board_detail = "project_board disabled in governance"
+    print(f"  [{_mark(board_ok if not board_neutral else None, neutral=board_neutral)}] Programme board          ({board_detail})")
 
     repo_path = Path(ws).expanduser().resolve() / target
     clone_ok = (repo_path / ".git").is_dir()
@@ -584,6 +707,23 @@ def run_status(
 
     # ── PM view: constitution pins + foundation freshness ────────────────────
     drift_detected = False
+    gate_drift = False
+    if profile and clone_ok and h:
+        if not h.delivery_contract:
+            _section("Delivery contract")
+            print("  [–] not declared  (legacy Prayog pin; gate checks skipped)")
+        else:
+            if _print_delivery_contract_check(repo_path, h.delivery_contract):
+                drift_detected = True
+            if _print_delivery_gates_check(
+                repo_path,
+                profile_name,
+                h.delivery_roles,
+                org,
+                target,
+            ):
+                drift_detected = True
+                gate_drift = True
     if meta:
         if h:
             _print_governance_pins(h)
@@ -627,6 +767,8 @@ def run_status(
     elif clone_ok and forge_provider == "github" and (not forge_ok or forge_stale):
         force = " --force" if forge_stale else ""
         next_cmd = f"launchpad {client_prefix}apply-forge-templates {flag} --apply{force}"
+    elif gate_drift:
+        next_cmd = f"launchpad {client_prefix}apply-gates {flag} --apply"
     elif drift_detected:
         next_cmd = f"launchpad {client_prefix}apply-harness --repo {target} --apply"
     else:

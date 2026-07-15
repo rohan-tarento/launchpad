@@ -11,6 +11,49 @@ Pick `<tag>` from the latest section below or [GitHub Releases](https://github.c
 
 ---
 
+## [0.5.19] — 2026-07-14
+
+### Fixed
+
+- **`env.d/<client>.env` is SSOT for factory PATs** — `load_dotenv(..., override=True)`
+  so a stale shell `GITHUB_TOKEN` / `GH_TOKEN` no longer shadows the client file
+  (avoids private-repo label 404s when ambient env wins).
+
+---
+
+## [0.5.18] — 2026-07-14
+
+### Added
+
+- **`board-bind`** — resolve programme engineering board from governance YAML
+  (read-only meta); optional `--apply` links repo(s) to the org Project.
+- Delivery-contract / workflow verification against the pinned Prayog checkout;
+  contract recorded in harness pins and `status`.
+- **`apply-gates`** — dry-run/apply for contract-declared labels and review-role
+  access validation.
+- Profile token `app` — stack-agnostic Gate 2 labels for any non-meta-pm harness.
+- `apply-harness --repo` seeds delivery workflows (`ci.yml`,
+  `policy-branch-name.yml`, `board-seed-gate.yml`) when `delivery_contract` is set.
+- `AGENTS.md` programme board section (`{{BOARD_NAME}}`, `{{BOARD_URL}}`) for
+  app repos with a delivery contract.
+
+### Changed
+
+- **`workspace` lives in `~/.config/launchpad/clients.yaml`** (machine-local).
+  Shared `programme.yaml` must not contain `workspace` — schema fails closed.
+- Clone layout: `clients[].workspace` or default `path.parent`.
+- `onboard interview` writes `path` + `workspace` into clients.yaml only.
+- Delivery playbook documents Draft spec PR, Gate 2, PE attestation, and
+  merge → `/board-seed` → `/pre-implement` sequencing (pairs with Prayog v0.4.3).
+- Existing team-owned `AGENTS.md` preserved in full on re-apply.
+
+### Removed
+
+- **`LAUNCHPAD_TENANT_ROOT`** — unused env override; docs and examples purged.
+  Use `--client` / `clients.yaml`, or `--config-dir` for scripts.
+
+---
+
 ## [0.5.17] — 2026-07-10
 
 ### Added

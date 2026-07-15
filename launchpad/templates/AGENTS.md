@@ -11,20 +11,28 @@ Pin record: [`.harness-pin.yaml`](.harness-pin.yaml) (`profile: {{PROFILE}}`).
 
 ---
 
-## Process
+## Delivery bootstrap
 
-Playbook SSOT: **launchpad** `playbook/` (pinned from tenant `<client>-meta`).
+- Contract: **{{DELIVERY_CONTRACT}}**
+- Workflow: `.agents/skills/prayog-skills/workflow.yaml`
+- Pin record: `.harness-pin.yaml`
+- Skill hub: `.harness/skills/`
 
-| Topic | Where |
-|-------|--------|
-| Branching policy (`INIT-{COMPONENT}-{NUMBER}` naming) | launchpad `playbook/ship/branching-policy.md` |
-| PM ↔ dev delivery workflow | launchpad `playbook/ship/delivery-workflow.md` |
-| Delivery model (1:1 wave rule) | launchpad `playbook/ship/delivery-model.md` |
-| SDD workflow | launchpad `playbook/ship/sdd-workflow.md` |
-| Harness pins | launchpad `playbook/harness/harness-pins.md` |
-| Program board | Your forge engineering board (tenant wiki) |
+When asked “what next?”, read the latest persistent handoff and the pinned
+workflow, then explain the current stage, blockers, and next candidate. Do not
+perform file or GitHub mutations unless the user explicitly authorizes them.
 
 **PRs:** use `.github/pull_request_template.md` — Initiative, Spec path, Verify command.
+
+---
+
+## Programme board
+
+Engineering work is tracked on **[{{BOARD_NAME}}]({{BOARD_URL}})** (org Project).
+
+- SSOT: `{{META_REPO}}/config/governance-*.yaml` → `project_board` (read-only meta clone)
+- Resolve binding: `launchpad board-bind --client <id>`
+- After spec merge: `/board-seed INIT-<id>` — creates EPIC + wave sub-issues on this board (all app stacks)
 
 ---
 
@@ -44,27 +52,22 @@ Active work: board issue **Spec path** → product initiative spec (from PRD han
 
 ## Run and verify
 
-- Setup and run: [`README.md`](README.md)
-- Integration verify: [`tests/README.md`](tests/README.md)
+- Setup/run source: [`README.md`](README.md)
+- Canonical build/check/test commands: repository Makefile or package scripts
+- Live verification and prerequisites: [`tests/README.md`](tests/README.md)
 
-```bash
-{{CHECK_COMMAND}}
-{{TEST_COMMAND}}
-
-{{VERIFY_SMOKE}}
-```
-
-{{SETUP_NOTES}}
+Use the repository commands exactly as documented; do not invent environment
+activation, test, or verify commands.
 
 ---
 
 ## Before changing behavior
 
-**Delivery workflow:** [launchpad playbook/ship/delivery-workflow.md](https://github.com/drivestream-lab/launchpad/blob/main/playbook/ship/delivery-workflow.md) — full skill chain, roles, automation phases.
+1. Read `.cursor/rules/code-guidelines-index.mdc` (or the profile’s rule index).
+2. Read the relevant product spec and accepted ADRs.
+3. Read as-built; do not infer live behavior from a spec.
+4. Read `tests/README.md` and the repository Makefile/package scripts for exact commands.
+5. Resolve the current delivery stage from the pinned Prayog workflow.
 
-1. Read `AGENTS.md` and relevant **product** spec (and **ADR** if architecture changes).
-2. Read **as-built** — do not assume a feature exists without checking.
-3. `/pre-implement` before coding — gate check + pre-flight.
-4. `/loop-spec` during implementation — verify after each task, fix before moving on.
-5. `/ground-spec` when wave is complete — validates FRs, produces contracts for next wave.
-6. Update spec, tests, and as-built in the **same PR**.
+Do not edit pinned rules or skill sources. Product truth belongs in
+`docs/specification/`; repository-specific commands remain in the repository.

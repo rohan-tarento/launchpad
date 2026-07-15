@@ -88,8 +88,10 @@ Copy into each repo's `.github/workflows/`, tune for your org, and enable as req
 ## After setup
 
 1. Add people to teams in GitHub → Organization → Teams
-2. Run `ci` on a test PR to `develop`
-3. Enable workflow required checks when workflows are merged
-4. Open test PR `develop` → `main`; confirm **release-managers** can merge
+2. Run `launchpad apply-gates --meta --apply` (and per app profile when the
+   pinned delivery contract declares app labels)
+3. Run `ci` on a test PR to `develop`
+4. Enable workflow required checks when workflows are merged
+5. Open test PR `develop` → `main`; confirm **release-managers** can merge
 
 See [teams-and-rbac.md](../ship/teams-and-rbac.md) and [python-automation.md](../../docs/onboarding/factory-cli.md).

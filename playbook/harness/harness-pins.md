@@ -31,6 +31,7 @@ Platform-owned constitution (rules submodule) and **prayog-skills** dev bundle. 
 ```yaml
 # .harness-pin.yaml
 profile: python-backend
+delivery_contract: sdd-delivery/v2
 
 rules:
   repo: drivestream-lab/python-services-rules
@@ -38,7 +39,7 @@ rules:
 
 agent_skills:
   repo: drivestream-lab/prayog-skills
-  ref: v0.4.0
+  ref: v0.4.3-rc.1
   profile: python-backend
   skills:
     - spec-draft
@@ -61,9 +62,9 @@ Document your org's approved `rules` + `agent_skills` ref pairs in tenant `confi
 
 | rules | agent_skills | Notes |
 |-------|--------------|-------|
-| v0.5.5 | v0.4.0 | Current — python-services-rules (python-backend) |
-| v0.3.0 | v0.4.0 | Current — data-platform-rules (data-platform profile) |
-| v0.1.1 | v0.4.0 | Current — nextjs-bff-rules (frontend profile) |
+| v2.1.0 | v0.4.3-rc.1 | Pilot — python-services-rules (python-backend) |
+| v0.3.0 | v0.4.3-rc.1 | Pilot — data-platform-rules (data-platform profile) |
+| v0.1.6 | v0.4.3-rc.1 | Pilot — nextjs-bff-rules (frontend profile) |
 | v0.5.5 | v0.3.1 | Superseded — previous python-backend pin |
 | v0.5.5 | v0.2.0 | Superseded — 4-skill dev bundle |
 

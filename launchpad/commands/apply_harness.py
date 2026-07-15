@@ -27,10 +27,13 @@ from launchpad.harness.skills_materialize import lane_key_for_profile, materiali
 from launchpad.harness.skills_resolve import (
     HarnessResolveError,
     copy_harness_profile,
+    resolve_delivery_contract,
     resolve_skill_names,
     slash_list,
 )
 from launchpad.harness.submodules import pin_submodule
+from launchpad.clients import ClientRegistryError, resolve_programme_workspace
+from launchpad.programme.board_binding import resolve_board_binding
 from launchpad.schema import SchemaError
 from launchpad.schema.harness import HarnessProfile, load_harness
 from launchpad.schema.governance import load_governance
@@ -88,6 +91,7 @@ def _seed_harness_pin(
     profile: HarnessProfile,
     profile_name: str,
     skill_names: list[str],
+    delivery_contract: str,
     *,
     apply: bool,
 ) -> None:
@@ -106,6 +110,7 @@ def _seed_harness_pin(
     skills_block = "\n".join(f"    - {name}" for name in skill_names)
 
     content = tpl_path.read_text(encoding="utf-8")
+    content = content.replace("{{DELIVERY_CONTRACT}}", delivery_contract)
     if con:
         content = content.replace("{{RULES_REF}}", con.ref)
         for rules_repo in (
@@ -137,33 +142,18 @@ def _seed_harness_pin(
     print(f"  ✔  harness-pin synced ← {tpl_name}  (profile: {profile_name})")
 
 
-_RUN_SECTION_RE = re.compile(
-    r"(## Run and verify\n.*?)(?=\n---\n)",
-    re.DOTALL,
-)
-
-
-def _preserve_agents_run_section(content: str, existing_path: Path) -> str:
-    """Keep an existing Run and verify block when re-applying harness."""
-    if not existing_path.is_file():
-        return content
-    existing = existing_path.read_text(encoding="utf-8")
-    run_match = _RUN_SECTION_RE.search(existing)
-    if not run_match or "{{" in run_match.group(1):
-        return content
-    preserved = run_match.group(1)
-    return _RUN_SECTION_RE.sub(preserved, content, count=1)
-
-
 def _seed_agents_md(
     repo_path: Path,
     profile_name: str,
     profile: HarnessProfile,
     skill_names: list[str],
+    delivery_contract: str,
     *,
     target: str,
     org: str,
     meta_repo: str,
+    board_name: str,
+    board_url: str,
     apply: bool,
 ) -> None:
     is_meta = profile_name == PM_HARNESS_PROFILE
@@ -173,7 +163,13 @@ def _seed_agents_md(
         return
 
     if not apply:
-        print(f"    [dry-run] AGENTS.md  ← {tpl_name}")
+        action = "preserve existing" if (repo_path / "AGENTS.md").is_file() else f"seed from {tpl_name}"
+        print(f"    [dry-run] AGENTS.md  ({action})")
+        return
+
+    dest = repo_path / "AGENTS.md"
+    if dest.is_file():
+        print("  –  AGENTS.md  (existing team file preserved)")
         return
 
     con = profile.constitution
@@ -186,6 +182,9 @@ def _seed_agents_md(
     content = content.replace("{{PROFILE}}", profile_name)
     content = content.replace("{{RULES_PIN}}", con.ref if con else "")
     content = content.replace("{{AGENT_SKILLS_REF}}", skill.ref if skill else "")
+    content = content.replace("{{DELIVERY_CONTRACT}}", delivery_contract)
+    content = content.replace("{{BOARD_NAME}}", board_name or "Engineering board")
+    content = content.replace("{{BOARD_URL}}", board_url or f"https://github.com/orgs/{org}/projects")
     content = content.replace("{{AGENT_SKILLS_SLASH_LIST}}", slash_list(skill_names))
     content = content.replace("{{CHECK_COMMAND}}", "")
     content = content.replace("{{TEST_COMMAND}}", "")
@@ -195,9 +194,7 @@ def _seed_agents_md(
         "`.agents/skills/prayog-skills/` (git submodule",
         "`.agents/skills/prayog-skills/` (git submodule at root)",
     )
-    content = _preserve_agents_run_section(content, repo_path / "AGENTS.md")
-
-    (repo_path / "AGENTS.md").write_text(content, encoding="utf-8")
+    dest.write_text(content, encoding="utf-8")
     print(f"  ✔  AGENTS.md  ← {tpl_name}")
 
 
@@ -219,6 +216,54 @@ def _upgrade_harness_gitignore_patterns(text: str) -> str:
     if ".claude/skills/*" not in updated:
         updated = updated.replace(_LEGACY_CLAUDE_GITIGNORE, ".claude/skills/*")
     return updated
+
+
+_DELIVERY_WORKFLOW_TEMPLATES: tuple[str, ...] = (
+    "github/workflows/ci.yml",
+    "github/workflows/policy-branch-name.yml",
+    "github/workflows/board-seed-gate.yml",
+)
+
+
+def _seed_delivery_workflows(
+    repo_path: Path,
+    *,
+    delivery_contract: str,
+    profile_name: str,
+    apply: bool,
+) -> None:
+    """Seed SDD delivery GitHub workflows into app repos (skip meta-pm)."""
+    if profile_name == PM_HARNESS_PROFILE or not delivery_contract:
+        return
+
+    for kit_rel in _DELIVERY_WORKFLOW_TEMPLATES:
+        tpl_path = _resolve_kit_template(kit_rel)
+        workflow_name = Path(kit_rel).name
+        dest = repo_path / ".github" / "workflows" / workflow_name
+
+        if tpl_path is None:
+            print(
+                f"  WARN: workflow template '{kit_rel}' not found in kit — skipping",
+                file=sys.stderr,
+            )
+            continue
+
+        if not apply:
+            if dest.is_file():
+                print(f"    [dry-run] skip (exists)  .github/workflows/{workflow_name}")
+            else:
+                print(
+                    f"    [dry-run] .github/workflows/{workflow_name}  ← {kit_rel}"
+                )
+            continue
+
+        if dest.is_file():
+            print(f"  –  skip (exists)  .github/workflows/{workflow_name}")
+            continue
+
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(tpl_path.read_text(encoding="utf-8"), encoding="utf-8")
+        print(f"  ✔  workflow  ← {kit_rel}  →  .github/workflows/{workflow_name}")
 
 
 def _seed_gitignore_harness(repo_path: Path, *, apply: bool) -> None:
@@ -301,14 +346,30 @@ def _preview_or_resolve_skills(
     return resolve_skill_names(prayog_submodule, profile, profile_name)
 
 
+def _verify_delivery_contract(prayog_submodule: Path, expected: str) -> str:
+    """Resolve and compare the pinned Prayog workflow contract."""
+    if not expected:
+        return ""
+    actual = resolve_delivery_contract(prayog_submodule)
+    if actual != expected:
+        raise HarnessResolveError(
+            f"delivery contract mismatch: harness expects {expected!r}, "
+            f"pinned prayog-skills provides {actual!r}"
+        )
+    return actual
+
+
 def _apply_harness_to_repo(
     repo_path: Path,
     profile: HarnessProfile,
     profile_name: str,
     org: str,
+    delivery_contract: str,
     *,
     target: str,
     meta_repo: str,
+    board_name: str = "",
+    board_url: str = "",
     apply: bool = False,
 ) -> int:
     prayog_submodule = repo_path / PRAYOG_SKILLS_SUBMODULE_REL
@@ -330,6 +391,15 @@ def _apply_harness_to_repo(
             )
         install_community_skills(repo_path, profile, apply=False)
         preview = _preview_or_resolve_skills(prayog_submodule, profile, profile_name)
+        if prayog_submodule.is_dir() and delivery_contract:
+            try:
+                actual_contract = _verify_delivery_contract(
+                    prayog_submodule, delivery_contract
+                )
+                print(f"    [dry-run] delivery contract: {actual_contract}")
+            except HarnessResolveError as exc:
+                print(f"ERROR: {exc}", file=sys.stderr)
+                return 1
         preview_names = (preview or []) + community_skill_names(profile)
         if preview is not None:
             materialize_skill_tree(
@@ -355,6 +425,7 @@ def _apply_harness_to_repo(
             profile,
             profile_name,
             skill_names=preview_names,
+            delivery_contract=delivery_contract,
             apply=False,
         )
         _seed_agents_md(
@@ -362,12 +433,21 @@ def _apply_harness_to_repo(
             profile_name,
             profile,
             skill_names=preview_names,
+            delivery_contract=delivery_contract,
             target=target,
             org=org,
             meta_repo=meta_repo,
+            board_name=board_name,
+            board_url=board_url,
             apply=False,
         )
         _seed_gitignore_harness(repo_path, apply=False)
+        _seed_delivery_workflows(
+            repo_path,
+            delivery_contract=delivery_contract,
+            profile_name=profile_name,
+            apply=False,
+        )
         return 0
 
     con = profile.constitution
@@ -403,6 +483,11 @@ def _apply_harness_to_repo(
         print(f"  ✔  skills pinned: {skill.org}/{skill.repo}@{skill_ref}")
 
     try:
+        actual_contract = _verify_delivery_contract(
+            prayog_submodule, delivery_contract
+        )
+        if actual_contract:
+            print(f"  ✔  delivery contract: {actual_contract}")
         skill_names = resolve_skill_names(prayog_submodule, profile, profile_name)
     except HarnessResolveError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
@@ -441,6 +526,7 @@ def _apply_harness_to_repo(
         profile,
         profile_name,
         skill_names=all_skill_names,
+        delivery_contract=delivery_contract,
         apply=True,
     )
     _seed_agents_md(
@@ -448,12 +534,21 @@ def _apply_harness_to_repo(
         profile_name,
         profile,
         skill_names=all_skill_names,
+        delivery_contract=delivery_contract,
         target=target,
         org=org,
         meta_repo=meta_repo,
+        board_name=board_name,
+        board_url=board_url,
         apply=True,
     )
     _seed_gitignore_harness(repo_path, apply=True)
+    _seed_delivery_workflows(
+        repo_path,
+        delivery_contract=delivery_contract,
+        profile_name=profile_name,
+        apply=True,
+    )
     return 0
 
 
@@ -491,21 +586,24 @@ def run_apply_harness(
         return 1
 
     org = gov.org
-
+    prog = None
+    meta_repo = cdir.parent.name
     try:
         prog_path = cdir / "programme.yaml"
         if prog_path.is_file():
             from launchpad.schema.programme import load_programme
 
             prog = load_programme(prog_path)
-            ws = workspace or prog.workspace
             meta_repo = prog.meta_repo
-        else:
-            ws = workspace or Path(".").resolve().parent
-            meta_repo = cdir.parent.name
-    except SchemaError:
-        ws = workspace or Path(".").resolve().parent
-        meta_repo = cdir.parent.name
+    except SchemaError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    try:
+        ws = resolve_programme_workspace(config_dir=cdir, override=workspace)
+    except ClientRegistryError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
     if meta:
         target = meta_repo
@@ -525,6 +623,9 @@ def run_apply_harness(
 
     profile = h.profiles[profile_name]
     repo_path = Path(ws).expanduser().resolve() / target
+    binding = resolve_board_binding(org, gov.project_board)
+    board_name = binding.name if binding.configured and profile_name != PM_HARNESS_PROFILE else ""
+    board_url = binding.url if binding.configured and profile_name != PM_HARNESS_PROFILE else ""
 
     print(f"apply-harness  →  {h.org}/{target}  [profile: {profile_name}]")
     if not repo_path.is_dir():
@@ -538,8 +639,11 @@ def run_apply_harness(
         profile,
         profile_name,
         org,
+        h.delivery_contract,
         target=target,
         meta_repo=meta_repo,
+        board_name=board_name,
+        board_url=board_url,
         apply=apply,
     )
     if result != 0:
@@ -552,6 +656,12 @@ def run_apply_harness(
         client_id = os.environ.get("LAUNCHPAD_CLIENT", "").strip()
         client_prefix = f"--client {client_id} " if client_id else ""
         target_flag = "--meta" if meta else f"--repo {target}"
-        print_next_box([f"launchpad {client_prefix}status {target_flag}".strip()])
+        next_steps = [f"launchpad {client_prefix}status {target_flag}".strip()]
+        if not meta and h.delivery_contract:
+            next_steps.insert(
+                0,
+                'git add .harness-pin.yaml .github/workflows/ && git commit -m "chore: sync harness and delivery workflows"',
+            )
+        print_next_box(next_steps)
 
     return 0

@@ -79,22 +79,19 @@ class TestGovernanceSchema:
         assert "kola-platform-core" in gov.repos
         assert gov.repos["kola-platform-core"].stack == "python-backend"
 
-    def test_starter_stacks_always_available(self):
-        gov = GovernanceSchema({"org": "acme", "teams": [], "repos": {}})
-        assert "python-backend" in gov.stack_profiles
-        assert "nextjs-frontend" in gov.stack_profiles
-        assert "terraform-iac" in gov.stack_profiles
-        assert "meta-pm" in gov.stack_profiles
-
-    def test_custom_stack_merges_with_starter(self):
+    def test_stack_profiles_yaml_only(self):
         gov = GovernanceSchema({
             "org": "acme",
             "stack_profiles": {"go-backend": "Go microservice"},
             "teams": [],
             "repos": {},
         })
-        assert "go-backend" in gov.stack_profiles
-        assert "python-backend" in gov.stack_profiles
+        assert gov.stack_profiles == {"go-backend": "Go microservice"}
+        assert "python-backend" not in gov.stack_profiles
+
+    def test_empty_stack_profiles(self):
+        gov = GovernanceSchema({"org": "acme", "teams": [], "repos": {}})
+        assert gov.stack_profiles == {}
 
     def test_missing_org_raises(self):
         with pytest.raises(SchemaError, match="missing required field 'org'"):
@@ -112,6 +109,7 @@ class TestGovernanceSchema:
     def test_repo_missing_teams_raises(self):
         raw = {
             "org": "acme",
+            "stack_profiles": {"python-backend": "Python / FastAPI microservice"},
             "teams": [{"name": "team-a"}],
             "repos": {"my-repo": {"stack": "python-backend"}},
         }
@@ -130,6 +128,7 @@ class TestGovernanceSchema:
     def test_repo_unknown_team_raises(self):
         raw = {
             "org": "acme",
+            "stack_profiles": {"python-backend": "Python / FastAPI microservice"},
             "teams": [{"name": "team-a"}],
             "repos": {"my-repo": {"stack": "python-backend", "teams": ["ghost-team"]}},
         }

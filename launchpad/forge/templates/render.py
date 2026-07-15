@@ -36,7 +36,13 @@ def build_render_context(
     pb = gov.project_board or {}
     board_name = str(pb.get("name") or "Engineering board")
     board_enabled = bool(pb.get("enabled"))
-    board_url = f"https://github.com/orgs/{org}/projects/1" if board_enabled else ""
+    number_raw = pb.get("number")
+    board_number = int(number_raw) if number_raw is not None and str(number_raw).strip() else None
+    board_url = str(pb.get("url") or "").strip()
+    if not board_url and board_number is not None:
+        board_url = f"https://github.com/orgs/{org}/projects/{board_number}"
+    elif board_enabled and not board_url:
+        board_url = f"https://github.com/orgs/{org}/projects/1"
 
     policy = gov.policy or {}
     integration_branch = str(

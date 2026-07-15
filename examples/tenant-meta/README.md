@@ -1,7 +1,7 @@
 # Example tenant meta (smoke fixture)
 
 This directory is the canonical example of a `<slug>-meta` control-plane repo.
-It is also used for local smoke tests (`LAUNCHPAD_TENANT_ROOT=examples/tenant-meta`).
+It is also used for local smoke tests (`./scripts/smoke-local.sh` via `--config-dir`).
 
 ---
 

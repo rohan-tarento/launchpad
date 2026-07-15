@@ -14,6 +14,7 @@ Reference files seeded by factory commands into each repo clone.
 | Harness pin | `harness-pin.<stack>.yaml` from harness profile | `.harness-pin.yaml` |
 | AGENTS.md | `AGENTS.md` / `AGENTS.meta.md` | `AGENTS.md` |
 | Gitignore (harness) | `gitignore.harness` | `.gitignore` (append or upgrade symlink patterns) |
+| Delivery workflows | `github/workflows/*.yml` when `delivery_contract` is set | `.github/workflows/` (app repos only; skip if file exists) |
 | Constitution | rules repo URL from harness profile | `.cursor/rules/` submodule |
 | Skills | skill repos from harness profile | `.harness/skills/` hub + runtime symlinks |
 
@@ -66,16 +67,27 @@ Use `--force` to overwrite after governance repo list changes.
 
 ---
 
-## Reference copies (manual deploy in v0.5.10)
+## Reference copies (manual deploy when no delivery_contract)
 
-Copy into each repo as needed. See [playbook/github/github-enforcement.md](../../playbook/github/github-enforcement.md).
+Copy into each repo as needed when not using `delivery_contract` in harness config.
+See [playbook/github/github-enforcement.md](../../playbook/github/github-enforcement.md).
 
 ### GitHub workflows
+
+When `harness-<org>.yaml` sets `delivery_contract` (e.g. `sdd-delivery/v2`),
+`apply-harness --repo <name> --apply` seeds these into `.github/workflows/`
+(skip if the file already exists):
 
 | File | Purpose |
 |------|---------|
 | `github/workflows/ci.yml` | Placeholder CI — job name `ci` for required checks |
 | `github/workflows/policy-branch-name.yml` | Branch name validation on PRs to `develop` |
+| `github/workflows/board-seed-gate.yml` | Fail merge when spec PR lacked `spec-lgtm` or plan on `develop` |
+
+Manual-only workflows (not auto-seeded):
+
+| File | Purpose |
+|------|---------|
 | `github/workflows/policy-merge-source.yml` | Merge-source validation on PRs to `main` |
 
 ### Issue templates

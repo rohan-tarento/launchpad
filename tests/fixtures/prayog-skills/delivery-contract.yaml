@@ -1,0 +1,27 @@
+apiVersion: prayog/v1
+kind: DeliveryContract
+id: sdd-delivery
+version: 2
+status: rc
+workflow: workflow.yaml
+github:
+  labels:
+    - name: impact-map-pending
+      color: BFD4F2
+      description: Gate 1 awaiting PE review
+      profiles: [meta-pm]
+    - name: spec-pending
+      color: BFD4F2
+      description: Gate 2 awaiting PE review
+      profiles: [app]
+    - name: spec-lgtm
+      color: 0E8A16
+      description: Gate 2 approved for current spec PR head
+      profiles: [app]
+  review_roles:
+    gate-1:
+      role: engineering-gate
+      profiles: [meta-pm]
+    gate-2:
+      role: engineering-gate
+      profiles: [app]

@@ -58,6 +58,30 @@ class ForgeProvider(Protocol):
         """Grant team permission to repo.  Idempotent."""
         ...
 
+    def team_repo_permission(
+        self,
+        org: str,
+        repo: str,
+        team: str,
+        *,
+        dry_run: bool = True,
+    ) -> str | None:
+        """Return team access to a repository."""
+        ...
+
+    def ensure_label(
+        self,
+        org: str,
+        repo: str,
+        name: str,
+        *,
+        color: str,
+        description: str = "",
+        dry_run: bool = True,
+    ) -> None:
+        """Create or reconcile a repository label."""
+        ...
+
     # ── Branch protection / gitflow ───────────────────────────────────────────
 
     def ensure_default_branch(self, org: str, repo: str, branch: str, *, dry_run: bool = True) -> None:

@@ -46,6 +46,7 @@ The `id` must match `programme_slug` in `config/programme.yaml`.
 clients:
   - id: example
     path: ~/Workspace/example/example-meta
+    workspace: ~/Workspace/example    # optional; defaults to parent of path
     forge: github
 ```
 
@@ -63,6 +64,10 @@ chmod 600 ~/.config/launchpad/env.d/example.env
 ```
 
 **Secrets SSOT:** `~/.config/launchpad/env.d/<slug>.env` — never commit.
+When you run `launchpad --client <slug> …`, values in that file **override** any
+ambient `GITHUB_TOKEN` / `GH_TOKEN` in the shell. Each operator uses their own
+PAT in their own `env.d` file — do not share tokens. `gh auth` / `hosts.yml` is
+separate and is **not** read by launchpad.
 
 ---
 
@@ -86,10 +91,15 @@ launchpad status --repo example-api
 
 Launchpad picks the tenant config directory in this order:
 
-1. `LAUNCHPAD_TENANT_ROOT` (explicit override)
-2. `--client` / `LAUNCHPAD_CLIENT` → lookup in `clients.yaml` → `<path>/config`
-3. `default:` in `clients.yaml`
-4. Sole client in `clients.yaml`
+1. `--client` / `LAUNCHPAD_CLIENT` → lookup in `clients.yaml` → `<path>/config`
+2. `default:` in `clients.yaml`
+3. Sole client in `clients.yaml`
+
+Workspace for sibling clones:
+
+1. `clients[].workspace` if set
+2. Else parent of `clients[].path`
+3. With `--config-dir` only (scripts/tests): parent of the meta repo (`config_dir/../..`)
 
 Secrets load automatically from `env.d/<id>.env` when a client is active.
 
