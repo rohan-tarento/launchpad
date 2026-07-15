@@ -30,7 +30,7 @@ def test_seed_agents_creates_initial_meta_guide(tmp_path) -> None:
 
     text = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
     assert "sdd-delivery/v2" in text
-    assert ".agents/skills/<skill>/workflow.yaml" in text
+    assert "prayog-skills/workflow.yaml" in text
     assert "what next?" in text
 
 
