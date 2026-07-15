@@ -9,7 +9,7 @@ from pathlib import Path
 from launchpad.harness.skills_lock import write_skills_lock
 from launchpad.schema.harness import HarnessProfile
 
-def test_write_skills_lock_uses_root_relative_paths_and_hashes(tmp_path: Path) -> None:
+def test_write_skills_lock_uses_installed_paths_and_hashes(tmp_path: Path) -> None:
     prayog = tmp_path / "prayog"
     skill = prayog / "skills" / "development" / "verify"
     skill.mkdir(parents=True)
@@ -36,7 +36,7 @@ def test_write_skills_lock_uses_root_relative_paths_and_hashes(tmp_path: Path) -
             "verify": {
                 "source": "drivestream-lab/prayog-skills",
                 "sourceType": "github",
-                "skillPath": "skills/development/verify/SKILL.md",
+                "skillPath": ".agents/skills/verify/SKILL.md",
                 "computedHash": hashlib.sha256(content.encode()).hexdigest(),
             }
         },
@@ -59,7 +59,7 @@ def test_write_skills_lock_removes_stale_entries_on_apply(tmp_path: Path) -> Non
         "version": 1,
         "skills": {
             "stale-skill": {"source": "old/repo", "sourceType": "github", "skillPath": "old/path/SKILL.md", "computedHash": "abc123"},
-            "verify": {"source": "drivestream-lab/prayog-skills", "sourceType": "github", "skillPath": "skills/development/verify/SKILL.md", "computedHash": hashlib.sha256(content.encode()).hexdigest()},
+            "verify": {"source": "drivestream-lab/prayog-skills", "sourceType": "github", "skillPath": ".agents/skills/verify/SKILL.md", "computedHash": hashlib.sha256(content.encode()).hexdigest()},
             "community-skill": {"source": "community/repo", "sourceType": "github", "skillPath": "community/path/SKILL.md", "computedHash": "def456"},
         },
     }
@@ -82,7 +82,7 @@ def test_write_skills_lock_removes_stale_entries_on_apply(tmp_path: Path) -> Non
             "verify": {
                 "source": "drivestream-lab/prayog-skills",
                 "sourceType": "github",
-                "skillPath": "skills/development/verify/SKILL.md",
+                "skillPath": ".agents/skills/verify/SKILL.md",
                 "computedHash": hashlib.sha256(content.encode()).hexdigest(),
             }
         },
@@ -125,3 +125,4 @@ def test_write_skills_lock_dry_run_preserves_existing_file(tmp_path: Path) -> No
     # Existing lock should be unchanged
     lock = json.loads((tmp_path / "skills-lock.json").read_text(encoding="utf-8"))
     assert lock == existing_lock
+

@@ -21,7 +21,7 @@ def write_skills_lock(
     lane_key: str,
     apply: bool,
 ) -> bool:
-    """Write skills-lock.json using project-root-relative Prayog skill paths."""
+    """Write skills-lock.json using installed skill symlink paths."""
     entries: dict[str, dict[str, str]] = {}
     source = profile.skills[0] if profile.skills else None
     if source is None:
@@ -32,11 +32,10 @@ def write_skills_lock(
         if skill_dir is None:
             continue
         skill_file = skill_dir / "SKILL.md"
-        rel = skill_file.relative_to(prayog_root).as_posix()
         entries[name] = {
             "source": f"{source.org}/{source.repo}",
             "sourceType": "github",
-            "skillPath": rel,
+            "skillPath": f".agents/skills/{name}/SKILL.md",
             "computedHash": hashlib.sha256(skill_file.read_bytes()).hexdigest(),
         }
 
@@ -48,3 +47,4 @@ def write_skills_lock(
     dest.write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8")
     print(f"  ✔  skills lock  →  {SKILLS_LOCK_REL}")
     return True
+
