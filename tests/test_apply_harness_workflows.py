@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import yaml
+
 from launchpad.commands.apply_harness import (
     _DELIVERY_WORKFLOW_TEMPLATES,
     _seed_delivery_workflows,
@@ -19,6 +21,15 @@ def test_seed_delivery_workflows_creates_files(tmp_path) -> None:
     workflows = tmp_path / ".github" / "workflows"
     for kit_rel in _DELIVERY_WORKFLOW_TEMPLATES:
         assert (workflows / kit_rel.split("/")[-1]).is_file()
+
+    # BaseLoader preserves the YAML key "on" as a string.
+    ci = yaml.load((workflows / "ci.yml").read_text(), Loader=yaml.BaseLoader)
+    assert ci["on"] == {"pull_request": {"branches": ["main"]}}
+    policy = yaml.load(
+        (workflows / "policy-branch-name.yml").read_text(), Loader=yaml.BaseLoader
+    )
+    assert policy["on"] == {"pull_request": {"branches": ["develop"]}}
+    assert not (workflows / "board-seed-gate.yml").exists()
 
 
 def test_seed_delivery_workflows_skips_meta_pm(tmp_path) -> None:

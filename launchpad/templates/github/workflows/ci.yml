@@ -1,13 +1,11 @@
-# Placeholder CI — replace with repo-specific lint/test (Python, Next.js, etc.).
-# Job name must stay "ci" when enabling as a required branch-protection check.
+# Run verification only for PRs to main.
+# Keep the job name "ci" for branch protection.
 
 name: ci
 
 on:
   pull_request:
-    branches: [develop, main]
-  push:
-    branches: [develop, main, 'feature/**']
+    branches: [main]
 
 jobs:
   ci:
