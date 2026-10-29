@@ -13,7 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: ci placeholder
-        run: |
-          echo "Replace this workflow with repo-specific checks (ruff, pytest, npm run build, ...)"
-          echo "Job name must remain: ci"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pre-commit
+        run: python -m pip install pre-commit==4.2.0
+
+      # Add repository toolchain and dependency setup before verification.
+      - name: Verify
+        run: pre-commit run --all-files

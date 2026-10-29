@@ -14,7 +14,8 @@ Reference files seeded by factory commands into each repo clone.
 | Harness pin | `harness-pin.<stack>.yaml` from harness profile | `.harness-pin.yaml` |
 | AGENTS.md | `AGENTS.md` / `AGENTS.meta.md` | `AGENTS.md` |
 | Gitignore (harness) | `gitignore.harness` | `.gitignore` (append or upgrade symlink patterns) |
-| Delivery workflows | `github/workflows/*.yml` when `delivery_contract` is set | `.github/workflows/` (app repos only; skip if file exists) |
+| Delivery workflows | `github/workflows/ci.yml` and `github/workflows/policy-branch-name.yml` when `delivery_contract` is set | `.github/workflows/` (app repos only, preserve existing files) |
+| Local checks | `pre-commit-config.yaml` when `delivery_contract` is set | `.pre-commit-config.yaml` (app repos only, preserve existing files) |
 | Constitution | rules repo URL from harness profile | `.cursor/rules/` submodule |
 | Skills | skill repos from harness profile | `.harness/skills/` hub + runtime symlinks |
 
@@ -80,15 +81,62 @@ When `harness-<org>.yaml` sets `delivery_contract` (e.g. `sdd-delivery/v2`),
 
 | File | Purpose |
 |------|---------|
-| `github/workflows/ci.yml` | Placeholder CI — job name `ci` for required checks |
+| `github/workflows/ci.yml` | Full verification for PRs to `main`, job name `ci` |
 | `github/workflows/policy-branch-name.yml` | Branch name validation on PRs to `develop` |
-| `github/workflows/board-seed-gate.yml` | Fail merge when spec PR lacked `spec-lgtm` or plan on `develop` |
 
-Manual-only workflows (not auto-seeded):
+Manual-only workflows:
 
 | File | Purpose |
 |------|---------|
 | `github/workflows/policy-merge-source.yml` | Merge-source validation on PRs to `main` |
+| `github/workflows/board-seed-gate.yml` | Optional spec merge gate on `develop` |
+
+### Local verification
+
+The seed runs the same checks before each local commit and in CI for PRs to `main`.
+PRs to `develop` retain only the branch name policy check.
+There is no verification CI on push.
+
+Define these Make targets with commands for each repository:
+
+| Target | Check |
+|--------|-------|
+| `format-check` | Format check without file changes |
+| `lint` | Static analysis and type checks |
+| `test` | Unit tests |
+| `build` | Production build |
+| `docker-build` | Docker image build |
+
+Missing targets fail verification.
+Declare these targets as `.PHONY` so Make runs them on each commit.
+Install repository dependencies and build tools locally.
+Add the same setup steps before `Verify` in the CI workflow.
+The Docker check needs a Docker daemon.
+
+Add other repository checks to `.pre-commit-config.yaml` so local and CI checks stay the same.
+Each developer must install the Git hook in each clone:
+
+```bash
+python -m pip install pre-commit==4.2.0
+pre-commit install
+pre-commit run --all-files
+```
+
+All hooks run for each commit, including commits with documentation changes only.
+A failed check blocks the commit.
+Local hooks can be bypassed, so keep `ci` as a merge check for `main`.
+
+### Existing repositories
+
+`apply-harness` preserves existing workflow and hook files.
+It does not migrate custom verification commands.
+Move those commands into the Make targets, then update CI from this seed.
+Remove verification triggers for `develop` and push events.
+
+Remove `ci` from branch protection for `develop` and retain `policy-branch-name`.
+Enable `ci` for `main` only.
+Remove any existing `board-seed-gate.yml` if `develop` must run only the branch name check.
+Retain `policy-branch-name.yml` without changes.
 
 ### Issue templates
 
